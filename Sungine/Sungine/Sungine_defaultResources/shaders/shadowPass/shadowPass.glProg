@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "shadowPass.vert",
+    "fragment" : "shadowPass.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

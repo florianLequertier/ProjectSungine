@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "forward",
+    "baseMaterial" : "object3D",
+    "vertex" : "wireframe.vert",
+    "fragment" : "wireframe.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

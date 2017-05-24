@@ -1,0 +1,10 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "skybox.vert",
+    "fragment" : "skybox.frag",
+    "geometry" : "",
+    "internalShaderParameters" : [
+        {"type" : "cubeTexture", "name" : "Diffuse", "default" : "default" }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    //"pipelineHandling" : ["deferred", "forward"],
+    "materialPipeline" : "deferred",
+    "materialUsage" : "billboard",
+    "vertex" : "billboard.vert",
+    "fragment" : "billboard.frag",
+    "geometry" : "",
+    //"baseMaterial" : "billboard",
+    //"deferred" : {"vertex" : "billboard.vert", "fragment" : "billboard.frag", "geometry" : ""},
+    //"forward" : {"vertex" : "transparent.vert", "fragment" : "transparent.frag", "geometry" : ""}, //TODO
+    "internalShaderParameters" : []
+}

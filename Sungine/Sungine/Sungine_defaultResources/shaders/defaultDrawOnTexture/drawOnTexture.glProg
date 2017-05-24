@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "drawOnTexture.vert",
+    "fragment" : "drawOnTexture.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

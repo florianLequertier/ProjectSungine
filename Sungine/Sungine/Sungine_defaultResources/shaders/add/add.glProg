@@ -1,0 +1,11 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "add.vert",
+    "fragment" : "add.frag",
+    "geometry" : "",
+    "internalShaderParameters" : [
+        {"type" : "texture", "name" : "Texture01", "default" : "default" },
+        {"type" : "texture", "name" : "Texture02", "default" : "default"}
+    ]
+}

@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|Win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|Win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{DB474D54-E150-3403-AA7F-1643CA4927F5}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\assimp\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\bullet3\src;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\cereal;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glfw\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glew;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glm;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\jsoncpp;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\libhello;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\stb;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\assimp\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\bullet3\src;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\cereal;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glfw\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glew;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glm;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\jsoncpp;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\libhello;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\stb;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\assimp\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\bullet3\src;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\cereal;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glfw\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glew;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glm;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\jsoncpp;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\libhello;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\stb;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <Midl>
+      <AdditionalIncludeDirectories>D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\assimp\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\bullet3\src;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\cereal;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glfw\include;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glew;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\glm;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\jsoncpp;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\libhello;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_ThirdParty\stb;D:\programmation\repo_git\ProjectSungine\Sungine\Sungine_ProjectBuilder\..\Sungine\Sungine_sources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3Serialize/Bullet2FileLoader/Bullet2FileLoader.vcxproj">
+      <Project>01A99466-A8C8-3D69-971B-B677002CAA2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3Collision/Bullet3Collision.vcxproj">
+      <Project>D3F519BE-93ED-34FD-B686-098E889AB7F5</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3Common/Bullet3Common.vcxproj">
+      <Project>3B93513D-61B9-33DE-AD5F-1CC244669543</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3Dynamics/Bullet3Dynamics.vcxproj">
+      <Project>72390464-FE34-397E-8372-44FB62FC0A2C</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3Geometry/Bullet3Geometry.vcxproj">
+      <Project>C75C0F37-D157-30EC-9583-22659F0A46B5</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/Bullet3OpenCL/Bullet3OpenCL_clew.vcxproj">
+      <Project>DD874A8D-0E84-300F-8984-08B718052171</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/BulletCollision/BulletCollision.vcxproj">
+      <Project>3663A639-176C-38F6-8366-F8D40AF260BE</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/BulletDynamics/BulletDynamics.vcxproj">
+      <Project>3EDC7041-CCE9-3674-9EEB-47B3E0C21A35</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/BulletInverseDynamics/BulletInverseDynamics.vcxproj">
+      <Project>3B1BE3D1-F7F9-3225-ABE6-CEDD830C93E3</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/BulletSoftBody/BulletSoftBody.vcxproj">
+      <Project>B739233A-E180-3532-B256-45CF2AAD7764</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/bullet3/src/LinearMath/LinearMath.vcxproj">
+      <Project>543467CF-EA1D-338B-B13C-E40DB8741B3B</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine_Games/Example/MyProject.vcxproj">
+      <Project>F23BEC54-3DF2-3654-AF09-E8D9B4A093CF</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine.vcxproj">
+      <Project>1F873ED9-48B7-39CD-94FB-40AA5A467772</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/assimp/code/assimp.vcxproj">
+      <Project>4FF56DBB-CBA7-32F9-8923-898D9161AEB7</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/glew/glew.vcxproj">
+      <Project>2BF8343D-0D22-3641-B3B1-6B69E456CAC9</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/glfw/src/glfw.vcxproj">
+      <Project>719E6014-3B63-3715-A2EB-EACC524B4E22</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/glm/glm/glm.vcxproj">
+      <Project>18CBB898-8F1F-3F1D-AA32-E0E5ECA36D8E</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/libhello/hello.vcxproj">
+      <Project>4BC6966B-A94E-3074-BABF-6200AC56E7C3</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/imgui/imgui.vcxproj">
+      <Project>1E218360-352E-3968-B9A2-2FC30B7EAAF4</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/jsoncpp/jsoncpp.vcxproj">
+      <Project>C3FA82AF-754D-3B31-92EF-8590F317D692</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/stb/stb.vcxproj">
+      <Project>0F999AE9-195C-3DF5-A7D2-2B7988F88CE7</Project>
+    </ProjectReference>
+    <ProjectReference Include="D:/programmation/repo_git/ProjectSungine/Sungine/Sungine/Sungine_build/Sungine_ThirdParty/assimp/contrib/zlib/zlibstatic.vcxproj">
+      <Project>4DB19734-DDCD-36EE-9396-A98BC540379E</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

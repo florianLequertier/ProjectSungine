@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "bloom.vert",
+    "fragment" : "bloom.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

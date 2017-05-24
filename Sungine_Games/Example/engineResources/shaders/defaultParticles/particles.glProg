@@ -1,0 +1,12 @@
+{
+    //"pipelineHandling" : ["deferred", "forward"],
+    //"baseMaterial" : "particle",
+    //"deferred" : {"vertex" : "particle.vert", "fragment" : "particle.frag", "geometry" : "particle.geom"},
+    //"forward" : {"vertex" : "transparent.vert", "fragment" : "transparent.frag", "geometry" : ""}, //TODO
+    "materialPipeline" : "deferred",
+    "materialUsage" : "particles",
+    "vertex" : "particle.vert",
+    "fragment" : "particle.frag",
+    "geometry" : "particle.geom",
+    "internalShaderParameters" : []
+}

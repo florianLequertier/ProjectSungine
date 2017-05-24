@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "deferred",
+    "baseMaterial" : "reflection",
+    "vertex" : "reflection.vert",
+    "fragment" : "reflection.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

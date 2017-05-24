@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "ssao.vert",
+    "fragment" : "ssao.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

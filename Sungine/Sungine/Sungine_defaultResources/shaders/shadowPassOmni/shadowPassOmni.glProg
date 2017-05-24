@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "shadowPassOmni.vert",
+    "fragment" : "shadowPassOmni.frag",
+    "geometry" : "shadowPassOmni.geom",
+    "internalShaderParameters" : []
+}

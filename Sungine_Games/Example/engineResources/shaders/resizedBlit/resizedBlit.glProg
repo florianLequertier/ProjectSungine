@@ -1,0 +1,8 @@
+{
+    "pipelineHandling" : "custom",
+    "baseMaterial" : "custom",
+    "vertex" : "resizedBlit.vert",
+    "fragment" : "resizedBlit.frag",
+    "geometry" : "",
+    "internalShaderParameters" : []
+}

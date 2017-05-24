@@ -1,0 +1,22 @@
+{
+    //"pipelineHandling" : ["deferred", "forward"],
+    //"baseMaterial" : "object3D",
+    //"deferred" : {"vertex" : "aogl.vert", "fragment" : "aogl_gPass.frag", "geometry" : ""},
+    //"forward" : {"vertex" : "transparent.vert", "fragment" : "transparent.frag", "geometry" : ""},
+    "materialPipeline" : "deferred",
+    "materialUsage" : "mesh",
+    "vertex" : "aogl.vert",
+    "fragment" : "aogl_gPass.frag",
+    "geometry" : "",
+    "internalShaderParameters" : [
+        {"type" : "texture", "name" : "Diffuse", "default" : "default" },
+        {"type" : "float4", "name" : "TintColor", "default" : [1.0, 1.0, 1.0, 1.0], "displayType" : "color"},
+        {"type" : "texture", "name" : "Specular", "default" : "defaultSpecular"},
+        {"type" : "texture", "name" : "Bump", "default" : "defaultNormal"},
+        {"type" : "float", "name" : "SpecularPower", "default" : 0.4},
+        {"type" : "float2", "name" : "TextureRepetition", "default" : [10, 10]},
+        {"type" : "texture", "name" : "Emissive", "default" : "defaultEmissive"},
+        {"type" : "float", "name" : "EmissiveMultiplier", "default" : 0.0},
+        {"type" : "float3", "name" : "EmissiveColor", "default" : [1.0, 1.0, 1.0], "displayType" : "color"}
+    ]
+}
