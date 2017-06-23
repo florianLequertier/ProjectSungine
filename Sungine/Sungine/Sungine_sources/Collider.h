@@ -25,7 +25,8 @@ class Entity;
 class Rigidbody;
 
 
-struct CollisionInfo {
+struct CollisionInfo 
+{
 	Rigidbody* receiver;
 	Rigidbody* rigidbody;
 	glm::vec3 point;
@@ -36,26 +37,28 @@ struct CollisionInfo {
 
 struct Collider : public Component
 {
-	REFLEXION_HEADER(Collider)
+	CLASS((Collider, Component),
+	((PUBLIC)
+		//the offsetPosition is an offset added to the position of the collider
+		(glm::vec3, offsetPosition)
+		//the offsetScale is an offset added to the scale of the collider
+		(glm::vec3, offsetScale)
+		(glm::mat4, offsetMatrix)
+		//the origin is between 0 and 1, it represent the pivot point of this collider
+		(glm::vec3, origin)
+		(glm::vec3, translation)
+		(glm::vec3, scale)
+		(glm::quat, rotation)
+		(glm::mat4, modelMatrix)
+	)
+	)
 
 public:
 
 	ResourcePtr<Material> visualMaterial;
 	ResourcePtr<Mesh> visualMesh;
 
-	//the offsetPosition is an offset added to the position of the collider
-	glm::vec3 offsetPosition;
-	//the offsetScale is an offset added to the scale of the collider
-	glm::vec3 offsetScale;
-	glm::mat4 offsetMatrix;
-	//the origin is between 0 and 1, it represent the pivot point of this collider
-	glm::vec3 origin;
-	glm::vec3 translation;
-	glm::vec3 scale;
-	glm::quat rotation;
-	glm::mat4 modelMatrix;
-
-	Collider(ComponentType colliderType, Mesh* _visualMesh = nullptr, Material* _visualMaterial = nullptr);
+	Collider(Mesh* _visualMesh = nullptr, Material* _visualMaterial = nullptr);
 	virtual ~Collider();
 
 	//add a visual representation to this collider
@@ -141,21 +144,22 @@ public:
 
 };
 
-REFLEXION_CPP(Collider)
-REFLEXION_InheritFrom(Collider, Component)
+REGISTER_CLASS(Collider)
 
 struct BoxCollider : public Collider
 {
-	REFLEXION_HEADER(BoxCollider)
 	COMPONENT_IMPLEMENTATION_HEADER(BoxCollider)
 
+	CLASS((BoxCollider, Collider),
+	((PUBLIC)
+		(glm::vec3, localTopRight)
+		(glm::vec3, localBottomLeft)
+		(glm::vec3, topRight)
+		(glm::vec3, bottomLeft)
+	)
+	)
+
 public:
-
-	glm::vec3 localTopRight;
-	glm::vec3 localBottomLeft;
-
-	glm::vec3 topRight;
-	glm::vec3 bottomLeft;
 
 	BoxCollider(Mesh* _visualMesh = nullptr, Material* _visualMaterial = nullptr);
 
@@ -175,18 +179,20 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(BoxCollider)
-REFLEXION_InheritFrom(BoxCollider, Collider)
+REGISTER_CLASS(BoxCollider)
 
 struct CapsuleCollider : public Collider
 {
-	REFLEXION_HEADER(CapsuleCollider)
 	COMPONENT_IMPLEMENTATION_HEADER(CapsuleCollider)
 
-public:
+	CLASS((CapsuleCollider, Collider),
+	((PUBLIC)
+		(float, height)
+		(float, radius)
+	)
+	)
 
-	float height;
-	float radius;
+public:
 
 	CapsuleCollider();
 
@@ -205,5 +211,4 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(CapsuleCollider)
-REFLEXION_InheritFrom(CapsuleCollider, Collider)
+REGISTER_CLASS(CapsuleCollider)

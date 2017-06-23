@@ -23,6 +23,7 @@
 #include "Object.h"
 #include "Factories.h"
 
+#include "ObjectPool.h"
 
 Scene::Scene(Renderer* renderer, const std::string& sceneName) 
 	: m_renderer(renderer)
@@ -32,6 +33,8 @@ Scene::Scene(Renderer* renderer, const std::string& sceneName)
 	, m_isDebugPhysicVisible(true)
 	, m_renderables(glm::vec3(0, 0, 0), 500, 3) //TODO RENDERING : put a flexible size
 {
+	SceneInitializer::instance().initScene(this);
+
 	m_accessor = std::make_shared<SceneAccessor>(this);
 	m_physicManager = new Physic::PhysicManager();
 	//m_terrain.initPhysics(m_physicManager->getBulletDynamicSimulation());

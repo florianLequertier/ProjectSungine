@@ -23,7 +23,11 @@ class Scene;
 
 class Behavior : public Component
 {
-	REFLEXION_HEADER(Behavior)
+	COMPONENT_IMPLEMENTATION_HEADER(Behavior)
+
+	OBJECT_CLASS(Behavior,
+		ObjectDescriptor<Behavior>::registerParentClass<Component>()
+	)
 
 private:
 	friend class BehaviorManager;
@@ -47,5 +51,4 @@ public:
 	virtual void load(const Json::Value & entityRoot) override;
 };
 
-REFLEXION_CPP(Behavior)
-REFLEXION_InheritFrom(Behavior, Component)
+REGISTER_CLASS(Behavior)

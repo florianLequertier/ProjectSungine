@@ -15,14 +15,19 @@ class Entity;
 
 class MeshRenderer : public Component, public IRenderableComponent
 {
-	REFLEXION_HEADER(MeshRenderer)
 	COMPONENT_IMPLEMENTATION_HEADER(MeshRenderer)
 
+	CLASS((MeshRenderer, Component),
+	)
+
 private:
+
 	//%NOCOMMIT%
 	//Mesh* mesh;
 	//std::vector<Material3DObject*> material;
+
 	ResourcePtr<Mesh> m_mesh;
+
 	std::vector<std::shared_ptr<SubMesh>> m_subMeshes; // Warning ! Deep copy needed !
 	std::vector<ResourcePtr<Material>> m_materials;
 
@@ -68,5 +73,4 @@ public:
 	virtual void onAfterComponentAddedToEntity(Entity& entity) override;
 };
 
-REFLEXION_CPP(MeshRenderer)
-REFLEXION_InheritFrom(MeshRenderer, Component)
+REGISTER_CLASS(MeshRenderer)

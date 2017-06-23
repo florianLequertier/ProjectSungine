@@ -10,18 +10,28 @@
 
 class Rigidbody : public Component
 {
-	REFLEXION_HEADER(Rigidbody)
 	COMPONENT_IMPLEMENTATION_HEADER(Rigidbody)
 
+	CLASS((Rigidbody, Component),
+	((PRIVATE)
+		(glm::vec3	, m_translation	)
+		(glm::quat	, m_rotation	)
+		(glm::vec3	, m_scale		)
+					
+		(btScalar	, m_mass		)
+		(btVector3	, m_inertia		)
+					 
+		(bool		, m_isTrigger	)
+
+		(bool		, m_useGravit	)
+	)
+	)
+
 private:
-	glm::vec3 m_translation;
-	glm::quat m_rotation;
-	glm::vec3 m_scale;
 
-	btScalar m_mass;
-	btVector3 m_inertia;
-
-	bool m_isTrigger;
+	// TODO ->parameter
+	bool m_frozenAxis[3];
+	bool m_frozenAngles[3];
 
 	btRigidBody* m_bulletRigidbody;
 
@@ -30,10 +40,7 @@ private:
 	std::vector<Collider*> m_colliders;
 
 	btDiscreteDynamicsWorld* m_ptrToPhysicWorld;
-	bool m_frozenAxis[3];
-	bool m_frozenAngles[3];
-	bool m_useGravity;
-
+	
 public:
 	Rigidbody();
 	Rigidbody(const Rigidbody& other);
@@ -96,6 +103,5 @@ public:
 	virtual void onAfterComponentAddedToEntity(Entity& entity) override;
 };
 
-REFLEXION_CPP(Rigidbody)
-REFLEXION_InheritFrom(Rigidbody, Component)
+REGISTER_CLASS(Rigidbody)
 

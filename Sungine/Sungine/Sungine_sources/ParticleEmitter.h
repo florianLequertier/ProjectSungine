@@ -21,35 +21,44 @@ namespace Physic{
 
 	class ParticleEmitter : public Component, public IRenderableComponent, public IBatchableWith<MaterialParticlesCPU>
 	{
-		REFLEXION_HEADER(ParticleEmitter)
 		COMPONENT_IMPLEMENTATION_HEADER(ParticleEmitter)
+
+		CLASS((ParticleEmitter, Component),
+		((PRIVATE)
+			//transform :
+			(glm::vec3				, m_scale						)
+			(glm::vec3				, m_translation					)
+			(glm::quat				, m_rotation					)
+			//parameters :
+			(int					, m_maxParticleCount			)
+			(int					, m_aliveParticlesCount			)
+			(std::vector<float>		, m_sizeSteps_times				)
+			(std::vector<glm::vec2> , m_sizeSteps_values			)
+			(std::vector<float>		, m_colorSteps_times			)
+			(std::vector<glm::vec4> , m_colorSteps_values			)
+			(std::vector<float>		, m_forceSteps_times			)
+			(std::vector<glm::vec3> , m_forceSteps_values			)
+			(glm::vec2				, m_initialVelocityInterval		)
+			(glm::vec2				, m_lifeTimeInterval			)
+			(float					, m_particleCountBySecond		)
+			(float					, m_spawnFragment				)
+			(bool					, m_emitInShape					)
+			(bool					, m_sortParticles				)
+		)
+		)
 
 	public :
 		enum VBO_TYPES { VERTICES = 0, NORMALS, UVS,  POSITIONS, COLORS, SIZES};
 	private:
 
-		//transform :
-		glm::vec3 m_scale;
-		glm::vec3 m_translation;
-		glm::quat m_rotation;
-
-		//parameters : 
-		int m_maxParticleCount;
-		int m_aliveParticlesCount;
-		std::vector<float> m_sizeSteps_times;
-		std::vector<glm::vec2> m_sizeSteps_values;
-		std::vector<float> m_colorSteps_times;
-		std::vector<glm::vec4> m_colorSteps_values;
-		std::vector<float> m_forceSteps_times;
-		std::vector<glm::vec3> m_forceSteps_values;
-		glm::vec2 m_initialVelocityInterval;
-		glm::vec2 m_lifeTimeInterval;
+		//TODO : enlever a texture ? nouveau pipeline materiel
 		ResourcePtr<Texture> m_particleTexture;
 		std::string m_particleTextureName;
-		float m_particleCountBySecond;
-		float m_spawnFragment;
-		bool m_emitInShape;
-		bool m_sortParticles;
+
+		//TODO : -> parameters
+		//materials : 
+		ResourcePtr<Material> m_materialParticules;
+		//MaterialParticleSimulation* m_materialParticuleSimulation;
 
 		//particles soa : 
 		std::vector<glm::vec3> m_positions;
@@ -67,10 +76,6 @@ namespace Physic{
 		std::vector<float> m_uvs;
 		std::vector<float> m_vertices;
 		std::vector<float> m_normals;
-
-		//materials : 
-		ResourcePtr<Material> m_materialParticules;
-		//MaterialParticleSimulation* m_materialParticuleSimulation;
 
 		//opengl stuff : 
 		GLuint m_vao;
@@ -138,6 +143,5 @@ namespace Physic{
 
 }
 
-REFLEXION_CPP(Physic::ParticleEmitter)
-REFLEXION_InheritFrom(Physic::ParticleEmitter, Component)
+REGISTER_CLASS(Physic::ParticleEmitter)
 

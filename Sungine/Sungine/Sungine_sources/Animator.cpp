@@ -11,7 +11,7 @@
 COMPONENT_IMPLEMENTATION_CPP(Animator)
 
 Animator::Animator()
-	: Component(ComponentType::ANIMATOR)
+	: Component()
 	, m_skeleton(nullptr)
 	, m_currentAnimIdx(0)
 	, m_isPlaying(false)

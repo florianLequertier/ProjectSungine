@@ -64,7 +64,24 @@ protected:
 
 class CharacterController: public Component
 {
-	REFLEXION_HEADER(CharacterController)
+	OBJECT_CLASS(CharacterController,
+		ObjectDescriptor<CharacterController>::registerParentClass<Component>();
+
+		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_translation);
+		ObjectDescriptor<CharacterController>::registerProperty<glm::quat>(&CharacterController::m_rotation);
+		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_scale);
+
+		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_speed);
+		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_force);
+		
+		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_height);
+		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_radius);
+
+		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_gravityFactor);
+		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_jumpFactor);
+		ObjectDescriptor<CharacterController>::registerProperty<float[4]>(&CharacterController::m_speedFactor)
+	)
+
 	COMPONENT_IMPLEMENTATION_HEADER(CharacterController)
 
 	enum Direction {FORWARD = 0, RIGHT = 1, LEFT = 2, BACKWARD = 3};
@@ -132,5 +149,4 @@ public:
 	virtual void onAfterComponentAddedToEntity(Entity& entity) override;
 };
 
-REFLEXION_CPP(CharacterController)
-REFLEXION_InheritFrom(CharacterController, Component)
+REGISTER_CLASS(CharacterController)

@@ -17,16 +17,23 @@ class RenderTarget;
 
 class ReflectivePlane : public Component, public IRenderableComponent, public IBatchableWith<MaterialReflection>
 {
-	REFLEXION_HEADER(ReflectivePlane)
 	COMPONENT_IMPLEMENTATION_HEADER(ReflectivePlane)
 
+	CLASS((ReflectivePlane, Component),
+	((PRIVATE)
+		(bool		, m_castShadow		)
+	)
+	)
+
+
 private:
+
+	// TODO : ->parameter
 	ResourcePtr<Mesh> m_mesh;
 	ResourcePtr<Material> m_material;
 
 	glm::mat4 m_modelMatrix;
 	AABB m_aabb;
-	bool m_castShadow;
 
 	std::unordered_map<ID, std::shared_ptr<ReflectionCamera>> m_reflexionCameras;
 	ID m_activeCameraID;

@@ -10,7 +10,13 @@
 
 class Billboard : public Component, public IRenderableComponent, public IBatchableWith<MaterialBillboard>
 {
-	REFLEXION_HEADER(Billboard)
+	OBJECT_CLASS(Billboard,
+	ObjectDescriptor<Billboard>::registerParentClass<Component>();
+	ObjectDescriptor<Billboard>::registerProperty<glm::vec3>(&Billboard::m_translation);
+	ObjectDescriptor<Billboard>::registerProperty<glm::vec2>(&Billboard::m_scale);
+	ObjectDescriptor<Billboard>::registerProperty<glm::vec4>(&Billboard::m_color)
+	)
+
 	COMPONENT_IMPLEMENTATION_HEADER(Billboard)
 
 private:
@@ -19,7 +25,6 @@ private:
 	ResourcePtr<Mesh> m_quadMesh;
 	ResourcePtr<Material> m_billboardMaterial;
 	ResourcePtr<Texture> m_texture;
-	//std::string m_textureName;
 	glm::vec4 m_color;
 
 public:
@@ -63,5 +68,4 @@ public:
 	virtual void onBeforeComponentErasedFromScene(Scene & scene) override;
 };
 
-REFLEXION_CPP(Billboard)
-REFLEXION_InheritFrom(Billboard, Component)
+REGISTER_CLASS(Billboard)

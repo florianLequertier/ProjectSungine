@@ -145,7 +145,20 @@ public:
 
 class Camera : public Component, public BaseCamera
 {
-	REFLEXION_HEADER(Camera)
+	OBJECT_CLASS(Camera,
+		ObjectDescriptor<Camera>::registerParentClass<Component>();
+		ObjectDescriptor<Camera>::registerParentClass<BaseCamera>();
+
+		ObjectDescriptor<Camera>::registerProperty<CameraMode>(&Camera::m_cameraMode);
+		ObjectDescriptor<Camera>::registerProperty<glm::vec3>(&Camera::m_lookPosition);
+		ObjectDescriptor<Camera>::registerProperty<glm::vec3>(&Camera::m_up);
+
+		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_left);
+		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_top);
+		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_right);
+		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_bottom)
+	)
+
 	COMPONENT_IMPLEMENTATION_HEADER(Camera)
 
 private :
@@ -220,12 +233,29 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(Camera)
-REFLEXION_InheritFrom(Camera, Component)
+REGISTER_CLASS(Camera)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CameraEditor final : public BaseCamera, public Object
 {
-	REFLEXION_HEADER(CameraEditor)
+	OBJECT_CLASS(CameraEditor,
+		ObjectDescriptor<CameraEditor>::registerParentClass<Object>();
+		ObjectDescriptor<CameraEditor>::registerParentClass<BaseCamera>();
+
+		ObjectDescriptor<CameraEditor>::registerProperty<float>(&CameraEditor::radius);
+		ObjectDescriptor<CameraEditor>::registerProperty<float>(&CameraEditor::theta);
+		ObjectDescriptor<CameraEditor>::registerProperty<float>(&CameraEditor::phi);
+		ObjectDescriptor<CameraEditor>::registerProperty<glm::vec3>(&CameraEditor::o);
+
+		ObjectDescriptor<CameraEditor>::registerProperty<glm::vec3>(&CameraEditor::up);
+		ObjectDescriptor<CameraEditor>::registerProperty<glm::vec3>(&CameraEditor::right);
+
+		ObjectDescriptor<CameraEditor>::registerProperty<bool>(&CameraEditor::m_isFPSMode);
+		ObjectDescriptor<CameraEditor>::registerProperty<float>(&CameraEditor::m_cameraBaseSpeed);
+		ObjectDescriptor<CameraEditor>::registerProperty<float>(&CameraEditor::m_cameraBoostSpeed);
+		ObjectDescriptor<CameraEditor>::registerProperty<bool>(&CameraEditor::m_hideCursorWhenMovingCamera)
+	)
 
 private:
 	float radius;
@@ -308,12 +338,15 @@ public:
 
 };
 
-REFLEXION_CPP(CameraEditor)
-REFLEXION_InheritFrom(CameraEditor, BaseCamera)
+REGISTER_CLASS(CameraEditor)
 
 struct ReflectionCamera : public BaseCamera, public Object
 {
-	REFLEXION_HEADER(ReflectionCamera)
+
+	OBJECT_CLASS(ReflectionCamera,
+		ObjectDescriptor<ReflectionCamera>::registerParentClass<Object>();
+		ObjectDescriptor<ReflectionCamera>::registerParentClass<BaseCamera>();
+	)
 
 private:
 	//GlHelper::Renderbuffer m_stencilBuffer;
@@ -336,9 +369,7 @@ public:
 	//GLuint getFinalFrame() const;
 };
 
-REFLEXION_CPP(ReflectionCamera)
-REFLEXION_InheritFrom(ReflectionCamera, Object)
-
+REGISTER_CLASS(ReflectionCamera)
 
 
 /*

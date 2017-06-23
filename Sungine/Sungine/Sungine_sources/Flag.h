@@ -26,41 +26,53 @@ namespace Physic {
 
 	class Flag : public Component, public IBatchableWith<MaterialLit>, public IRenderableComponent
 	{
-		REFLEXION_HEADER(Flag)
 		COMPONENT_IMPLEMENTATION_HEADER(Flag)
 
-		glm::vec3 origin;
-		glm::vec3 translation;
-		glm::vec3 scale;
-		glm::quat rotation;
-		glm::mat4 modelMatrix;
+		CLASS((Flag, Component),
+		((PRIVATE)
+			// Transform override
+			(glm::vec3	, origin					)
+			(glm::vec3	, translation				)
+			(glm::vec3	, scale						)
+			(glm::quat	, rotation					)
+			(glm::mat4	, modelMatrix				)
 
+			// Flag parameters
+			(bool		, m_castShadows				)
+
+			(float		, m_width					)
+			(float		, m_height					)
+			(int		, m_subdivision				)
+			
+			(float		, m_mass					)
+			(float		, m_viscosity				)
+			(float		, m_rigidity				)
+			
+			//for auto collisions : 
+			(float		, m_autoCollisionDistance	)
+			(bool		, m_computeAutoCollision	)
+			(float		, m_autoCollisionRigidity	)
+			(float		, m_autoCollisionViscosity	)
+			)
+		)
+
+	private:
+		// internal infos
 		std::vector<glm::vec3> localPointPositions;
 		std::vector<Point> pointContainer;
-		std::vector<Link> linkShape; //maillages structurel (d4)
-		std::vector<Link> linkShearing; //maillage diagonal (d8\d4)
-		std::vector<Link> linkBlending; //maillage pont (tout les deux points)
+		//maillages structurel (d4)
+		std::vector<Link> linkShape;
+		//maillage diagonal (d8\d4)
+		std::vector<Link> linkShearing;
+		//maillage pont (tout les deux points)
+		std::vector<Link> linkBlending;
 
+		// Generated mesh
 		Mesh m_mesh;
 
+		// Flag material
 		std::string m_materialName;
 		ResourcePtr<Material> m_material;
-
-		bool m_castShadows;
-
-		float m_width;
-		float m_height;
-		int m_subdivision;
-
-		float m_mass;
-		float m_viscosity;
-		float m_rigidity;
-
-		//for auto collisions : 
-		float m_autoCollisionDistance;
-		bool m_computeAutoCollision;
-		float m_autoCollisionRigidity;
-		float m_autoCollisionViscosity;
 
 	public:
 		Flag();
@@ -152,6 +164,5 @@ namespace Physic {
 
 }
 
-REFLEXION_CPP(Physic::Flag)
-REFLEXION_InheritFrom(Physic::Flag, Component)
+REGISTER_CLASS(Physic::Flag)
 

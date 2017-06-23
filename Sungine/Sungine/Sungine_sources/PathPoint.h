@@ -7,8 +7,14 @@
 
 class PathPoint : public Component
 {
-	REFLEXION_HEADER(PathPoint)
 	COMPONENT_IMPLEMENTATION_HEADER(PathPoint)
+
+	CLASS((PathPoint, Component),
+	((PRIVATE)
+		(int	, m_pathId		)
+		(int	, m_pointIdx	)
+	)
+	)
 
 private:
 	int m_pathId; //the path this point belong to
@@ -30,5 +36,4 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(PathPoint)
-REFLEXION_InheritFrom(PathPoint, Component)
+REGISTER_CLASS(PathPoint)

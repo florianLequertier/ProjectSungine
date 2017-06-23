@@ -14,9 +14,8 @@ CollisionInfo::CollisionInfo(Rigidbody* _rigidbody, const glm::vec3& _point, con
 
 ///////////////////////////////
 
-Collider::Collider(ComponentType colliderType, Mesh* _visualMesh, Material* _visualMaterial)
-	: Component(colliderType)
-	, visualMesh(_visualMesh)
+Collider::Collider(Mesh* _visualMesh, Material* _visualMaterial)
+	: visualMesh(_visualMesh)
 	, visualMaterial(_visualMaterial)
 	, translation(0,0,0)
 	, scale(1,1,1)

@@ -74,8 +74,18 @@ public :
 
 };*/
 
+#include "Handle.h"
+
 class Entity : public TransformNode, public IDrawableInInspector
 {
+	friend void Component::setEntityOwner(Entity* entity);
+
+	OBJECT_CLASS(Entity,
+		ObjectDescriptor<Entity>::registerParentClass<TransformNode>();
+		ObjectDescriptor<Entity>::registerProperty<std::string>(&Entity::m_name);
+		ObjectDescriptor<Entity>::registerProperty<bool>(&Entity::m_isVisible)
+	)
+
 public:
 	enum CollisionState { BEGIN, STAY, END, NONE };
 
@@ -86,9 +96,11 @@ private:
 	std::string m_name;
 	bool m_isVisible;
 
-	std::vector<Component*> m_components;
+	std::vector<GenericHandle> m_componentsHandles;
+	std::vector<Component*> m_componentsRefs;
 
 	std::vector<Entity*> m_childs;
+
 	Entity* m_parent;
 
 	//coroutines :
@@ -106,6 +118,199 @@ public:
 	Entity(const Entity& other);
 	Entity& operator=(const Entity& other);
 	virtual ~Entity();
+
+	/////////////////////////////////////////
+
+	Entity();
+	~Entity();
+
+	template<typename U>
+	U* getComponent()
+	{
+		auto foundIt = std::find_if(m_componentsRefs.begin(), m_componentsRefs.end(); [](const Component* item) { return item->isA<U>(); });
+		if (foundIt != m_componentsRefs)
+			return static_scast<U*>(*foundIt);
+		else
+			return nullptr;
+	}
+
+	template<typename U>
+	int getComponents(std::vector<U*>& outComponents)
+	{
+		assert(outComponents.size() == 0);
+		std::vector<int> tmpIdx;
+		int componentsCount = 0;
+		int index = 0;
+		for (auto& component : m_componentsRefs)
+		{
+			if (component->isA<U>())
+			{
+				tmpIdx[index] = componentsCount;
+				componentsCount++;
+			}
+			index++;
+		}
+
+		// allocation
+		outComponents.reserve(componentsCount);
+
+		// loop only in the minimal range
+		for (index = 0; index < componentCount; ++index)
+		{
+			outComponents.push_back(m_componentsRefs[tmpIdx[index]]);
+		}
+
+		return outComponents.size();
+	}
+
+	template<typename U>
+	int getComponentHandles(std::vector<Handle<U>>& outComponents)
+	{
+		assert(outComponents.size() == 0);
+		std::vector<int> tmpIdx;
+		int componentsCount = 0;
+		int index = 0;
+		for (auto& component : m_componentsRefs)
+		{
+			if (component->isA<U>())
+			{
+				tmpIdx[index] = componentsCount;
+				componentsCount++;
+			}
+			index++;
+		}
+
+		// allocation
+		outComponents.reserve(componentsCount);
+
+		// loop only in the minimal range
+		for (index = 0; index < componentCount; ++index)
+		{
+			outComponents.push_back(Handle<U>(m_componentsHandles[tmpIdx[index]]));
+		}
+
+		return outComponents.size();
+	}
+
+	template<typename U>
+	const Handle<U>& getComponentHandle()
+	{
+		const auto foundIt = std::find_if(componentsHandles.begin(), componentsHandles.end(); [](const GenericHandle& item) { return item->isA<U>(); });
+		if (foundIt != m_componentsHandles.end())
+			return Handle<U>(*foundIt);
+		else
+			return Handle<U>(m_scene->getPool<U>());
+	}
+
+	template<typename U>
+	void eraseComponent(const Handle<U>& handle)
+	{
+		GenericHandle handleG = handle;
+		auto& foundItHandle = std::find(componentsHandles.begin(), componentsHandles.end(), handleG);
+		if (foundItHandle != componentsHandles.end())
+		{
+			auto pool = sceneRef->getPool<U>();
+			U* ref = pool->getRef(handle);
+			if (ref)
+			{
+				ref->onBeforeRemovedFromEntity();
+				removeComponentAtomic(std::distance(foundItHandle, componentsHandles.begin()));
+				ref->onAfterRemovedFromEntity();
+
+				ref->onBeforeRemovedFromScene();
+				pool.deallocate(handle.index, handle.generation);
+			}
+		}
+	}
+
+	template<typename U>
+	void eraseComponent(Component* component)
+	{
+		auto& foundIt = std::find(m_componentsRefs.begin(), m_componentsRefs.end(), component);
+		if (foundIt != m_componentsRefs.end())
+		{
+			auto pool = sceneRef->getPool<U>();
+			U* ref = pool->getRef(handle);
+			if (ref)
+			{
+				ref->onBeforeRemovedFromEntity();
+				removeComponentAtomic(std::distance(foundItHandle, componentsHandles.begin()));
+				ref->onAfterRemovedFromEntity();
+
+				ref->onBeforeRemovedFromScene();
+				pool.deallocate(handle.index, handle.generation);
+			}
+		}
+	}
+
+	void eraseAllComponents();
+
+	template<typename U>
+	U* addNewComponent(Handle<U>& outHandle)
+	{
+		GenericHandle newHandle;
+		U* ptr = sceneRef->createNewComponent<U>(newHandle, this);
+		ptr->m_owner = this; // set ownership
+		ptr->onAfterAddedToScene();
+
+		ptr->onBeforeAddedToEntity();
+		addComponentAtomic(ptr, newHandle);
+		ptr->onAfterAddedToEntity();
+
+		outHandle = newHandle;
+		return ptr;
+	}
+
+	void addComponent(Component* component, GenericHandle handle)
+	{
+		component->setEntityOwner(this); // set ownership
+		component->onAfterAddedToScene(*m_scene);
+
+		component->onBeforeAddedToEntity(*this);
+		addComponentAtomic(component, handle);
+		component->onAfterAddedToEntity(*this);
+	}
+
+	template<typename U>
+	U* addComponentFromExisting(const Handle<U>& modelHandle, Handle<U>& outHandle)
+	{
+		GenericHandle newHandle;
+		U* ptr = sceneRef->copyAtomic<U>(modelHandle, newHandle);
+		ptr->setEntityOwner(this); // set ownership
+		ptr->onAfterAddedToScene();
+
+		ptr->onBeforeAddedToEntity();
+		addComponentAtomic(ptr, newHandle);
+		ptr->onAfterAddedToEntity();
+
+		outHandle = newHandle;
+		return ptr;
+	}
+
+	template<typename U>
+	U* addComponentFromExisting(const U& model, Handle<U>& outHandle)
+	{
+		GenericHandle newHandle;
+		U* ptr = sceneRef->copyAtomic<U>(model, newHandle);
+		ptr->m_owner = this; // set ownership
+		ptr->onAfterAddedToScene();
+
+		ptr->onBeforeAddedToEntity();
+		addComponentAtomic(ptr, newHandle);
+		ptr->onAfterAddedToEntity();
+
+		outHandle = newHandle;
+		return ptr;
+	}
+
+	void removeComponentAtomic(int index);
+	void addComponentAtomic(Component* componentPtr, const GenericHandle& handle);
+
+	Scene* getSceneRef() const;
+
+
+	////////////////////////////////////////////
+
 
 	//this function is called each time the model matrix of this entity changes.It internally call apply transform. 
 	virtual void onChangeModelMatrix() override;
@@ -144,27 +349,11 @@ public:
 	void select();
 	//deselect this entity, set m_isSelected to false
 	void deselect();
-	
-	Entity& add(Component* component);
-	Entity& erase(Component* component);
-
-	bool removeComponentAtomic(Component* component);
-	void addComponentAtomic(Component* component);
 
 	//finalyze the creation of the entity, should be called after all components has been added to the entity : 
 	//One of the goal of this function is to properly set up the collider such that it cover well all the components of the entity.
 	void endCreation();
 
-	//delete all the components attached to this entity.
-	void eraseAllComponents();
-
-	// function to get component.
-	template<typename T = Component>
-	T* getComponent(Component::ComponentType type);
-	// function to get components of a certain type.
-	template<typename T>
-	std::vector<T*> getComponents(Component::ComponentType type);
-	//If you want to access to all components in this entity, by types
 	void getAllComponentsByTypes(std::map<int, std::vector<Component*>>& outComponents);
 
 	bool hasParent() const;
@@ -199,30 +388,7 @@ private:
 
 };
 
-template<typename T>
-std::vector<T*> Entity::getComponents(Component::ComponentType type)
-{
-
-	std::vector<T*> foundComponents;
-
-	for (int i = 0; i < m_components.size(); i++) {
-		if ((m_components[i]->type() & type) != 0) {
-			
-			if ((type & Component::ComponentType::BEHAVIOR) != 0) {
-				T* foundComponent = dynamic_cast<T*>(m_components[i]);
-				if(foundComponent != nullptr)
-					foundComponents.push_back(foundComponent);
-			}
-			else {
-				assert(dynamic_cast<T*>(m_components[i]) == m_components[i]);
-				T* foundComponent = static_cast<T*>(m_components[i]);
-				foundComponents.push_back(foundComponent);
-			}
-		}
-	}
-
-	return foundComponents;
-}
+REGISTER_CLASS(Entity)
 
 template<typename R, typename ... Args>
 void Entity::startCoroutine(std::function<R(Args...)> action, float callDeltaTime)
@@ -230,28 +396,3 @@ void Entity::startCoroutine(std::function<R(Args...)> action, float callDeltaTim
 	auto newCoroutine = new Coroutine<R, Args...>(action, callDeltaTime);
 	m_coroutines.insert( std::upper_bound(m_coroutines.begin(), m_coroutines.end(), newCoroutine), newCoroutine );
 }
-
-template<typename T = Component>
-T* Entity::getComponent(Component::ComponentType type)
-{
-	if ((type & Component::ComponentType::BEHAVIOR) != 0) {
-		for (int i = 0; i < m_components.size(); i++) {
-			if ((m_components[i]->type() & Component::ComponentType::BEHAVIOR) != 0) {
-				T* foundComponent = dynamic_cast<T*>(m_components[i]);
-				if (foundComponent != nullptr)
-					return foundComponent;
-			}
-		}
-	}
-	else {
-		auto findIt = std::find_if(m_components.begin(), m_components.end(), [type](Component* c) { return ((c->type() & type) != 0); });
-		if (findIt != m_components.end()){
-			assert(dynamic_cast<T*>(*findIt) == *findIt);
-			T* foundComponent = static_cast<T*>(*findIt);
-			return foundComponent;
-		}
-	}
-
-	return nullptr;
-}
-

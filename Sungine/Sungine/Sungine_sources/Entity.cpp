@@ -31,12 +31,9 @@ Entity::Entity(const Entity& other)
 {
 	m_scene->getAccessor().addToScene(this);
 
-	for (int i = 0; i < other.m_components.size(); i++)
+	for (int i = 0; i < other.m_componentsRefs.size(); i++)
 	{
-		//copy the entity
-		auto newComponent = other.m_components[i]->clone(this);
-		//add to scene
-		add(newComponent);
+		other.m_componentsRefs[i]->clone(this); // clone function will directly attach the component to the new entity
 	}
 	eraseAllChilds();
 	for (int i = 0; i < other.m_childs.size(); i++)
@@ -61,11 +58,14 @@ Entity& Entity::operator=(const Entity& other)
 	m_scene->getAccessor().addToScene(this);
 
 	eraseAllComponents();
-	for (int i = 0; i < other.m_components.size(); i++)
+
+	for (int i = 0; i < other.m_componentsRefs.size(); i++)
 	{
 		//copy the component
-		auto newComponent = other.m_components[i]->clone(this);
-		add(newComponent);
+		//auto newComponent = other.m_componentsRefs[i]->clone(this);
+		//addComponentFromExisting(*other.m_componentsRefs[i], newComponent);
+
+		other.m_componentsRefs[i]->clone(this); // clone function will directly attach the component to the new entity
 	}
 	eraseAllChilds();
 	for (int i = 0; i < other.m_childs.size(); i++)
@@ -80,9 +80,57 @@ Entity& Entity::operator=(const Entity& other)
 Entity::~Entity()
 {
 	setParent(nullptr);
+
 	eraseAllComponents();
+
 	eraseAllChilds();
 }
+
+/////////////////////////////////////////////////////////////
+
+void Entity::eraseAllComponents()
+{
+	const int size = m_componentsRefs.size();
+	for (int i = 0; i < size; i++)
+	{
+		Component* ref = m_componentsRefs[i];
+		GenericHandle& handle = m_componentsHandles[i];
+		auto pool = m_scene->getPool(handle.getClassTypeId());
+
+		ref->onBeforeRemovedFromEntity(*this);
+		removeComponentAtomic(i);
+		ref->onAfterRemovedFromEntity(*this);
+
+		ref->onBeforeRemovedFromScene(*m_scene);
+		pool->deallocate(handle.getIndex(), handle.getGeneration());
+	}
+}
+
+void Entity::removeComponentAtomic(int index)
+{
+	std::iter_swap(m_componentsRefs.begin() + index, m_componentsRefs.end() - 1);
+	m_componentsRefs.erase(m_componentsRefs.end() - 1);
+
+	std::iter_swap(m_componentsHandles.begin() + index, m_componentsHandles.end() - 1);
+	m_componentsHandles.erase(m_componentsHandles.end() - 1);
+
+	assert(m_componentsRefs.size() == m_componentsHandles.size());
+}
+
+void Entity::addComponentAtomic(Component* componentPtr, const GenericHandle& handle)
+{
+	m_componentsRefs.push_back(componentPtr);
+	m_componentsHandles.push_back(handle);
+
+	assert(m_componentsRefs.size() == m_componentsHandles.size());
+}
+
+Scene* Entity::getSceneRef() const
+{
+	return m_scene;
+}
+
+/////////////////////////////////////////////////////////////
 
 void Entity::onChangeModelMatrix()
 {
@@ -94,7 +142,7 @@ void Entity::applyTransform()
 	//if (collider != nullptr)
 	//	collider->applyTransform(m_translation, m_scale);
 
-	for (auto& c : m_components)
+	for (auto& c : m_componentsRefs)
 	{
 		c->applyTransform(m_translation, m_scale, m_rotation);
 	}
@@ -174,7 +222,7 @@ void Entity::applyTransformFromPhysicSimulation(const glm::vec3 & translation, c
 
 void Entity::applyTransformFromPhysicSimulation()
 {
-	for (auto& c : m_components)
+	for (auto& c : m_componentsRefs)
 	{
 		c->applyTransformFromPhysicSimulation(m_translation, m_rotation);
 	}
@@ -197,7 +245,7 @@ void Entity::displayTreeNodeInspector(Scene& scene, Component* component, int id
 	ImGui::SameLine();
 
 
-	ImGui::Text(Component::ComponentTypeName[flagBitToInt(component->type())].c_str());//, ImVec2(itemSize.x /*m_bottomLeftPanelRect.z*/ - 36.f, itemSize.y /*16.f*/)))
+	ImGui::Text(component->getClassName().c_str());//, ImVec2(itemSize.x /*m_bottomLeftPanelRect.z*/ - 36.f, itemSize.y /*16.f*/)))
 
 	ImGui::SameLine();
 	if (ImGui::Button("remove"))
@@ -231,7 +279,7 @@ void Entity::displayTreeNodeInspector(Scene& scene, std::vector<Component*>& com
 		nodeOpen = true;
 	ImGui::SameLine();
 
-	ImGui::Text(Component::ComponentTypeName[flagBitToInt(components[0]->type())].c_str());
+	ImGui::Text(components[0]->getClassName().c_str());
 
 	if (nodeOpen) {
 		components[0]->drawInInspector(scene, components);
@@ -256,7 +304,7 @@ void Entity::drawInInspector(Scene& scene)
 	bool hasToRemoveComponent = false;
 	int removeId = 0;
 	//bool expendComponent = false;
-	for (int i = 0; i < m_components.size(); i++)
+	for (int i = 0; i < m_componentsRefs.size(); i++)
 	{
 		ImGui::PushID(i);
 		//ImGui::Separator();
@@ -269,7 +317,7 @@ void Entity::drawInInspector(Scene& scene)
 		//if (ImGui::Button("expend"))
 		//	expendComponent = true;
 		//ImGui::SameLine();
-		//ImGui::Text(Component::ComponentTypeName[m_components[i]->type()].c_str());
+		//ImGui::Text(Component::ComponentTypeName[m_componentsRefs[i]->type()].c_str());
 		//ImGui::SameLine();
 		//if (ImGui::Button("remove"))
 		//{
@@ -278,15 +326,15 @@ void Entity::drawInInspector(Scene& scene)
 		//}	
 		//ImGui::Separator();
 		//if(expendComponent)
-		//	m_components[i]->drawUI(scene);
-		displayTreeNodeInspector(scene, m_components[i], i, hasToRemoveComponent, removeId);
+		//	m_componentsRefs[i]->drawUI(scene);
+		displayTreeNodeInspector(scene, m_componentsRefs[i], i, hasToRemoveComponent, removeId);
 
 		ImGui::PopID();
 
 		//expendComponent = false;
 	}
 	if(hasToRemoveComponent)
-		m_components[removeId]->eraseFromEntity(*this);
+		m_componentsRefs[removeId]->eraseFromEntity(*this);
 
 	if (ImGui::Button("add component"))
 		ImGui::OpenPopup("add component window");
@@ -399,59 +447,14 @@ void Entity::deselect()
 	m_isSelected = false;
 }
 
-Entity & Entity::add(Component * component)
-{
-	component->attachToEntity(this);
-	component->addToSceneAtomic(*m_scene); // Call scene.add<ComponentType>(component);
-	addComponentAtomic(component);
-
-	return *this;
-}
-
-void Entity::addComponentAtomic(Component* component)
-{
-	component->onBeforeComponentAddedToEntity(*this);
-	m_components.push_back(component);
-	component->onAfterComponentAddedToEntity(*this);
-}
-
-Entity & Entity::erase(Component * component)
-{
-	bool componentFound = removeComponentAtomic(component);
-	if(componentFound)
-	{
-		component->removeFromSceneAtomic(*m_scene); // Call scene.erase<ComponentType>(component);
-		component->attachToEntity(nullptr);
-		delete component;
-		component = nullptr;
-	}
-	
-	return *this;
-}
-
-bool Entity::removeComponentAtomic(Component* component)
-{
-	auto findIt = std::find(m_components.begin(), m_components.end(), component);
-
-	if (findIt != m_components.end())
-	{
-		component->onBeforeComponentErasedFromEntity(*this);
-		m_components.erase(findIt);
-		component->onAfterComponentErasedFromEntity(*this);
-		return true;
-	}
-	else
-		return false;
-}
-
 void Entity::endCreation()
 {
-	Collider* colliderComponent = static_cast<Collider*>(getComponent(Component::ComponentType::COLLIDER));
+	Collider* colliderComponent = static_cast<Collider*>(getComponent<Collider>());
 	if (colliderComponent != nullptr)
 	{
 		// if a component containing a mesh is present in the entity, cover it with the collider : 
-		Physic::Flag* flagComponent = static_cast<Physic::Flag*>(getComponent(Component::ComponentType::FLAG));
-		MeshRenderer* meshRendererComponent = static_cast<MeshRenderer*>(getComponent(Component::ComponentType::MESH_RENDERER));
+		Physic::Flag* flagComponent = static_cast<Physic::Flag*>(getComponent<Physic::Flag>());
+		MeshRenderer* meshRendererComponent = static_cast<MeshRenderer*>(getComponent<MeshRenderer>());
 		if (flagComponent != nullptr)
 		{
 			colliderComponent->setOrigin(flagComponent->getOrigin());
@@ -466,32 +469,11 @@ void Entity::endCreation()
 	}
 }
 
-void Entity::eraseAllComponents()
-{
-	const int componentSize = m_components.size();
-	for (int i = 0; i < componentSize; i++)
-	{
-		auto currentComponent = m_components[0];
-		
-		currentComponent->removeFromSceneAtomic(*m_scene);
-
-		currentComponent->onBeforeComponentErasedFromEntity(*this);
-		std::iter_swap(m_components.begin(), m_components.end() - 1);
-		m_components.pop_back();
-		currentComponent->onAfterComponentErasedFromEntity(*this);
-
-		currentComponent->attachToEntity(nullptr);
-
-		delete currentComponent;
-	}
-	m_components.clear();
-}
-
 void Entity::getAllComponentsByTypes(std::map<int, std::vector<Component*>>& outComponents)
 {
-	for (int i = 0; i < m_components.size(); i++)
+	for (int i = 0; i < m_componentsRefs.size(); i++)
 	{
-		outComponents[flagBitToInt(m_components[i]->type())].push_back(m_components[i]);
+		outComponents[m_componentsRefs[i]->getClassId()].push_back(m_componentsRefs[i]);
 	}
 }
 
@@ -622,10 +604,10 @@ void Entity::save(Json::Value& entityRoot) const
 
 	//bool m_isSelected; selected information isn't serialized
 
-	entityRoot["componentCount"] = m_components.size();
-	for (int i = 0; i < m_components.size(); i++)
+	entityRoot["componentCount"] = m_componentsRefs.size();
+	for (int i = 0; i < m_componentsRefs.size(); i++)
 	{
-		m_components[i]->save(entityRoot["components"][i]);
+		m_componentsRefs[i]->save(entityRoot["components"][i]);
 	}
 
 	//entityRoot["childCount"] = m_childs.size();

@@ -2,11 +2,17 @@
 
 #include <string>
 
-#include "Reflexion.h"
+#include "Metadatas.h"
 #include "IDGenerator.h"
 
 class Object
 {
+	CLASS((Object),
+	((PRIVATE)
+		(ID, m_objectId)
+	)
+	)
+
 protected:
 	ID m_objectId;
 
@@ -21,25 +27,47 @@ public:
 		IDGenerator<Object>::instance().freeID(m_objectId);
 	}
 
-	virtual int getClassId() const = 0;
-	virtual std::string getClassName() const = 0;
-	virtual bool isA(const Object& other) const = 0;
-	virtual bool isA(int otherClassId) const = 0;
-	virtual bool inheritFrom(const Object& other) const = 0;
-	virtual bool inheritFrom(int otherClassId) const = 0;
-
-	template<typename T>
-	bool inheritFrom() const
+	template<typename OtherObjectClass>
+	bool isA() const
 	{
-		int otherClassId = Reflexion<T>::instance().getClassId();
-		return inheritFrom(otherClassId);
+		return getDescriptor().isA<OtherObjectClass>();
 	}
 
-	template<typename T>
-	bool isA(int otherClassId) const
+	template<typename OtherObjectClass>
+	bool isA(const OtherObjectClass& otherObject) const
 	{
-		int otherClassId = Reflexion<T>::instance().getClassId();
-		return isA(otherClassId);
+		return getDescriptor().isA(otherObject.getDescriptor());
+	}
+
+	int getClassId() const
+	{
+		return getDescriptor().getClassId();
+	}
+
+	const std::string& getClassName() const
+	{
+		return getDescriptor().getClassName();
+	}
+
+	template<typename ClassType>
+	static int getStaticClassId()
+	{
+		return ObjectDescriptor<ClassType>::getInstance().getClassId();
+	}
+
+	void saveJSON(cereal::JSONOutputArchive& archive) const
+	{
+		getDescriptor().saveObjectInstanceJSON(this, archive);
+	}
+
+	void loadJSON(cereal::JSONInputArchive& archive)
+	{
+		getDescriptor().loadObjectInstanceJSON(this, archive);
+	}
+
+	void print()
+	{
+		getDescriptor().printObjectInstance(this);
 	}
 
 	const ID& getObjectID() const
@@ -47,3 +75,5 @@ public:
 		return m_objectId;
 	}
 };
+
+REGISTER_CLASS(Object)

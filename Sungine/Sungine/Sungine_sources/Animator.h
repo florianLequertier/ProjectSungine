@@ -7,8 +7,12 @@
 
 class Animator: public Component
 {
-	REFLEXION_HEADER(Animator)
 	COMPONENT_IMPLEMENTATION_HEADER(Animator)
+
+	OBJECT_CLASS(Animator,
+		ObjectDescriptor<Animator>::registerParentClass<Component>();
+		ObjectDescriptor<Animator>::registerProperty<FileHandler::CompletePath>(&Animator::m_skeletonPath)
+	)
 
 private:
 	FileHandler::CompletePath m_skeletonPath; //TODO : J'aime pas ça, faire en sorte que le skeleton soit une sous-resource ce serai mieux
@@ -41,5 +45,4 @@ public:
 	virtual void load(const Json::Value& componentRoot) override;
 };
 
-REFLEXION_CPP(Animator)
-REFLEXION_InheritFrom(Animator, Component)
+REGISTER_CLASS(Animator)

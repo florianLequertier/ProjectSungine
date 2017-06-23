@@ -6,27 +6,36 @@
 #include "CSpline.h"
 #include "Component.h"
 
+#include "Enums.h"
+
 namespace Physic {
 
 	class WindZone : public Component
 	{
-		REFLEXION_HEADER(WindZone)
+	public:
+		ENUM(EmissionType, DIRECTIONAL, RADIAL)
+		//enum EmissionType { DIRECTIONNAL = 0, RADIAL = 1 };
+
 		COMPONENT_IMPLEMENTATION_HEADER(WindZone)
 
-	public:
-		enum EmissionType {DIRECTIONNAL = 0, RADIAL = 1};
-	private:
-		Math::CSpline<float> m_cspline;
-		glm::vec3 m_position;
-		glm::vec3 m_direction;
-		float m_amplitude;
-		float m_randomFactor;
-		float m_frequency;
-		float m_offset;
-		EmissionType m_emissionType;
-		bool m_isAttenuated;
-		float m_radius;
+		CLASS((WindZone, Component),
+		((PRIVATE)
+			(Math::CSpline<float>	, m_cspline			) // pas de display dans l'ui meme si ça serai cool
+			(glm::vec3				, m_position		)
+			(glm::vec3				, m_direction		)
+			(float					, m_amplitude		)
+			(float					, m_randomFactor	)
+			(float					, m_frequency		)
+			(float					, m_offset			)
+			(EmissionType			, m_emissionType	)
+			(bool					, m_isAttenuated	)
+			(float					, m_radius			)
+		)
+		)
 
+	private:
+
+		// TODO : remove ?
 		//for UI : 
 		const char** m_emissionTypeNames;
 
@@ -60,6 +69,5 @@ namespace Physic {
 	};
 }
 
-REFLEXION_CPP(Physic::WindZone)
-REFLEXION_InheritFrom(Physic::WindZone, Component)
+REGISTER_CLASS(WindZone)
 

@@ -6,6 +6,8 @@
 #include "Entity.h"
 #include "Factories.h"
 
+#include "Fields.h"
+
 namespace Physic {
 
 	COMPONENT_IMPLEMENTATION_CPP(WindZone)
@@ -123,9 +125,10 @@ namespace Physic {
 			updateSpline();
 		if (ImGui::InputFloat("random factor", &m_randomFactor))
 			updateSpline();
-		int currentItemTypeEmission = (int)m_emissionType;
-		if (ImGui::ListBox("emission type", &currentItemTypeEmission, m_emissionTypeNames, 2))
-			m_emissionType = (EmissionType)currentItemTypeEmission;
+		Field::EnumField<Physic::WindZone::EmissionType>("emission type", m_emissionType);
+		//int currentItemTypeEmission = (int)m_emissionType;
+		//if (ImGui::ListBox("emission type", &currentItemTypeEmission, EmissionTypeNames.data /*m_emissionTypeNames*/, 2))
+		//	m_emissionType = (EmissionType)currentItemTypeEmission;
 		if (ImGui::RadioButton("attenuation", m_isAttenuated))
 			m_isAttenuated = !m_isAttenuated;
 		ImGui::SliderFloat("radius", &m_radius, 0.1f, 500.f);

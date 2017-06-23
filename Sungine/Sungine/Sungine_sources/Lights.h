@@ -53,14 +53,18 @@ struct DirectionalLightRenderDatas
 
 struct Light : public Component
 {
-	REFLEXION_HEADER(Light)
+	CLASS((Light, Component),
+	((PUBLIC)
+		// Base light parameters
+		(float		, intensity					)
+		(glm::vec3	, color						)
+		(bool		, castShadows				)
+		(bool		, useFlare					)
+	)
+	)
 
 public:
 
-	float intensity;
-	glm::vec3 color;
-	bool castShadows;
-	bool useFlare;
 	ResourcePtr<Material> flareMaterial;
 
 	Light(float _intensity, glm::vec3 _color);
@@ -83,18 +87,21 @@ public:
 
 };
 
-REFLEXION_CPP(Light)
-REFLEXION_InheritFrom(Light, Component)
+REGISTER_CLASS(Light)
 
 struct PointLight : public Light
 {
-	REFLEXION_HEADER(PointLight)
 	COMPONENT_IMPLEMENTATION_HEADER(PointLight)
 
-public:
+	CLASS((PointLight, Light),
+	((PUBLIC)
+		// Point light parameters
+		(glm::vec3		, intensity		)
+		(BoxCollider	, boundingBox	)
+	)
+	)
 
-	glm::vec3 position;
-	BoxCollider boundingBox;
+public:
 
 	PointLight(float _intensity = 10, glm::vec3 _color = glm::vec3(1, 1, 1), glm::vec3 _position = glm::vec3(0, 0, 0));
 	virtual ~PointLight();
@@ -114,20 +121,22 @@ public:
 
 };
 
-REFLEXION_CPP(PointLight)
-REFLEXION_InheritFrom(PointLight, Light)
+REGISTER_CLASS(PointLight)
 
 struct DirectionalLight : public Light
 {
-	REFLEXION_HEADER(DirectionalLight)
 	COMPONENT_IMPLEMENTATION_HEADER(DirectionalLight)
 
+	CLASS((DirectionalLight, Light),
+	((PUBLIC)
+		// Directional light parameters
+		(glm::vec3		, up			)
+		(glm::vec3		, direction		)
+		(glm::vec3		, position		)
+	)
+	)
+
 public:
-
-	glm::vec3 up;
-
-	glm::vec3 direction;
-	glm::vec3 position;
 
 	DirectionalLight(float _intensity = 0.2f, glm::vec3 _color = glm::vec3(1, 1, 1), glm::vec3 _direction = glm::vec3(0, -1, 0));
 	virtual ~DirectionalLight();
@@ -141,22 +150,24 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(DirectionalLight)
-REFLEXION_InheritFrom(DirectionalLight, Light)
+REGISTER_CLASS(DirectionalLight)
 
 struct SpotLight : public Light
 {
-	REFLEXION_HEADER(SpotLight)
 	COMPONENT_IMPLEMENTATION_HEADER(SpotLight)
 
+	CLASS((SpotLight, Light),
+	((PUBLIC)
+		// Spot light parameters
+		(glm::vec3		, up			)
+		(glm::vec3		, direction		)
+		(glm::vec3		, position		)
+		(float			, angle			)
+		(BoxCollider	, boundingBox	)
+	)
+	)
+
 public:
-	glm::vec3 up;
-
-	glm::vec3 position;
-	glm::vec3 direction;
-	float angle;
-
-	BoxCollider boundingBox;
 
 	SpotLight(float _intensity = 10, glm::vec3 _color = glm::vec3(1, 1, 1), glm::vec3 _position = glm::vec3(0, 0, 0), glm::vec3 _direction = glm::vec3(0, -1, 0), float _angle = glm::radians(30.f));
 	virtual ~SpotLight();
@@ -175,5 +186,4 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 };
 
-REFLEXION_CPP(SpotLight)
-REFLEXION_InheritFrom(SpotLight, Light)
+REGISTER_CLASS(SpotLight)

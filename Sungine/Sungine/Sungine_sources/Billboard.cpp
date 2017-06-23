@@ -10,14 +10,17 @@
 
 COMPONENT_IMPLEMENTATION_CPP(Billboard)
 
-Billboard::Billboard(): Component(ComponentType::BILLBOARD), m_translation(0,0,0), m_scale(1,1)/*, m_textureName("default")*/, m_color(1,1,1,1)
+Billboard::Billboard()
+	: Component()
+	, m_translation(0,0,0)
+	, m_scale(1,1)
+	, m_color(1,1,1,1)
 {
 	m_quadMesh = getMeshFactory().getDefault("plane");
 	m_billboardMaterial = getMaterialFactory().getDefault("billboard");
 	m_texture = getTextureFactory().getDefault("default");
 	m_texture->initGL();
 }
-
 
 Billboard::~Billboard()
 {
