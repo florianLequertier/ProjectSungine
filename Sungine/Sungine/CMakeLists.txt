@@ -41,6 +41,7 @@ target_compile_definitions(${LIBRARY_NAME} PRIVATE GLEW_STATIC)
 
 include_directories(${EXTERNAL_LIB_PATH})
 include_directories(${EXTERNAL_LIB_PATH}/assimp/include)
+include_directories(${EXTERNAL_LIB_PATH}/boost/preprocessor)
 include_directories(${EXTERNAL_LIB_PATH}/bullet3/src)
 include_directories(${EXTERNAL_LIB_PATH}/cereal)
 include_directories(${EXTERNAL_LIB_PATH}/glfw/include)

@@ -63,6 +63,7 @@ file(MAKE_DIRECTORY ${PROJECT_INFO_DIR})
 
 include_directories(${ENGINE_THIRD_PARTY_PATH})
 include_directories(${ENGINE_THIRD_PARTY_PATH}/assimp/include)
+include_directories(${ENGINE_THIRD_PARTY_PATH}/boost/preprocessor)
 include_directories(${ENGINE_THIRD_PARTY_PATH}/bullet3/src)
 include_directories(${ENGINE_THIRD_PARTY_PATH}/cereal)
 include_directories(${ENGINE_THIRD_PARTY_PATH}/glfw/include)
