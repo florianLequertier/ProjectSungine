@@ -106,6 +106,7 @@ public:
 	bool hasValidExtention() const;
 	void format();
 	bool empty() const;
+	void replaceExtension(const std::string& newExtension);
 
 	const std::string& getSubFileName() const;
 
@@ -153,6 +154,8 @@ std::size_t splitPathFileName(const std::string& pathAndFileName, std::string& p
 std::size_t splitFileNameExtention(const std::string fileNameAndExtension, std::string& fileName, std::string& extention);
 std::size_t splitPathFileNameExtention(const std::string& pathAndFileNameAndExtention, std::string& path, std::string& filename, std::string& extention);
 
+bool createFile(const CompletePath &path, const std::string& content);
+bool createFileOverride(const CompletePath &path, const std::string& content);
 void copyPastFile(const CompletePath &from, const Path &to);
 void deleteFile(const CompletePath& completePath);
 

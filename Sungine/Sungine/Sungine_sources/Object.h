@@ -13,9 +13,6 @@ class Object
 	)
 	)
 
-protected:
-	ID m_objectId;
-
 public:
 	Object()
 	{
@@ -55,6 +52,11 @@ public:
 		return ObjectDescriptor<ClassType>::getInstance().getClassId();
 	}
 
+	static int getClassIdFromName(const std::string& className)
+	{
+		return BaseObjectDescriptor::getClassIdFromName(className);
+	}
+
 	void saveJSON(cereal::JSONOutputArchive& archive) const
 	{
 		getDescriptor().saveObjectInstanceJSON(this, archive);
@@ -63,6 +65,19 @@ public:
 	void loadJSON(cereal::JSONInputArchive& archive)
 	{
 		getDescriptor().loadObjectInstanceJSON(this, archive);
+	}
+
+	virtual void OnBeforeObjectSaved() = 0;
+	virtual void OnAfterObjectLoaded() = 0;
+
+	virtual void drawInInspector()
+	{
+		getDescriptor().drawInInspector(this);
+	}
+
+	virtual void drawInInspector(const std::vector<void*>& objectInstances)
+	{
+		getDescriptor().drawInInspector(objectInstances);
 	}
 
 	void print()

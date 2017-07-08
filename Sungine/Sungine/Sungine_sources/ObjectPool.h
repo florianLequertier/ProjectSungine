@@ -3,7 +3,7 @@
 #include <new>
 #include <assert.h>
 
-#include "Handle.h"
+class IObjectPool;
 
 class SaveLoadHelper
 {
@@ -45,26 +45,116 @@ public:
 	}
 };
 
+class IObjectPool
+{
+public:
+	virtual void clear() = 0;
+	virtual size_t size() const = 0;
+	virtual void resize(int newCapacity) = 0;
+	virtual int deallocate(int objectIdx, int linkIndex) = 0;
+	virtual int getPoolTypeId() const = 0;
+};
+
+// An object space is a generic class which has the responsability of many objectPools.
+class ObjectSpace
+{
+protected:
+	int m_id;
+	std::map<int, IObjectPool*> m_poolMapping;
+
+public:
+
+	virtual void clear()
+	{
+		for (auto& pool : m_poolMapping)
+		{
+			pool.second->clear();
+		}
+	}
+
+	// Add a new pool the the object space, and resize it.
+	template<typename T>
+	ObjectPool<T>* addNewPool(int capacity = 1000)
+	{
+		assert(m_poolMapping.find(Object::getStaticClassId<T>()) == m_poolMapping.end());
+
+		ObjectPool<T> newPool = new ObjectPool<T>(m_id);
+		newPool.resize(capacity);
+
+		m_poolMapping[Object::getStaticClassId<T>()] = newPool;
+
+		return newPool;
+	}
+
+	template<typename T>
+	static T* getPool()
+	{
+		static ObjectPool<T>* poolRef = m_poolMapping[Object::getStaticClassId<T>()];
+		return poolRef;
+	}
+
+	template<typename T>
+	ObjectPtr<T> createNew()
+	{
+		objectPool<T>* pool = getPool<T>(); // ???
+		return pool->createNewObject();
+	}
+
+	template<typename T>
+	ObjectPtr<T> clone(const ObjectPtr<T>& otherObject)
+	{
+		return otherObject.m_link->cloneObject();
+	}
+
+	template<typename T>
+	ObjectPtr<T> instantiate(const T& other)
+	{
+		return otherObject.m_link->instantiateObject(other);
+	}
+
+	template<typename T>
+	void destroy(ObjectPtr<T> object)
+	{
+		object.m_link->deleteObject();
+	}
+
+};
 
 // A handle object which allow ObjectPtr to access their ObjectPool and perform some operatons.
 // This object link store informations on object (refCount, objectIdx, ...) 
 // which allows it to perform these operations whitout having to store these datas into the real object.
-template<typename T>
 class ObjectLink
 {
 	template<typename T>
 	friend class ObjectPool;
 
-	template<typename T>
+	template<typename T, typename BaseClass>
 	friend class ObjectPtr;
 
 private:
 
-	ObjectPool<T>* m_poolRef;
+	IObjectPool* m_poolRef;
 	int m_index;
 	int m_objectIdx;
 	int m_refCount;
 	int m_linkGeneration;
+
+	ObjectLink()
+		: m_index(0)
+		, m_objectIdx(-1)
+		, m_refCount(0)
+		, m_linkGeneration(0)
+	{
+
+	}
+
+	int getObjectTypeId() const
+	{
+		if (m_poolRef != nullptr)
+			return m_poolRef->getPoolTypeId();
+		else
+			return -1;
+	}
 
 	template<typename Archive>
 	void serialize(Archive& archive)
@@ -73,7 +163,7 @@ private:
 		archive(m_objectIdx, m_refCount, m_linkGeneration);
 	}
 
-	void init(const ObjectPool<T>* pool, int index)
+	void init(IObjectPool* pool, int index)
 	{
 		m_poolRef = pool;
 		m_index = index;
@@ -98,78 +188,71 @@ private:
 
 	void deleteObject()
 	{
-		m_objectIdx = m_poolRef->deleteObject(m_objectIdx, m_index);
-		link->m_objectGeneration++;
+		m_objectIdx = m_poolRef->deallocate(m_objectIdx, m_index);
+		m_linkGeneration++;
 		m_refCount = 0;
-
-		assert(m_refCount == 0);
 	}
 
-	ObjectPtr<T> cloneObject()
+	template<typename T>
+	ObjectPtr<T> cloneObject() const
 	{
-		return m_poolRef->cloneObject(m_objectIdx);
+		return static_cast<T>(m_poolRef)->cloneObject(m_objectIdx);
 	}
 
+	template<typename T>
 	ObjectPtr<T> instantiateObject(const T& other)
 	{
-		return m_poolRef->instantiateObject(other);
+		return static_cast<T>(m_poolRef)->instantiateObject(other);
 	}
 
+	template<typename T>
 	bool isValid(T* ptr)
 	{
-		return refCount > 0 && &m_poolRef[m_objectIdx] == ptr;
+		return refCount > 0 && &static_cast<T>(m_poolRef)[m_objectIdx] == ptr;
 	}
 
+	template<typename T>
 	T* getLinkedObject()
 	{
 		if (m_refCount > 0)
-			return m_poolRef[m_objectIdx];
+			return static_cast<T>(m_poolRef)[m_objectIdx];
 		else
 			return nullptr;
 	}
 
 };
 
-// An object space is a generic class which has the responsability of many objectPools.
-class ObjectSpace
+template<typename T>
+class ObjectPoolProxy
 {
-	int m_id;
-	std::map<int, IObjectPool*> m_poolMapping;
+private:
+	IObjectPool* m_target;
 
 public:
+	ObjectPoolProxy(IObjectPool* target)
+		: m_target(target)
+	{}
 
-	// Add a new pool the the object space, and resize it.
-	template<typename T>
-	void addNewPool(int capacity = 1000)
+	size_t size() const override
 	{
-		assert(m_poolMapping.find(Object::getStaticClassId<T>()) == m_poolMapping.end());
-
-		ObjectPool<T> newPool = new ObjectPool<T>(m_id);
-		newPool.resize(capacity);
-
-		m_poolMapping[Object::getStaticClassId<T>()] = newPool;
+		return m_target->m_data.size();
 	}
 
-	template<typename T>
-	static T* getPool()
+	const T& operator[](int index) const
 	{
-		static ObjectPool<T>* poolRef = m_poolMapping[Object::getStaticClassId<T>()];
-		return poolRef;
+		return *static_cast<T*>(&m_target->m_datas[index]);
 	}
 
-};
-
-class IObjectPool
-{
-	size_t size() const;
-	void resize(int newCapacity);
-	void deallocate(int objectIdx, int linkIndex);
+	T& operator[](int index)
+	{
+		return *static_cast<T*>(&m_target->m_datas[index]);
+	}
 };
 
 // A pool which can allocate and deallocate objects. It will store objects contiguously avoiding cache miss (m_datas), 
 // and will store handles to access and perform operations on these objects (m_links) (these ones are not stored contiguously).
 template<typename T>
-class ObjectPool
+class ObjectPool : public IObjectPool
 {
 public:
 	static bool g_isRegister;
@@ -177,7 +260,7 @@ public:
 private:
 	int m_spaceId = -1;
 	std::vector<T> m_datas;
-	std::vector<ObjectLink<T>> m_links;
+	std::vector<ObjectLink> m_links;
 	int m_nextAvailableDataIdx = 0;
 	int m_firstAvailableLinkIdx = 0;
 
@@ -187,12 +270,26 @@ public:
 		resize(initialCapacity);
 	}
 
-	size_t size() const
+	void clear() override
 	{
-		return m_data.size();
+		// Call destructors
+		for (T& data : m_datas)
+		{
+			(&data)->~T();
+		}
+
+		// reset linking
+		for (int i = 0; i < m_links.size(); i++)
+		{
+			m_links[0].init(this, i);
+		}
+
+		// Reset index
+		m_nextAvailableDataIdx = 0;
+		m_firstAvailableLinkIdx = 0;
 	}
 
-	void resize(int newCapacity)
+	void resize(int newCapacity) override
 	{
 		int lastCapacity = m_datas.size();
 
@@ -215,14 +312,9 @@ public:
 		}
 	}
 
-	const T& operator[](int index) const
+	int getPoolTypeId() const override
 	{
-		return m_datas[index];
-	}
-
-	const T& operator[](int index)
-	{
-		return m_datas[index];
+		return Object::getStaticClassId<T>();
 	}
 
 	ObjectLink<T>* getLinkPtr(int linkIndex)
@@ -236,11 +328,46 @@ public:
 		archive(m_datas, m_links, m_nextAvailableDataIdx, m_firstAvailableLinkIdx);
 	}
 
+	size_t size() const override
+	{
+		return m_data.size();
+	}
+
+	const T& operator[](int index) const
+	{
+		return m_datas[index];
+	}
+
+	T& operator[](int index)
+	{
+		return m_datas[index];
+	}
+
+	typename std::vector<T>::iterator begin()
+	{
+		return m_datas.begin();
+	}
+
+	typename std::vector<T>::const_iterator begin() const
+	{
+		return m_datas.begin();
+	}
+
+	typename std::vector<T>::iterator end()
+	{
+		return m_datas.end();
+	}
+
+	typename std::vector<T>::const_iterator end() const
+	{
+		return m_datas.end();
+	}
+
 	// Private functions accessible via ObjectLink
 private:
 
 	// Release the link and delete the object. Return the index pointing to the next free link.
-	void deallocate(int objectIdx, int linkIndex)
+	int deallocate(int objectIdx, int linkIndex) override
 	{
 		// Dealocate pool object
 		assert(objectIdx >= 0
@@ -260,7 +387,7 @@ private:
 	}
 
 	// Use the next free link in the links array.
-	ObjectLink<T>* useNextLink(int objectIdx)
+	ObjectLink* useNextLink(int objectIdx)
 	{
 		ObjectLink<T>* linkRef = &m_links[m_firstAvailableLinkIdx];
 		m_firstAvailableLinkIdx = linkRef->m_objectIdx;
@@ -317,23 +444,88 @@ private:
 };
 
 // A safe and serializable pointer to an object.
-template<typename T>
+template<typename T, typename BaseClass = T>
 class ObjectPtr
 {
 private:
 	T* m_data;
-	ObjectLink<T>* m_link;
+	ObjectLink* m_link;
 
 public:
+	ObjectPtr()
+		: m_data(nullptr)
+		, m_link(nullptr)
+	{
+	}
+
 	ObjectPtr(T* data, ObjectLink<T>* link)
-		: m_data(data), m_link(link)
+		: m_data(data)
+		, m_link(link)
 	{
 		m_link->increaseRefCount();
 	}
 
-	~ObjectPtr()
+	ObjectPtr(T* data, ObjectSpace& space)
 	{
-		m_link->decreaseRefCount();
+		auto pool = space.getPool<BaseClass>();
+		m_link = pool->getLinkFromObject(data);
+	}
+
+	template<typename U>
+	ObjectPtr(const ObjectPtr<U>& other)
+	{
+		m_data = static_cast<T>(other.m_data);
+		m_link = other.m_link;
+		m_link->increaseRefCount();
+	}
+
+	template<typename U>
+	ObjectPtr<T>& operator=(const ObjectPtr<U>& other)
+	{
+		if (m_data == other.m_data)
+		{
+			m_link = other.m_link;
+			return *this;
+		}
+
+		m_data = static_cast<T>(other.m_data);
+		m_link = other.m_link;
+		m_link->increaseRefCount();
+
+		return *this;
+	}
+
+	bool operator==(const T* ptr) const
+	{
+		return ptr == m_data;
+	}
+
+	bool operator==(const ObjectPtr<T>& other) const
+	{
+		return (other.m_data == m_data && other.m_link = m_link);
+	}
+
+	template<typename U>
+	bool operator==(const ObjectPtr<U>& other) const
+	{ 
+		return (other.m_data == m_data && other.m_link = m_link);
+	}
+
+	T* operator->() const
+	{
+		return m_data;
+	}
+
+	virtual ~ObjectPtr()
+	{
+		reset();
+	}
+
+	void reset()
+	{
+		if(m_link != nullptr)
+			m_link->decreaseRefCount();
+
 		m_link = nullptr;
 		m_data = nullptr;
 	}
@@ -341,7 +533,10 @@ public:
 	template<typename Archive>
 	void save(Archive& archive)
 	{
-		load(m_link->m_index);
+		if (m_data != nullptr && m_link != nullptr)
+			save(m_data->getClassName(), m_link->m_index);
+		else
+			save("", -1);
 	}
 
 	template<typename Archive>
@@ -351,20 +546,35 @@ public:
 
 		if (space != nullptr)
 		{
-			ObjectPool<T>* pool = space.getPool<T>();
-			if (pool != nullptr)
-			{
-				int linkIdx;
-				load(linkIdx);
+			std::string className = "";
+			int linkIdx = -1;
+			load(className, linkIdx);
 
-				m_link = pool.getLink(linkIdx);
-				if(m_link != nullptr)
-					m_data = m_link->getLinkedObject();
+			// Are we loading a "null" pointer ?
+			if (linkIdx != -1)
+			{
+				assert(className != ""); // mayday we have a problem !!!
+
+				IObjectPool* pool = space.getPool(Object::getClassIdFromName(className));
+				// or : 
+				// IObjectPool* pool = space.getPool<BaseClass>();
+				// Should work too
+				if (pool != nullptr)
+				{
+					m_link = pool.getLink(linkIdx);
+					if(m_link != nullptr)
+						m_data = m_link->getLinkedObject();
+				}
+			}
+			else
+			{
+				m_data = nullptr;
+				m_link = nullptr;
 			}
 		}
 	}
 
-	bool isValid()
+	bool isValid() const
 	{
 		return m_link != nullptr && m_link->isValid();
 	}
@@ -376,194 +586,8 @@ public:
 		return m_data;
 	}
 
-	static ObjectPtr<T> createNew()
+	ObjectPtr<T> clonePointedObject() const
 	{
-		objectPool<T>* pool = getPool<T>(); // ???
-		return pool->createNewObject();
-	}
-
-	static ObjectPtr<T> clone(const ObjectPtr<T>& otherObject)
-	{
-		return otherObject.m_link->cloneObject();
-	}
-
-	static ObjectPtr<T> instantiate(const T& other)
-	{
-		return otherObject.m_link->instantiateObject(other);
-	}
-
-	static void delete(ObjectPtr<T> object)
-	{
-		object.m_link->deleteObject();
+		return m_link->cloneObject<BaseClass>();
 	}
 };
-
-
-
-//class IObjectPool
-//{
-//public:
-//	virtual void* allocate(GenericHandle& outHandle) = 0;
-//	virtual void deallocate(int index, int generation) = 0;
-//	virtual void deallocateAll() = 0;
-//	virtual void update() = 0;
-//	virtual void resize(size_t newSize) = 0;
-//};
-//
-//template<typename T>
-//class ObjectPool : public IObjectPool
-//{
-//	std::vector<T> datas;
-//	std::vector<unsigned int> generations;
-//	int garbageIndex;
-//
-//public:
-//
-//	ObjectPool()
-//		: garbageIndex(0)
-//	{
-//		resize(1000);
-//	}
-//
-//	void resize(size_t newSize) override
-//	{
-//		datas.resize(newSize);
-//		generations.resize(newSize, 0);
-//	}
-//
-//	T* getRef(const Handle<T>& handle)
-//	{
-//		assert(datas.size() == generations.size());
-//
-//		if (handle.getIndex() >= 0 && handle.getIndex() < datas.size()
-//			&& handle.getGeneration() == generations[handle.getIndex()])
-//		{
-//			return &datas[handle.getIndex()];
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//	void update() override;
-//
-//	void* allocate(GenericHandle& outHandle) override
-//	{
-//		if (garbageIndex < datas.size())
-//		{
-//			int newIndex = garbageIndex;
-//			garbageIndex++;
-//			T* ptr = &datas[newIndex];
-//			new(ptr) T(); // call constructor
-//
-//			outHandle.classTypeId = Object::getStaticClassId<T>();
-//			outHandle.generation = generations[newIndex];
-//			outHandle.index = newIndex;
-//			return ptr;
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//	template<typename... Args>
-//	void* allocate(GenericHandle& outHandle, Args&&... args) override
-//	{
-//		if (garbageIndex < datas.size())
-//		{
-//			int newIndex = garbageIndex;
-//			garbageIndex++;
-//			T* ptr = &datas[newIndex];
-//			new(ptr) T(std::forward<Args>(args)...); // call constructor
-//
-//			outHandle.classTypeId = Object::getStaticClassId<T>();
-//			outHandle.generation = generations[newIndex];
-//			outHandle.index = newIndex;
-//			return ptr;
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//	void deallocate(int index, int generation) override
-//	{
-//		assert(generation == generations[index]);
-//
-//		if (index >= 0 && index < datas.size()
-//			&& garbageIndex > 0)
-//		{
-//			std::iter_swap(datas.begin() + (garbageIndex - 1), datas.begin() + index);
-//			garbageIndex--;
-//
-//			(&datas[garbageIndex])->~T();
-//			generations[index]++;
-//		}
-//	}
-//
-//	void deallocateAll() override
-//	{
-//		for (int i = 0; i < garbageIndex; i++)
-//		{
-//			(&datas[i])->~T();
-//		}
-//		for (int i = 0; i < garbageIndex; i++)
-//		{
-//			generations[i]++;
-//		}
-//		garbageIndex = 0;
-//	}
-//
-//	void* copy(const Handle<T>& modelHandle, GenericHandle& outHandle) override
-//	{
-//		if (garbageIndex < datas.size()
-//			&& generations[modelHandle.index] == modelHandle.generation)
-//		{
-//			int newIndex = garbageIndex;
-//			garbageIndex++;
-//			T* ptr = &datas[newIndex];
-//			const T& other = datas[modelHandle.index];
-//			new(ptr) T(other); // call copy constructor
-//
-//			outHandle.classTypeId = Object::getStaticClassId<T>();
-//			outHandle.generation = generations[newIndex];
-//			outHandle.index = newIndex;
-//			return ptr;
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//
-//	void* copy(const T& model, GenericHandle& outHandle) override
-//	{
-//		if (garbageIndex < datas.size()
-//			&& generations[modelHandle.index] == modelHandle.generation)
-//		{
-//			int newIndex = garbageIndex;
-//			garbageIndex++;
-//			T* ptr = &datas[newIndex];
-//			new(ptr) T(model); // call copy constructor
-//
-//			outHandle.classTypeId = Object::getStaticClassId<T>();
-//			outHandle.generation = generations[newIndex];
-//			outHandle.index = newIndex;
-//			return ptr;
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//};
-//
-//template<typename T>
-//inline void ObjectPool<T>::update()
-//{
-//}

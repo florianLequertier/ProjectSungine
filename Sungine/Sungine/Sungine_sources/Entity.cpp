@@ -9,16 +9,17 @@
 #include "BehaviorFactory.h"
 #include "PhysicManager.h"
 #include "Application.h"
+#include "Collider.h" // CollisionInfo
 
 Entity::Entity(Scene* scene) 
 	: TransformNode()
 	, m_scene(scene)
 	, m_isSelected(false)
 	, m_name("default_entity")
-	, m_parent(nullptr)
 	, m_isVisible(false)
+	//, m_parent(nullptr)
 {
-	scene->getAccessor().addToScene(this);
+	//scene->getAccessor().addToScene(this);
 }
 
 Entity::Entity(const Entity& other) 
@@ -29,16 +30,19 @@ Entity::Entity(const Entity& other)
 	, m_parent(other.m_parent)
 	, m_isVisible(other.m_isVisible)
 {
-	m_scene->getAccessor().addToScene(this);
+	//m_scene->getAccessor().addToScene(this);
 
-	for (int i = 0; i < other.m_componentsRefs.size(); i++)
+	eraseAllComponents();
+	for (int i = 0; i < other.m_componentsHandles.size(); i++)
 	{
-		other.m_componentsRefs[i]->clone(this); // clone function will directly attach the component to the new entity
+		ObjectPtr<Component> newComponent = other.m_componentsHandles[i].clonePointedObject();
+		addComponent(newComponent);
 	}
+
 	eraseAllChilds();
 	for (int i = 0; i < other.m_childs.size(); i++)
 	{
-		auto newEntity = new Entity(*other.m_childs[i]);
+		ObjectPtr<Entity> newEntity = other.m_childs[i].clonePointedObject();//m_scene->instantiate(*other.m_childs[i]);
 		addChild(newEntity);
 	}
 
@@ -55,22 +59,25 @@ Entity& Entity::operator=(const Entity& other)
 	m_scene = other.m_scene;
 	m_parent = other.m_parent;
 
-	m_scene->getAccessor().addToScene(this);
+	//m_scene->getAccessor().addToScene(this);
 
+	// Duplicate components
 	eraseAllComponents();
-
-	for (int i = 0; i < other.m_componentsRefs.size(); i++)
+	for (int i = 0; i < other.m_componentsHandles.size(); i++)
 	{
 		//copy the component
 		//auto newComponent = other.m_componentsRefs[i]->clone(this);
 		//addComponentFromExisting(*other.m_componentsRefs[i], newComponent);
 
-		other.m_componentsRefs[i]->clone(this); // clone function will directly attach the component to the new entity
+		ObjectPtr<Component> newComponent = other.m_componentsHandles[i].clonePointedObject();
+		addComponent(newComponent);
 	}
+
+	// Duplicate childs
 	eraseAllChilds();
 	for (int i = 0; i < other.m_childs.size(); i++)
 	{
-		auto newEntity = new Entity(*other.m_childs[i]);
+		ObjectPtr<Entity> newEntity = other.m_childs[i].clonePointedObject();//m_scene->instantiate(*other.m_childs[i]);
 		addChild(newEntity);
 	}
 
@@ -79,7 +86,7 @@ Entity& Entity::operator=(const Entity& other)
 
 Entity::~Entity()
 {
-	setParent(nullptr);
+	clearParent();
 
 	eraseAllComponents();
 
@@ -90,39 +97,39 @@ Entity::~Entity()
 
 void Entity::eraseAllComponents()
 {
-	const int size = m_componentsRefs.size();
+	const int size = m_componentsHandles.size();
 	for (int i = 0; i < size; i++)
 	{
-		Component* ref = m_componentsRefs[i];
-		GenericHandle& handle = m_componentsHandles[i];
-		auto pool = m_scene->getPool(handle.getClassTypeId());
+		ObjectPtr<Component>& current = m_componentsHandles[i];
 
-		ref->onBeforeRemovedFromEntity(*this);
+		current->onBeforeRemovedFromEntity(*this);
 		removeComponentAtomic(i);
-		ref->onAfterRemovedFromEntity(*this);
+		current->onAfterRemovedFromEntity(*this);
 
-		ref->onBeforeRemovedFromScene(*m_scene);
-		pool->deallocate(handle.getIndex(), handle.getGeneration());
+		current->onBeforeRemovedFromScene(*m_scene);
+		m_scene->destroy(current);
 	}
 }
 
 void Entity::removeComponentAtomic(int index)
 {
-	std::iter_swap(m_componentsRefs.begin() + index, m_componentsRefs.end() - 1);
-	m_componentsRefs.erase(m_componentsRefs.end() - 1);
-
 	std::iter_swap(m_componentsHandles.begin() + index, m_componentsHandles.end() - 1);
 	m_componentsHandles.erase(m_componentsHandles.end() - 1);
-
-	assert(m_componentsRefs.size() == m_componentsHandles.size());
 }
 
-void Entity::addComponentAtomic(Component* componentPtr, const GenericHandle& handle)
+void Entity::addComponent(const ObjectPtr<Component>& componentPtr)
 {
-	m_componentsRefs.push_back(componentPtr);
-	m_componentsHandles.push_back(handle);
+	componentPtr->setEntityOwner(this); // set ownership
+	componentPtr->onAfterAddedToScene(*m_scene);
 
-	assert(m_componentsRefs.size() == m_componentsHandles.size());
+	componentPtr->onBeforeAddedToEntity(*this);
+	addComponentAtomic(componentPtr);
+	componentPtr->onAfterAddedToEntity(*this);
+}
+
+void Entity::addComponentAtomic(const ObjectPtr<Component>& componentPtr)
+{
+	m_componentsHandles.push_back(componentPtr);
 }
 
 Scene* Entity::getSceneRef() const
@@ -142,7 +149,7 @@ void Entity::applyTransform()
 	//if (collider != nullptr)
 	//	collider->applyTransform(m_translation, m_scale);
 
-	for (auto& c : m_componentsRefs)
+	for (auto& c : m_componentsHandles)
 	{
 		c->applyTransform(m_translation, m_scale, m_rotation);
 	}
@@ -155,9 +162,9 @@ void Entity::applyTransform()
 
 void Entity::applyTransform(const glm::vec3 & parentTranslation, const glm::vec3 & parentScale, const glm::quat & parentRotation)
 {
-	m_translation = parentRotation * m_localTranslation + parentTranslation;
-	m_scale = m_localScale * parentScale;
-	m_rotation = m_localRotation * parentRotation;
+	//m_translation = parentRotation * m_localTranslation + parentTranslation;
+	//m_scale = m_localScale * parentScale;
+	//m_rotation = m_localRotation * parentRotation;
 
 	//glm::mat4 updateMatrix = glm::translate(glm::mat4(1), parentTranslation);// *glm::mat4_cast(parentRotation);// *glm::scale(glm::mat4(1), parentScale);
 
@@ -169,8 +176,8 @@ void Entity::applyTransform(const glm::vec3 & parentTranslation, const glm::vec3
 
 void Entity::applyTransform(const glm::vec3 & parentTranslation, const glm::quat & parentRotation)
 {
-	m_translation = parentRotation * m_localTranslation + parentTranslation;
-	m_rotation = m_localRotation * parentRotation;
+	//m_translation = parentRotation * m_localTranslation + parentTranslation;
+	//m_rotation = m_localRotation * parentRotation;
 
 	//glm::mat4 updateMatrix = glm::translate(glm::mat4(1), parentTranslation);// *glm::mat4_cast(parentRotation);// *glm::scale(glm::mat4(1), parentScale);
 
@@ -222,7 +229,7 @@ void Entity::applyTransformFromPhysicSimulation(const glm::vec3 & translation, c
 
 void Entity::applyTransformFromPhysicSimulation()
 {
-	for (auto& c : m_componentsRefs)
+	for (auto& c : m_componentsHandles)
 	{
 		c->applyTransformFromPhysicSimulation(m_translation, m_rotation);
 	}
@@ -257,7 +264,7 @@ void Entity::displayTreeNodeInspector(Scene& scene, Component* component, int id
 	if (nodeOpen) {
 		//ImGui::SetNextWindowContentWidth(500);
 		//ImGui::BeginChild(ImGuiID(id), ImVec2(500, 0), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ChildWindowAutoFitY | ImGuiWindowFlags_ChildWindowAutoFitX);
-		component->drawInInspector(scene);
+		component->drawInInspector();
 		//ImGui::EndChild();
 	}
 
@@ -265,11 +272,8 @@ void Entity::displayTreeNodeInspector(Scene& scene, Component* component, int id
 		ImGui::TreePop();
 }
 
-void Entity::displayTreeNodeInspector(Scene& scene, std::vector<Component*>& components, int id, bool& hasToRemoveComponent, int& removeId)
+void Entity::displayTreeNodeInspector(Scene& scene, Component* firstComponent, const std::vector<void*>& selection)
 {
-	if (components.size() == 0)
-		return;
-
 	ImGui::SetNextWindowContentWidth(80);
 	bool nodeOpen = false;
 
@@ -279,17 +283,18 @@ void Entity::displayTreeNodeInspector(Scene& scene, std::vector<Component*>& com
 		nodeOpen = true;
 	ImGui::SameLine();
 
-	ImGui::Text(components[0]->getClassName().c_str());
+	ImGui::Text(firstComponent->getClassName().c_str());
 
-	if (nodeOpen) {
-		components[0]->drawInInspector(scene, components);
+	if (nodeOpen) 
+	{
+		firstComponent->drawInInspector(selection);
 	}
 
 	if (nodeOpen)
 		ImGui::TreePop();
 }
 
-void Entity::drawInInspector(Scene& scene)
+void Entity::drawInInspector()
 {
 	char tmpName[20];
 	m_name.copy(tmpName, m_name.size(), 0);
@@ -299,42 +304,20 @@ void Entity::drawInInspector(Scene& scene)
 		m_name = tmpName;
 	}
 
-	TransformNode::drawUI(hasParent());
+	TransformNode::drawInInspector();
 
 	bool hasToRemoveComponent = false;
 	int removeId = 0;
-	//bool expendComponent = false;
-	for (int i = 0; i < m_componentsRefs.size(); i++)
+	for (int i = 0; i < m_componentsHandles.size(); i++)
 	{
 		ImGui::PushID(i);
-		//ImGui::Separator();
-		///*const float frame_height = 10;
-		//ImRect bb = ImRect(ImGui::GetCurrentWindow()->DC.CursorPos, ImVec2(ImGui::GetCurrentWindow()->Pos.x + ImGui::GetContentRegionMax().x, ImGui::GetCurrentWindow()->DC.CursorPos.y + frame_height));
-		//bool hovered, held;
-		//const ImGuiID id = ImGui::GetCurrentWindow()->DC. ->GetID(str_id);
-		//bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_NoKeyModifiers);
-		//ImGui::RenderCollapseTriangle(bb.Min, false);*/
-		//if (ImGui::Button("expend"))
-		//	expendComponent = true;
-		//ImGui::SameLine();
-		//ImGui::Text(Component::ComponentTypeName[m_componentsRefs[i]->type()].c_str());
-		//ImGui::SameLine();
-		//if (ImGui::Button("remove"))
-		//{
-		//	hasToRemoveComponent = true;
-		//	removeId = i;
-		//}	
-		//ImGui::Separator();
-		//if(expendComponent)
-		//	m_componentsRefs[i]->drawUI(scene);
-		displayTreeNodeInspector(scene, m_componentsRefs[i], i, hasToRemoveComponent, removeId);
+
+		displayTreeNodeInspector(*m_scene, m_componentsHandles[i].getPtr(), i, hasToRemoveComponent, removeId);
 
 		ImGui::PopID();
-
-		//expendComponent = false;
 	}
 	if(hasToRemoveComponent)
-		m_componentsRefs[removeId]->eraseFromEntity(*this);
+		m_componentsHandles[removeId]->eraseFromEntity(*this);
 
 	if (ImGui::Button("add component"))
 		ImGui::OpenPopup("add component window");
@@ -351,7 +334,7 @@ void Entity::drawInInspector(Scene& scene)
 
 }
 
-void extractAllComponents(const std::vector<Entity*>& entitiesIn, std::map<int, std::vector<Component*>>& componentsOut)
+void extractAllComponents(const std::vector<Entity*>& entitiesIn, std::map<int, std::vector<ObjectPtr<Component>&>>& componentsOut)
 {
 	for (auto& entity : entitiesIn)
 	{
@@ -359,39 +342,46 @@ void extractAllComponents(const std::vector<Entity*>& entitiesIn, std::map<int, 
 	}
 }
 
-void Entity::drawInInspector(Scene& scene, const std::vector<IDrawableInInspector*>& selection)
+void Entity::drawInInspector(const std::vector<void*>& objectInstances)
 {
 	char tmpName[20];
 	m_name.copy(tmpName, m_name.size(), 0);
 	tmpName[m_name.size()] = '\0';
 	if (ImGui::InputText("name", tmpName, 20))
 	{
-		for (int i = 0; i < selection.size(); i++)
+		for (int i = 0; i < objectInstances.size(); i++)
 		{
-			Entity* entity = static_cast<Entity*>(selection[i]);
+			Entity* entity = static_cast<Entity*>(objectInstances[i]);
 			entity->m_name = tmpName;
 		}
 	}
 
-	TransformNode::drawInInspector(hasParent(), selection);
+	TransformNode::drawInInspector(objectInstances);
 
 	bool hasToRemoveComponent = false;
 	int removeId = 0;
 
-	std::map<int, std::vector<Component*>> outComponents;
-	for (int i = 0; i < selection.size(); i++)
+	std::map<int, std::vector<ObjectPtr<Component>&>> outComponents;
+	for (int i = 0; i < objectInstances.size(); i++)
 	{
-		Entity* entity = static_cast<Entity*>(selection[i]);
+		Entity* entity = static_cast<Entity*>(objectInstances[i]);
 		entity->getAllComponentsByTypes(outComponents);
 	}
 
 	for (auto& componentsByType : outComponents)
 	{
+		std::vector<void*> componentPtrs(componentsByType.second.size());
+		int index = 0;
+		for (auto component : componentsByType.second)
+		{
+			componentPtrs[index] = component.getPtr();
+			index++;
+		}
+
 		ImGui::PushID(componentsByType.first);
-		displayTreeNodeInspector(scene, componentsByType.second, componentsByType.first, hasToRemoveComponent, removeId);
+		displayTreeNodeInspector(*m_scene, componentsByType.second[0].getPtr(), componentPtrs);
 		ImGui::PopID();
 	}
-	
 }
 
 bool Entity::getIsSelected() const
@@ -449,19 +439,19 @@ void Entity::deselect()
 
 void Entity::endCreation()
 {
-	Collider* colliderComponent = static_cast<Collider*>(getComponent<Collider>());
-	if (colliderComponent != nullptr)
+	const ObjectPtr<Collider>& colliderComponent = getComponent<Collider>();
+	if (colliderComponent.isValid())
 	{
 		// if a component containing a mesh is present in the entity, cover it with the collider : 
-		Physic::Flag* flagComponent = static_cast<Physic::Flag*>(getComponent<Physic::Flag>());
-		MeshRenderer* meshRendererComponent = static_cast<MeshRenderer*>(getComponent<MeshRenderer>());
-		if (flagComponent != nullptr)
+		const ObjectPtr<Physic::Flag>& flagComponent = getComponent<Physic::Flag>();
+		const ObjectPtr<MeshRenderer>& meshRendererComponent = getComponent<MeshRenderer>();
+		if (flagComponent.isValid())
 		{
 			colliderComponent->setOrigin(flagComponent->getOrigin());
 			colliderComponent->coverMesh(flagComponent->getMesh());
 			colliderComponent->addOffsetScale(glm::vec3(0.f, 0.f, 0.2f));
 		}
-		else if (meshRendererComponent != nullptr)
+		else if (meshRendererComponent.isValid())
 		{
 			colliderComponent->setOrigin(meshRendererComponent->getOrigin());
 			colliderComponent->coverMesh(*meshRendererComponent->getMesh());
@@ -469,17 +459,17 @@ void Entity::endCreation()
 	}
 }
 
-void Entity::getAllComponentsByTypes(std::map<int, std::vector<Component*>>& outComponents)
+void Entity::getAllComponentsByTypes(std::map<int, std::vector<ObjectPtr<Component>&>>& outComponents)
 {
-	for (int i = 0; i < m_componentsRefs.size(); i++)
+	for (int i = 0; i < m_componentsHandles.size(); i++)
 	{
-		outComponents[m_componentsRefs[i]->getClassId()].push_back(m_componentsRefs[i]);
+		outComponents[m_componentsHandles[i]->getClassId()].push_back(m_componentsHandles[i]);
 	}
 }
 
 bool Entity::hasParent() const
 {
-	return m_parent != nullptr;
+	return m_parent.isValid();
 }
 
 bool Entity::hasChild() const
@@ -487,42 +477,55 @@ bool Entity::hasChild() const
 	return m_childs.size() > 0;
 }
 
-Entity* Entity::getChild(int idx)
+const ObjectPtr<Entity>& Entity::getChild(int idx)
 {
 	return m_childs[idx];
 }
 
-Entity* Entity::getParent()
+const ObjectPtr<Entity>& Entity::getParent()
 {
 	return m_parent;
 }
 
-void Entity::setParent(Entity* parent)
+void Entity::clearParent()
 {
-	if (m_parent != nullptr)
-		removeParent();
-
-	setParentAtomic(parent);
-	if(m_parent != nullptr)
-		m_parent->addChildAtomic(this);
+	if (m_parent.isValid())
+		m_parent->removeChildAtomic(ObjectPtr<Entity>(this, m_scene));
+	m_parent.reset();
 }
 
-void Entity::addChild(Entity* child)
+void Entity::setParent(const ObjectPtr<Entity>& parent)
 {
-	child->removeParent();
+	if (m_parent.isValid())
+		clearParent();
 
-	child->setParentAtomic(this);
+	setParentAtomic(parent);
+	if(m_parent.isValid())
+		m_parent->addChildAtomic( ObjectPtr<Entity>(this, m_scene) );
+}
+
+void Entity::addChild(const ObjectPtr<Entity>& child)
+{
+	child->clearParent();
+
+	child->setParentAtomic( ObjectPtr<Entity>(this, m_scene) );
 	addChildAtomic(child);
 }
 
-void Entity::removeParent()
+void Entity::detachChild(const ObjectPtr<Entity>& child)
 {
-	if(m_parent != nullptr)
-		m_parent->removeChild(this);
-	m_parent = nullptr;
+	if (m_childs.size() > 0) //has childs ?
+	{
+		auto findIt = std::find(m_childs.begin(), m_childs.end(), child);
+		if (findIt != m_childs.end())
+		{
+			(*findIt)->m_parent.reset();
+			m_childs.erase(findIt);
+		}
+	}
 }
 
-void Entity::removeChild(Entity* child)
+void Entity::removeChildAtomic(const ObjectPtr<Entity>& child)
 {
 	if (m_childs.size() > 0) //has childs ?
 	{
@@ -534,15 +537,12 @@ void Entity::removeChild(Entity* child)
 
 void Entity::eraseAllChilds()
 {
-	while(m_childs.size() > 0)
+	for (auto& child : m_childs)
 	{
-		m_scene->getAccessor().removeFromScene(m_childs.back());
-		delete m_childs.back();
-		m_childs.back() = nullptr;
-		//m_childs[i] = nullptr;
+		m_scene->destroy(child);
 	}
-	if(m_childs.size() > 0)
-		m_childs.clear();
+
+	m_childs.clear();
 }
 
 int Entity::getChildCount() const
@@ -592,84 +592,30 @@ void Entity::onCollisionEnd(const CollisionInfo & collisionInfo)
 	m_collisionInfo = collisionInfo;
 }
 
-void Entity::save(Json::Value& entityRoot) const
+void Entity::OnBeforeObjectSaved()
 {
-	TransformNode::save(entityRoot);
-
-	//Scene* m_scene; scene is already set by constructor 
-	entityRoot["name"] = m_name;
-
-	//std::vector<Entity*> m_childs; TODO
-	//Entity* m_parent; TODO
-
-	//bool m_isSelected; selected information isn't serialized
-
-	entityRoot["componentCount"] = m_componentsRefs.size();
-	for (int i = 0; i < m_componentsRefs.size(); i++)
-	{
-		m_componentsRefs[i]->save(entityRoot["components"][i]);
-	}
-
-	//entityRoot["childCount"] = m_childs.size();
-	//for (int i = 0; i < m_childs.size(); i++)
-	//{
-	//	m_childs[i]->save(entityRoot["childs"][i]);
-	//}
+	//TODO
 }
 
-void Entity::load(const Json::Value& entityRoot)
+void Entity::OnAfterObjectLoaded()
 {
-	TransformNode::load(entityRoot);
-	applyTransform();
-
-	//Scene* m_scene; scene is already set by constructor 
-	m_name = entityRoot.get("name", "defaultEntity").asString();
-
-	//std::vector<Entity*> m_childs; TODO
-	//Entity* m_parent; TODO
-
-	//bool m_isSelected; selected information isn't serialized
-
-	int componentCount = entityRoot.get("componentCount", 0).asInt();
-	for (int i = 0; i < componentCount; i++)
+	for (auto& component : m_componentsHandles)
 	{
-		Component* newComponent;
-		Component::ComponentType type = (Component::ComponentType)entityRoot["components"][i].get("type", 0).asInt();
-		if (type == Component::ComponentType::BEHAVIOR) {
-			std::string behaviourTypeIndexName = entityRoot["components"][i].get("typeIndexName", "NONE").asString();
-			if (behaviourTypeIndexName == "NONE")
-				continue;
-			newComponent = BehaviorFactory::get().getInstance(behaviourTypeIndexName);
-		}
-		else {
-			newComponent = ComponentFactory::get().getInstance(type);
-		}
-		newComponent->load(entityRoot["components"][i]);
-
-		newComponent->addToEntity(*this);
+		component->onAfterAddedToEntity(*this);
 	}
-
-	applyTransform();
-
-	//int childCount = entityRoot.get("childCount", 0).asInt();
-	//for (int i = 0; i < childCount; i++)
-	//{
-	//	Entity* newEntity = new Entity(m_scene);
-	//	newEntity->load(entityRoot["childs"][i]);
-	//}
 }
 
-void Entity::addChildAtomic(Entity* child)
+void Entity::addChildAtomic(const ObjectPtr<Entity>& child)
 {
 	m_childs.push_back(child);
 }
 
-void Entity::setParentAtomic(Entity* parent)
+void Entity::setParentAtomic(const ObjectPtr<Entity>& parent)
 {
 	m_parent = parent;
 
 	if (m_parent == nullptr)
 		setParentTransform();
 	else
-		setParentTransform(*m_parent);
+		setParentTransform(*m_parent.getPtr());
 }

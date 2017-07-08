@@ -15,29 +15,33 @@
 #include "glm/gtc/matrix_transform.hpp" // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include "glm/gtc/type_ptr.hpp" // glm::value_ptr
 
-#include "MeshRenderer.h"
-#include "Collider.h"
-#include "Lights.h"
-#include "Flag.h"
-#include "ParticleEmitter.h"
-#include "PathPoint.h"
-#include "Billboard.h"
-#include "Camera.h"
-#include "WindZone.h"
-#include "Rigidbody.h"
-#include "Animator.h"
-#include "CharacterController.h"
-#include "Behavior.h"
+//#include "MeshRenderer.h"
+//#include "Collider.h"
+//#include "Lights.h"
+//#include "Flag.h"
+//#include "ParticleEmitter.h"
+//#include "PathPoint.h"
+//#include "Billboard.h"
+//#include "Camera.h"
+//#include "WindZone.h"
+//#include "Rigidbody.h"
+//#include "Animator.h"
+//#include "CharacterController.h"
+//#include "Behavior.h"
 
 #include "glm/gtc/quaternion.hpp"
 
+#include "Object.h"
+#include "ObjectPool.h"
 #include "TransformNode.h"
 #include "Coroutine.h"
 #include "IDrawableInInspector.h"
+#include "CollisionInfo.h"
 
 //forward
 class Component;
 class Scene;
+struct CollisionInfo;
 
 /*
 class Transform
@@ -74,16 +78,26 @@ public :
 
 };*/
 
-#include "Handle.h"
+template<typename T>
+class Test
+{
+public:
+	T* m_data;
+};
 
-class Entity : public TransformNode, public IDrawableInInspector
+class Entity : public TransformNode
 {
 	friend void Component::setEntityOwner(Entity* entity);
 
-	OBJECT_CLASS(Entity,
-		ObjectDescriptor<Entity>::registerParentClass<TransformNode>();
-		ObjectDescriptor<Entity>::registerProperty<std::string>(&Entity::m_name);
-		ObjectDescriptor<Entity>::registerProperty<bool>(&Entity::m_isVisible)
+	CLASS((Entity, TransformNode),
+		((PRIVATE)
+			// Point light parameters
+			(std::string, m_name)
+			(bool, m_isVisible)
+			(std::vector<ObjectPtr<Component>>, m_componentsHandles)
+			(std::vector<ObjectPtr<Entity>>, m_childs)
+			(ObjectPtr<Entity>, m_parent)
+		)
 	)
 
 public:
@@ -92,16 +106,6 @@ public:
 private:
 
 	Scene* m_scene;
-
-	std::string m_name;
-	bool m_isVisible;
-
-	std::vector<GenericHandle> m_componentsHandles;
-	std::vector<Component*> m_componentsRefs;
-
-	std::vector<Entity*> m_childs;
-
-	Entity* m_parent;
 
 	//coroutines :
 	std::vector<BaseCoroutine*> m_coroutines;
@@ -125,23 +129,23 @@ public:
 	~Entity();
 
 	template<typename U>
-	U* getComponent()
+	const ObjectPtr<U>& getComponent()
 	{
-		auto foundIt = std::find_if(m_componentsRefs.begin(), m_componentsRefs.end(); [](const Component* item) { return item->isA<U>(); });
-		if (foundIt != m_componentsRefs)
-			return static_scast<U*>(*foundIt);
+		auto foundIt = std::find_if(m_componentsHandles.begin(), m_componentsHandles.end(); [](const ObjectPtr<Component> item) { return item->isA<U>(); });
+		if (foundIt != m_componentsHandles.end())
+			return ObjectPtr<U>(*foundIt);
 		else
 			return nullptr;
 	}
 
 	template<typename U>
-	int getComponents(std::vector<U*>& outComponents)
+	int getComponents(std::vector<const ObjectPtr<U>&>& outComponents)
 	{
 		assert(outComponents.size() == 0);
 		std::vector<int> tmpIdx;
 		int componentsCount = 0;
 		int index = 0;
-		for (auto& component : m_componentsRefs)
+		for (auto& component : m_componentsHandles)
 		{
 			if (component->isA<U>())
 			{
@@ -157,68 +161,28 @@ public:
 		// loop only in the minimal range
 		for (index = 0; index < componentCount; ++index)
 		{
-			outComponents.push_back(m_componentsRefs[tmpIdx[index]]);
+			outComponents.push_back(m_componentsHandles[tmpIdx[index]]);
 		}
 
 		return outComponents.size();
 	}
 
 	template<typename U>
-	int getComponentHandles(std::vector<Handle<U>>& outComponents)
+	void eraseComponent(const ObjectPtr<U>& objectPtr)
 	{
-		assert(outComponents.size() == 0);
-		std::vector<int> tmpIdx;
-		int componentsCount = 0;
-		int index = 0;
-		for (auto& component : m_componentsRefs)
+		ObjectPtr<Component> componentPtr = objectPtr; //TODO : try without this step, opbjectPtr<Component> should be equal to ObjectPtr<T> if they point to the same object
+		auto& foundIt = std::find(componentsHandles.begin(), componentsHandles.end(), componentPtr);
+		if (foundIt != componentsHandles.end())
 		{
-			if (component->isA<U>())
-			{
-				tmpIdx[index] = componentsCount;
-				componentsCount++;
-			}
-			index++;
-		}
-
-		// allocation
-		outComponents.reserve(componentsCount);
-
-		// loop only in the minimal range
-		for (index = 0; index < componentCount; ++index)
-		{
-			outComponents.push_back(Handle<U>(m_componentsHandles[tmpIdx[index]]));
-		}
-
-		return outComponents.size();
-	}
-
-	template<typename U>
-	const Handle<U>& getComponentHandle()
-	{
-		const auto foundIt = std::find_if(componentsHandles.begin(), componentsHandles.end(); [](const GenericHandle& item) { return item->isA<U>(); });
-		if (foundIt != m_componentsHandles.end())
-			return Handle<U>(*foundIt);
-		else
-			return Handle<U>(m_scene->getPool<U>());
-	}
-
-	template<typename U>
-	void eraseComponent(const Handle<U>& handle)
-	{
-		GenericHandle handleG = handle;
-		auto& foundItHandle = std::find(componentsHandles.begin(), componentsHandles.end(), handleG);
-		if (foundItHandle != componentsHandles.end())
-		{
-			auto pool = sceneRef->getPool<U>();
-			U* ref = pool->getRef(handle);
 			if (ref)
 			{
 				ref->onBeforeRemovedFromEntity();
-				removeComponentAtomic(std::distance(foundItHandle, componentsHandles.begin()));
+				removeComponentAtomic(std::distance(foundIt, componentsHandles.begin()));
 				ref->onAfterRemovedFromEntity();
 
 				ref->onBeforeRemovedFromScene();
-				pool.deallocate(handle.index, handle.generation);
+				// Will handle assynchronous deletion
+				m_scene->destroy(objectPtr);
 			}
 		}
 	}
@@ -229,16 +193,15 @@ public:
 		auto& foundIt = std::find(m_componentsRefs.begin(), m_componentsRefs.end(), component);
 		if (foundIt != m_componentsRefs.end())
 		{
-			auto pool = sceneRef->getPool<U>();
-			U* ref = pool->getRef(handle);
 			if (ref)
 			{
 				ref->onBeforeRemovedFromEntity();
-				removeComponentAtomic(std::distance(foundItHandle, componentsHandles.begin()));
+				removeComponentAtomic(std::distance(foundIt, componentsHandles.begin()));
 				ref->onAfterRemovedFromEntity();
 
 				ref->onBeforeRemovedFromScene();
-				pool.deallocate(handle.index, handle.generation);
+				// Will handle assynchronous deletion
+				m_scene->destroy(objectPtr);
 			}
 		}
 	}
@@ -246,65 +209,23 @@ public:
 	void eraseAllComponents();
 
 	template<typename U>
-	U* addNewComponent(Handle<U>& outHandle)
+	U* addNewComponent(ObjectPtr<U>& outPtr)
 	{
-		GenericHandle newHandle;
-		U* ptr = sceneRef->createNewComponent<U>(newHandle, this);
-		ptr->m_owner = this; // set ownership
-		ptr->onAfterAddedToScene();
+		outPtr = m_scene->createNew<U>();
+		outPtr->m_owner = this; // set ownership
+		outPtr->onAfterAddedToScene();
 
-		ptr->onBeforeAddedToEntity();
-		addComponentAtomic(ptr, newHandle);
-		ptr->onAfterAddedToEntity();
+		outPtr->onBeforeAddedToEntity();
+		addComponentAtomic(ObjectPtr<Component>(outPtr));
+		outPtr->onAfterAddedToEntity();
 
 		outHandle = newHandle;
 		return ptr;
 	}
 
-	void addComponent(Component* component, GenericHandle handle)
-	{
-		component->setEntityOwner(this); // set ownership
-		component->onAfterAddedToScene(*m_scene);
-
-		component->onBeforeAddedToEntity(*this);
-		addComponentAtomic(component, handle);
-		component->onAfterAddedToEntity(*this);
-	}
-
-	template<typename U>
-	U* addComponentFromExisting(const Handle<U>& modelHandle, Handle<U>& outHandle)
-	{
-		GenericHandle newHandle;
-		U* ptr = sceneRef->copyAtomic<U>(modelHandle, newHandle);
-		ptr->setEntityOwner(this); // set ownership
-		ptr->onAfterAddedToScene();
-
-		ptr->onBeforeAddedToEntity();
-		addComponentAtomic(ptr, newHandle);
-		ptr->onAfterAddedToEntity();
-
-		outHandle = newHandle;
-		return ptr;
-	}
-
-	template<typename U>
-	U* addComponentFromExisting(const U& model, Handle<U>& outHandle)
-	{
-		GenericHandle newHandle;
-		U* ptr = sceneRef->copyAtomic<U>(model, newHandle);
-		ptr->m_owner = this; // set ownership
-		ptr->onAfterAddedToScene();
-
-		ptr->onBeforeAddedToEntity();
-		addComponentAtomic(ptr, newHandle);
-		ptr->onAfterAddedToEntity();
-
-		outHandle = newHandle;
-		return ptr;
-	}
-
+	void addComponent(const ObjectPtr<Component>& componentPtr);
 	void removeComponentAtomic(int index);
-	void addComponentAtomic(Component* componentPtr, const GenericHandle& handle);
+	void addComponentAtomic(const ObjectPtr<Component>& componentPtr);
 
 	Scene* getSceneRef() const;
 
@@ -325,8 +246,8 @@ public:
 	void applyTransformFromPhysicSimulation();
 
 	//draw the entity UI
-	void drawInInspector(Scene& scene);
-	void drawInInspector(Scene& scene, const std::vector<IDrawableInInspector*>& selection);
+	void drawInInspector();
+	void drawInInspector(const std::vector<void*>& objectInstances);
 
 	//return the value of m_isSelected
 	bool getIsSelected() const ;
@@ -354,15 +275,17 @@ public:
 	//One of the goal of this function is to properly set up the collider such that it cover well all the components of the entity.
 	void endCreation();
 
-	void getAllComponentsByTypes(std::map<int, std::vector<Component*>>& outComponents);
+	void getAllComponentsByTypes(std::map<int, std::vector<ObjectPtr<Component>&>>& outComponents);
 
 	bool hasParent() const;
 	bool hasChild() const;
-	Entity* getChild(int idx);
-	Entity* getParent();
-	void setParent(Entity* child);
-	void addChild(Entity* child);
-	void removeChild(Entity* child);
+	const ObjectPtr<Entity>& getChild(int idx);
+	const ObjectPtr<Entity>& getParent();
+	void clearParent();
+	void setParent(const ObjectPtr<Entity>& child);
+	void addChild(const ObjectPtr<Entity>& child);
+	void detachChild(const ObjectPtr<Entity>& child);
+	// Delete all childs from this entity.
 	void eraseAllChilds();
 	int getChildCount() const;
 
@@ -374,16 +297,21 @@ public:
 	void onCollisionStay(const CollisionInfo& collisionInfo);
 	void onCollisionEnd(const CollisionInfo& collisionInfo);
 
-	virtual void save(Json::Value& entityRoot) const override;
-	virtual void load(const Json::Value& entityRoot) override;
+	//virtual void save(Json::Value& entityRoot) const override;
+	//virtual void load(const Json::Value& entityRoot) override;
+
+	virtual void drawInInspector() override;
+	virtual void OnBeforeObjectSaved() override;
+	virtual void OnAfterObjectLoaded() override;
 
 private:
-	void removeParent();
-	void addChildAtomic(Entity* child);
-	void setParentAtomic(Entity* parent);
+	// Detach a child from this entity. child deletion must be done by the scene.
+	void removeChildAtomic(const ObjectPtr<Entity>& child);
+	void addChildAtomic(const ObjectPtr<Entity>& child);
+	void setParentAtomic(const ObjectPtr<Entity>& parent);
 
 	//helper to draw UI : 
-	void displayTreeNodeInspector(Scene& scene, std::vector<Component*>& components, int id, bool& hasToRemoveComponent, int& removeId);
+	void displayTreeNodeInspector(Scene& scene, Component* firstComponent, const std::vector<void*>& components);
 	void displayTreeNodeInspector(Scene& scene, Component* component, int id, bool& hasToRemoveComponent, int& removeId);
 
 };

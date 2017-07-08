@@ -16,9 +16,11 @@
 #include "ISerializable.h"
 #include "IDrawableInInspector.h"
 
+#include "Object.h"
+
 class Entity; //forward
 
-class TransformNode : public ISerializable
+class TransformNode : public Object
 {
 protected:
 	glm::vec3 m_translation;
@@ -84,11 +86,11 @@ public:
 	virtual void applyTransform(const glm::vec3& translation, const glm::quat& rotation = glm::quat()) = 0;
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat()) = 0;
 
-	void drawUI(bool local = false);
-	void drawInInspector(bool local, const std::vector<IDrawableInInspector*>& selection);
+	//void drawUI(bool local = false);
+	//void drawInInspector(bool local, const std::vector<IDrawableInInspector*>& selection);
 
-	virtual void save(Json::Value& entityRoot) const override;
-	virtual void load(const Json::Value& entityRoot) override;
+	//virtual void save(Json::Value& entityRoot) const override;
+	//virtual void load(const Json::Value& entityRoot) override;
 
 };
 

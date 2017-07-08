@@ -184,7 +184,7 @@ void TransformNode::setParentTransform(const glm::vec3 & parentTranslation, cons
 
 void TransformNode::setParentTransform(const TransformNode & parentTransform)
 {
-	setParentTransform(m_translation, m_scale, m_rotation);
+	setParentTransform(parentTransform.getTranslation(), parentTransform.getScale(), parentTransform.getRotation());
 }
 
 void TransformNode::updateModelMatrix()
@@ -197,152 +197,152 @@ void TransformNode::updateModelMatrix()
 
 	onChangeModelMatrix();
 }
-
-void TransformNode::drawUI(bool local)
-{
-
-	glm::vec3 tmpTrans = m_translation;
-	if (ImGui::InputFloat3("translation", &tmpTrans[0]))
-	{
-		setTranslation(tmpTrans);
-		applyTransform();
-	}
-	if (!local)
-	{
-		glm::vec3 tmpRot = m_eulerRotation * (180.f / glm::pi<float>());
-		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
-		{
-			//m_eulerRotation = tmpRot * glm::pi<float>() / 180.f;
-			//setRotation(glm::quat(m_eulerRotation));
-
-			setEulerRotation(tmpRot * glm::pi<float>() / 180.f);
-			applyTransform();
-		}
-
-		glm::vec3 tmpScale = m_scale;
-		if (ImGui::InputFloat3("scale", &tmpScale[0]))
-		{
-			setScale(tmpScale);
-			applyTransform();
-		}
-	}
-	else
-	{
-		glm::vec3 tmpRot = m_localEulerRotation * (180.f / glm::pi<float>());
-		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
-		{
-			setLocalEulerRotation(tmpRot * glm::pi<float>() / 180.f);
-			applyTransform();
-		}
-
-		glm::vec3 tmpScale = m_localScale;
-		if (ImGui::InputFloat3("scale", &tmpScale[0]))
-		{
-			setLocalScale(tmpScale);
-			applyTransform();
-		}
-	}
-}
-
-void TransformNode::drawInInspector(bool local, const std::vector<IDrawableInInspector*>& selection)
-{
-	if (selection.size() == 0)
-		return;
-
-	glm::vec3 tmpTrans = m_translation;
-	if (ImGui::InputFloat3("translation", &tmpTrans[0]))
-	{
-		for (auto& node : selection)
-		{
-			Entity* entity = static_cast<Entity*>(node);
-			entity->setTranslation(tmpTrans);
-			entity->applyTransform();
-		}
-	}
-	if (!local)
-	{
-		glm::vec3 tmpRot = m_eulerRotation * (180.f / glm::pi<float>());
-		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
-		{
-			for (auto& node : selection)
-			{
-				Entity* entity = static_cast<Entity*>(node);
-				entity->setEulerRotation(tmpRot * glm::pi<float>() / 180.f);
-				entity->applyTransform();
-			}
-		}
-
-		glm::vec3 tmpScale = m_scale;
-		if (ImGui::InputFloat3("scale", &tmpScale[0]))
-		{
-			for (auto& node : selection)
-			{
-				Entity* entity = static_cast<Entity*>(node);
-				entity->setScale(tmpScale);
-				entity->applyTransform();
-			}
-		}
-	}
-	else
-	{
-		glm::vec3 tmpRot = m_localEulerRotation * (180.f / glm::pi<float>());
-		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
-		{
-			for (auto& node : selection)
-			{
-				Entity* entity = static_cast<Entity*>(node);
-				entity->setLocalEulerRotation(tmpRot * glm::pi<float>() / 180.f);
-				entity->applyTransform();
-			}
-		}
-
-		glm::vec3 tmpScale = m_localScale;
-		if (ImGui::InputFloat3("scale", &tmpScale[0]))
-		{
-			for (auto& node : selection)
-			{
-				Entity* entity = static_cast<Entity*>(node);
-				entity->setLocalScale(tmpScale);
-				entity->applyTransform();
-			}
-		}
-	}
-}
-
-void TransformNode::save(Json::Value & entityRoot) const
-{
-	entityRoot["translation"] = toJsonValue(m_translation);
-	entityRoot["scale"] = toJsonValue(m_scale);
-	entityRoot["rotation"] = toJsonValue(m_rotation);
-	entityRoot["eulerRotation"] = toJsonValue(m_eulerRotation);
-
-	entityRoot["localTranslation"] = toJsonValue(m_localTranslation);
-	entityRoot["localScale"] = toJsonValue(m_localScale);
-	entityRoot["localRotation"] = toJsonValue(m_localRotation);
-	entityRoot["localEulerRotation"] = toJsonValue(m_localEulerRotation);
-
-	entityRoot["parentTranslation"] = toJsonValue(m_parentTranslation);
-	entityRoot["parentScale"] = toJsonValue(m_parentScale);
-	entityRoot["parentRotation"] = toJsonValue(m_parentRotation);
-	
-	entityRoot["modelMatrix"] = toJsonValue(m_modelMatrix);
-}
-
-void TransformNode::load(const Json::Value & entityRoot)
-{
-	m_translation = fromJsonValue<glm::vec3>(entityRoot["translation"], glm::vec3());
-	m_scale = fromJsonValue<glm::vec3>(entityRoot["scale"], glm::vec3());
-	m_rotation = fromJsonValue<glm::quat>(entityRoot["rotation"], glm::quat());
-	m_eulerRotation = fromJsonValue<glm::vec3>(entityRoot["eulerRotation"], glm::vec3());
-
-	m_localTranslation = fromJsonValue<glm::vec3>(entityRoot["localTranslation"], glm::vec3());
-	m_localScale = fromJsonValue<glm::vec3>(entityRoot["localScale"], glm::vec3());
-	m_localRotation = fromJsonValue<glm::quat>(entityRoot["localRotation"], glm::quat());
-	m_localEulerRotation = fromJsonValue<glm::vec3>(entityRoot["localEulerRotation"], glm::vec3());
-
-	m_parentTranslation = fromJsonValue<glm::vec3>(entityRoot["parentTranslation"], glm::vec3());
-	m_parentScale = fromJsonValue<glm::vec3>(entityRoot["parentScale"], glm::vec3());
-	m_parentRotation = fromJsonValue<glm::quat>(entityRoot["parentRotation"], glm::quat());
-
-	m_modelMatrix = fromJsonValue<glm::mat4>(entityRoot["modelMatrix"], glm::mat4());
-}
+//
+//void TransformNode::drawUI(bool local)
+//{
+//
+//	glm::vec3 tmpTrans = m_translation;
+//	if (ImGui::InputFloat3("translation", &tmpTrans[0]))
+//	{
+//		setTranslation(tmpTrans);
+//		applyTransform();
+//	}
+//	if (!local)
+//	{
+//		glm::vec3 tmpRot = m_eulerRotation * (180.f / glm::pi<float>());
+//		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
+//		{
+//			//m_eulerRotation = tmpRot * glm::pi<float>() / 180.f;
+//			//setRotation(glm::quat(m_eulerRotation));
+//
+//			setEulerRotation(tmpRot * glm::pi<float>() / 180.f);
+//			applyTransform();
+//		}
+//
+//		glm::vec3 tmpScale = m_scale;
+//		if (ImGui::InputFloat3("scale", &tmpScale[0]))
+//		{
+//			setScale(tmpScale);
+//			applyTransform();
+//		}
+//	}
+//	else
+//	{
+//		glm::vec3 tmpRot = m_localEulerRotation * (180.f / glm::pi<float>());
+//		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
+//		{
+//			setLocalEulerRotation(tmpRot * glm::pi<float>() / 180.f);
+//			applyTransform();
+//		}
+//
+//		glm::vec3 tmpScale = m_localScale;
+//		if (ImGui::InputFloat3("scale", &tmpScale[0]))
+//		{
+//			setLocalScale(tmpScale);
+//			applyTransform();
+//		}
+//	}
+//}
+//
+//void TransformNode::drawInInspector(bool local, const std::vector<IDrawableInInspector*>& selection)
+//{
+//	if (selection.size() == 0)
+//		return;
+//
+//	glm::vec3 tmpTrans = m_translation;
+//	if (ImGui::InputFloat3("translation", &tmpTrans[0]))
+//	{
+//		for (auto& node : selection)
+//		{
+//			Entity* entity = static_cast<Entity*>(node);
+//			entity->setTranslation(tmpTrans);
+//			entity->applyTransform();
+//		}
+//	}
+//	if (!local)
+//	{
+//		glm::vec3 tmpRot = m_eulerRotation * (180.f / glm::pi<float>());
+//		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
+//		{
+//			for (auto& node : selection)
+//			{
+//				Entity* entity = static_cast<Entity*>(node);
+//				entity->setEulerRotation(tmpRot * glm::pi<float>() / 180.f);
+//				entity->applyTransform();
+//			}
+//		}
+//
+//		glm::vec3 tmpScale = m_scale;
+//		if (ImGui::InputFloat3("scale", &tmpScale[0]))
+//		{
+//			for (auto& node : selection)
+//			{
+//				Entity* entity = static_cast<Entity*>(node);
+//				entity->setScale(tmpScale);
+//				entity->applyTransform();
+//			}
+//		}
+//	}
+//	else
+//	{
+//		glm::vec3 tmpRot = m_localEulerRotation * (180.f / glm::pi<float>());
+//		if (ImGui::SliderFloat3("rotation", &tmpRot[0], 0, 360))
+//		{
+//			for (auto& node : selection)
+//			{
+//				Entity* entity = static_cast<Entity*>(node);
+//				entity->setLocalEulerRotation(tmpRot * glm::pi<float>() / 180.f);
+//				entity->applyTransform();
+//			}
+//		}
+//
+//		glm::vec3 tmpScale = m_localScale;
+//		if (ImGui::InputFloat3("scale", &tmpScale[0]))
+//		{
+//			for (auto& node : selection)
+//			{
+//				Entity* entity = static_cast<Entity*>(node);
+//				entity->setLocalScale(tmpScale);
+//				entity->applyTransform();
+//			}
+//		}
+//	}
+//}
+//
+//void TransformNode::save(Json::Value & entityRoot) const
+//{
+//	entityRoot["translation"] = toJsonValue(m_translation);
+//	entityRoot["scale"] = toJsonValue(m_scale);
+//	entityRoot["rotation"] = toJsonValue(m_rotation);
+//	entityRoot["eulerRotation"] = toJsonValue(m_eulerRotation);
+//
+//	entityRoot["localTranslation"] = toJsonValue(m_localTranslation);
+//	entityRoot["localScale"] = toJsonValue(m_localScale);
+//	entityRoot["localRotation"] = toJsonValue(m_localRotation);
+//	entityRoot["localEulerRotation"] = toJsonValue(m_localEulerRotation);
+//
+//	entityRoot["parentTranslation"] = toJsonValue(m_parentTranslation);
+//	entityRoot["parentScale"] = toJsonValue(m_parentScale);
+//	entityRoot["parentRotation"] = toJsonValue(m_parentRotation);
+//	
+//	entityRoot["modelMatrix"] = toJsonValue(m_modelMatrix);
+//}
+//
+//void TransformNode::load(const Json::Value & entityRoot)
+//{
+//	m_translation = fromJsonValue<glm::vec3>(entityRoot["translation"], glm::vec3());
+//	m_scale = fromJsonValue<glm::vec3>(entityRoot["scale"], glm::vec3());
+//	m_rotation = fromJsonValue<glm::quat>(entityRoot["rotation"], glm::quat());
+//	m_eulerRotation = fromJsonValue<glm::vec3>(entityRoot["eulerRotation"], glm::vec3());
+//
+//	m_localTranslation = fromJsonValue<glm::vec3>(entityRoot["localTranslation"], glm::vec3());
+//	m_localScale = fromJsonValue<glm::vec3>(entityRoot["localScale"], glm::vec3());
+//	m_localRotation = fromJsonValue<glm::quat>(entityRoot["localRotation"], glm::quat());
+//	m_localEulerRotation = fromJsonValue<glm::vec3>(entityRoot["localEulerRotation"], glm::vec3());
+//
+//	m_parentTranslation = fromJsonValue<glm::vec3>(entityRoot["parentTranslation"], glm::vec3());
+//	m_parentScale = fromJsonValue<glm::vec3>(entityRoot["parentScale"], glm::vec3());
+//	m_parentRotation = fromJsonValue<glm::quat>(entityRoot["parentRotation"], glm::quat());
+//
+//	m_modelMatrix = fromJsonValue<glm::mat4>(entityRoot["modelMatrix"], glm::mat4());
+//}

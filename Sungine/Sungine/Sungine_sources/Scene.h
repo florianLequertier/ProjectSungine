@@ -95,7 +95,10 @@ class SceneAccessor;
 #define REGISTER_POOL_IN_SCENE(POOL_TYPE, CAPACITY)\
 	bool ObjectPool<POOL_TYPE>::g_isRegister = SceneInitializer::addInitializer([](Scene* scene) { scene->addNewPool<POOL_TYPE>(CAPACITY); });
 
-class SceneInitializer
+#define REGISTER_BEHAVIOUR_POOL_IN_SCENE(POOL_TYPE, CAPACITY)\
+	bool ObjectPool<POOL_TYPE>::g_isRegister = SceneInitializer::addInitializer([](Scene* scene) { scene->addNewBehaviorPool<POOL_TYPE>(CAPACITY); });
+
+class SceneInitializer : public ISingleton<SceneInitializer>
 {
 	std::vector<std::function<void(Scene* scene)>> m_initializers;
 
@@ -150,67 +153,42 @@ public:
 	REGISTER_POOL_IN_SCENE(Animator, 1000)
 
 	//Behaviors
-	REGISTER_POOL_IN_SCENE(Behavior, 1000)
+	//REGISTER_POOL_IN_SCENE(Behavior, 1000)
 
 class Scene : public ObjectSpace
 {
 	friend SceneAccessor;
 
-	template<typename U>
-	friend class Handle;
-
-	std::map<int, IObjectPool*> m_poolMapping;
-	std::vector<IObjectPool*> m_behaviorPools;
-
-	//SCENE(
-	//	//Entities
-	//	(Entity, Entity)
-
-	//	// Lights
-	//	(PointLight, PointLight)
-	//	(DirectionalLight, DirectionalLight)
-	//	(SpotLight, SpotLight)
-
-	//	//Collidersders
-	//	(CapsuleCollider, CapsuleCollider)
-	//	(BoxCollider, BoxCollider)
-
-	//	//Renderables
-	//	(MeshRenderer, MeshRenderer)
-	//	(ReflectivePlane, ReflectivePlane)
-	//	(Physic::Flag, Flag)
-	//	(Physic::ParticleEmitter, ParticleEmitter)
-	//	(Billboard, Billboard)
-
-	//	//Cameras
-	//	(Camera, Camera)
-
-	//	//Physic
-	//	(Physic::WindZone, WindZone)
-	//	(Rigidbody, Rigidbody)
-	//	(CharacterController, CharacterController)
-
-	//	//Animations
-	//	(Animator, Animator)
-
-	//	//Behaviors
-	//	(Behavior, Behavior)
-	//)
-
 private:
-	//scene name :
+	// Scene name :
 	std::string m_name;
 
-	//Renderables :
+	// Special mapping for behaviors only
+	std::vector<IObjectPool*> m_behaviorPools;
+
+	// Ref to few usefull pools
+	ObjectPool<Entity>* m_entities;
+	ObjectPool<ReflectivePlane>* m_reflectivePlanes;
+	ObjectPool<Camera>* m_cameras;
+	ObjectPool<PointLight>* m_pointLights;
+	ObjectPool<DirectionalLight>* m_directionalLights;
+	ObjectPool<SpotLight>* m_spotLights;
+	ObjectPool<Physic::ParticleEmitter>* m_particleEmitters;
+	ObjectPool<CharacterController>* m_characterControllers;
+	ObjectPool<Animator>* m_animators;
+	ObjectPool<Physic::Flag>* m_flags;
+	ObjectPool<Physic::WindZone>* m_windZones;
+
+	// Renderables :
 	Octree<IRenderableComponent, AABB> m_renderables;
 
-	//systems : 
+	// Systems : 
 	Renderer* m_renderer;
 	Physic::PhysicManager* m_physicManager;
 	PathManager m_pathManager;
 	BehaviorManager m_behaviorManager;
 
-	//parameters : 
+	// Parameters : 
 	bool m_areCollidersVisible;
 	bool m_isDebugDeferredVisible;
 	bool m_areLightsBoundingBoxVisible;
@@ -225,139 +203,18 @@ private:
 	Mesh* m_iconeMesh;
 	MaterialBillboard* m_iconeMaterial;
 
-//
-//private:
-//	template<typename U, typename... Args>
-//	U* createAtomic(GenericHandle& handle, Args&&... args)
-//	{
-//		auto pool = getOrCreatePool<U>();
-//		return static_cast<U*>(pool->allocate(handle, std::forward<Args>(args)...));
-//	}
-//
-//public:
-//
-//	template<typename U>
-//	ObjectPool<U>* getPool()
-//	{
-//		assert(false);
-//		return nullptr;
-//	}
-//
-//	IObjectPool* getPool(int classTypeId)
-//	{
-//		auto& found = m_poolMapping.find(classTypeId);
-//		if (found != m_poolMapping.end())
-//		{
-//			return found->second;
-//		}
-//		else
-//		{
-//			return nullptr;
-//		}
-//	}
-//
-//	template<typename T>
-//	ObjectPool<U>* getOrCreatePool()
-//	{
-//		auto& found = m_poolMapping.find(classTypeId);
-//		if (found != m_poolMapping.end())
-//		{
-//			return found->second;
-//		}
-//		else
-//		{
-//			return createPool<T>();
-//		}
-//	}
-//
-//	template<typename T>
-//	ObjectPool<U>* createPool()
-//	{
-//		assert(m_poolMapping.find(Object::getStaticClassId<T>()) == m_poolMapping.end());
-//
-//		auto newPool = new ObjectPool<T>();
-//		newPool.resize(SCENE_ELEMENT_COUNT);
-//		m_poolMapping[Object::getStaticClassId<T>()] = newPool;
-//		return newPool;
-//	}
-//
-//	template<typename U>
-//	U* getRefFromHandle(Handle<U> handle)
-//	{
-//		auto pool = getPool<U>();
-//		return static_cast<U*>(pool->getRef(handle));
-//	}
-//
-//	void updateBehaviors()
-//	{
-//		for (auto pool : m_behaviorPools)
-//		{
-//			pool->update();
-//		}
-//	}
-//
-//	Entity* createNewEntity(GenericHandle& handle)
-//	{
-//		Entity* e = createAtomic<Entity>(handle, this);
-//		//e->getSceneRef() = this;
-//		assert(e->getSceneRef() == this);
-//		return e;
-//	}
-//
-//	template<typename U>
-//	Entity* createNewComponent(GenericHandle& handle, Entity* owner)
-//	{
-//		U* newComponent = createAtomic<Entity>(handle, owner);
-//		assert(newComponent->entity() == this);
-//		return newComponent;
-//	}
-//
-//	template<typename U>
-//	U* copyAtomic(const Handle<U>& modelHandle, GenericHandle& handle)
-//	{
-//		auto pool = getPool<U>();
-//		return static_cast<U*>(pool->copy(modelHandle, handle));
-//	}
-//
-//	template<typename U>
-//	U* copyAtomic(const& model, GenericHandle& handle)
-//	{
-//		auto pool = getPool<U>();
-//		return static_cast<U*>(pool->copy(model, handle));
-//	}
-//
-//	template<typename U>
-//	void destroyAtomic(const Handle<U>& handle)
-//	{
-//		auto pool = getPool<U>();
-//		pool->deallocate(handle.index, handle.generation);
-//	}
-//
-//	template<typename U>
-//	void clearPool()
-//	{
-//		auto pool = getPool<U>();
-//		if(pool != nullptr)
-//			pool->deallocateAll();
-//	}
-//
-//	void clear()
-//	{
-//		for (auto& pool : m_poolMapping)
-//		{
-//			pool.second->deallocateAll();
-//		}
-//	}
-
+	// Asynchonous deletion
+	std::vector<ObjectPtr<Object>> m_objectsToDelete;
 
 	///////////////////
 
+public:
 	Scene(Renderer* renderer, const std::string& sceneName = "defaultScene");
 	~Scene();
-	void clear();
+	void clear() override;
 
-	std::vector<Entity*>& getEntities();
-	SceneAccessor& getAccessor() const;
+	//std::vector<Entity*>& getEntities();
+	//SceneAccessor& getAccessor() const;
 	void addToRenderables(IRenderableComponent* renderable);
 	void removeFromRenderables(IRenderableComponent* renderable);
 
@@ -379,10 +236,11 @@ private:
 
 	void updatePhysic(float deltaTime, const BaseCamera& camera);
 	void updatePhysic(float deltaTime, const BaseCamera& camera, bool updateInEditMode);
-
 	void updateAnimations(float time);
 	void updateControllers(float deltaTime);
 	void updateBehaviours();
+
+	void handleAsynchonousDeletion();
 
 	void toggleColliderVisibility();
 	void toggleDebugDeferredVisibility();
@@ -421,4 +279,18 @@ private:
 	//void onViewportResized(const glm::vec2& newSize);
 
 	void drawUI();
+
+	template<typename T>
+	void addNewBehaviorPool(int capacity = 1000)
+	{
+		ObjectPool<T>* newBehaviorPool = addNewPool<T>(capacity);
+		m_behaviorPools.push_back(newBehaviorPool);
+	}
+
+	// Mask the default destroy of the ObjectSpace base class to handle asynchonous object detruction.
+	template<typename T>
+	void destroy(ObjectPtr<T> object)
+	{
+		m_objectsToDelete.push_back(object);
+	}
 };

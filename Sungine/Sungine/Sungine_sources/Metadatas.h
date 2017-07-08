@@ -12,12 +12,17 @@
 #include <boost/preprocessor/arithmetic/sub.hpp>
 #include <boost/preprocessor/control/if.hpp>
 
+#include "Fields.h"
+
+template<typename T>
+void atomicPrint(const T& object)
+{
+	//TODO
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// METADATA SYSTEM
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct Object;
 
 //// The property descriptor is able to retrieve the instance member and can perform actions on this member (saving, printing, ...)
 struct IPropertyDescriptor
@@ -25,6 +30,9 @@ struct IPropertyDescriptor
 	virtual void saveJSON(const void* object, cereal::JSONOutputArchive& archive) = 0;
 	virtual void loadJSON(void* object, cereal::JSONInputArchive& archive) = 0;
 	virtual void print(const void* object) = 0;
+	virtual void drawInInspector(void* object) = 0;
+	virtual void drawInInspector(const std::vector<void*>& objectInstances) = 0;
+	virtual const std::string& getName() const = 0;
 };
 
 template<typename Class, typename MemberType>
@@ -32,10 +40,23 @@ class PropertyDescriptor : public IPropertyDescriptor
 {
 public:
 	MemberType  Class::*pointerToMember;
+	MetasFilter<MemberType> metasFilter;
+	std::string name;
 
-	PropertyDescriptor(MemberType Class::* ptrToMember)
+	PropertyDescriptor(MemberType Class::* ptrToMember, const std::string& propertyName)
+		: pointerToMember(ptrToMember)
+		, name(propertyName)
+	{}
+
+	PropertyDescriptor(MemberType Class::* ptrToMember, const std::string& propertyName, const std::string& metas)
+		: metasFiltermetas()
+		, pointerToMember(ptrToMember)
+		, name(propertyName)
+	{}
+
+	const std::string& getName() const override
 	{
-		pointerToMember = ptrToMember;
+		return name;
 	}
 
 	MemberType& getInstanceMember(void* objectInstance)
@@ -61,6 +82,23 @@ public:
 	virtual void print(const void* objectInstance) override
 	{
 		atomicPrint(getInstanceMember(objectInstance));
+	}
+
+	virtual void drawInInspector(void* objectInstance) override
+	{
+		Field::PropertyField(this, std::vector<void*>(1, objectInstance), metasFilter);
+	}
+
+	virtual void drawInInspector(const std::vector<void*>& objectInstances) override
+	{
+		std::vector<MemberType*> properties(objectInstances.size());
+		int index = 0;
+		for (auto& objectInstance : objectInstances)
+		{
+			properties[index++] = &getInstanceMember(objectInstance);
+		}
+
+		Field::PropertyField(properties, metasFilter);
 	}
 };
 
@@ -96,17 +134,23 @@ public:
 	virtual void saveObjectInstanceJSON(const void* objectInstance, cereal::JSONOutputArchive& archive) = 0;
 	virtual void loadObjectInstanceJSON(void* objectInstance, cereal::JSONInputArchive& archive) = 0;
 	virtual void printObjectInstance(const void* objectInstance) = 0;
+	virtual void drawInInspector(void* objectInstance) = 0;
+	virtual void drawInInspector(const std::vector<void*>& objectInstances) = 0;
+	virtual void drawInInspectorExcept(void* objectInstance, const std::vector<int>& ignoredIndex) = 0;
+	virtual void drawInInspectorExcept(const std::vector<void*>& objectInstances, const std::vector<int>& ignoredIndex) = 0;
 };
 
 class BaseObjectDescriptor : public IObjectDescriptor
 {
 protected:
 	static int ClassCount;
+	static std::unordered_map<std::string, int> classNameToId;
 
 	int classId;
 	std::string className;
 	std::vector<BaseObjectDescriptor*> parentClassDescriptors;
 	std::vector<IPropertyDescriptor*> propertyDescriptors;
+	std::unordered_map<std::string, int> propertyDescriptorsMapping;
 
 public:
 
@@ -124,6 +168,13 @@ public:
 	const std::string& getClassName() const
 	{
 		return className;
+	}
+
+	static int getClassIdFromName(const std::string& className)
+	{
+		auto found = classNameToId.find(className);
+		if (found != classNameToId.end())
+			return found->second;
 	}
 
 	template<typename OtherObjectClass>
@@ -176,6 +227,40 @@ public:
 	{
 		return propertyDescriptors.end();
 	}
+
+	int getPropertyIndex(const std::string& propertyName)
+	{
+		auto found = propertyDescriptorsMapping.find(propertyName);
+		if (found != propertyDescriptorsMapping.end())
+			return found->second;
+		else
+			return -1;
+	}
+
+	IPropertyDescriptor* getPropertyDescriptor(const std::string& propertyName)
+	{
+		int propertyIndex = getPropertyIndex(propertyName);
+		if (propertyIndex != -1)
+		{
+			return propertyDescriptors[propertyIndex];
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	IPropertyDescriptor* getPropertyDescriptor(int propertyIndex)
+	{
+		if (propertyIndex >= 0 && propertyIndex < propertyDescriptors.size())
+		{
+			return propertyDescriptors[propertyIndex];
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
 };
 
 template<typename ObjectClass>
@@ -187,9 +272,17 @@ public:
 public:
 	/////////////// Registering
 	template<typename MemberClass>
-	static void registerProperty(MemberClass ObjectClass::* pointerToMember)
+	static void registerProperty(MemberClass ObjectClass::* pointerToMember, const std::string& propertyName)
 	{
-		getInstance().propertyDescriptors.push_back(new PropertyDescriptor<ObjectClass, MemberClass>(pointerToMember));
+		getInstance().propertyDescriptors.push_back(new PropertyDescriptor<ObjectClass, MemberClass>(pointerToMember, propertyName));
+		getInstance().propertyDescriptorsMapping[memberName] = getInstance().propertyDescriptors.size() - 1;
+	}
+
+	template<typename MemberClass>
+	static void registerProperty(MemberClass ObjectClass::* pointerToMember, const std::string& propertyName, const std::string& metas)
+	{
+		getInstance().propertyDescriptors.push_back(new PropertyDescriptor<ObjectClass, MemberClass>(pointerToMember, propertyName, metas));
+		getInstance().propertyDescriptorsMapping[memberName] = getInstance().propertyDescriptors.size() - 1;
 	}
 
 	template<typename ParentClass>
@@ -201,6 +294,7 @@ public:
 	static void registerClassName(const std::string& name)
 	{
 		getInstance().className = name;
+		classNameToId[name] = classId;
 	}
 	/////////////////////////////
 
@@ -259,6 +353,68 @@ public:
 		for (auto propertyDescriptor : getInstance().propertyDescriptors)
 		{
 			propertyDescriptor->print(objectInstance);
+		}
+	}
+
+	virtual void drawInInspector(void* objectInstance) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : getInstance().parentClassDescriptors)
+		{
+			parentClass->drawInInspector(objectInstance);
+		}
+
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			propertyDescriptor->drawInInspector(objectInstance);
+		}
+	}
+
+	virtual void drawInInspector(const std::vector<void*>& objectInstances) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : getInstance().parentClassDescriptors)
+		{
+			parentClass->drawInInspector(objectInstances);
+		}
+
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			propertyDescriptor->drawInInspector(objectInstances);
+		}
+	}
+	
+	virtual void drawInInspectorExcept(void* objectInstance, const std::vector<int>& ignoredIndex) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : getInstance().parentClassDescriptors)
+		{
+			parentClass->drawInInspectorExcept(objectInstance);
+		}
+
+		int index = 0;
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			if (std::find(ignoredIndex.begin(); ignoredIndex.end(), index) == ignoredIndex.end())
+				propertyDescriptor->drawInInspector(objectInstance);
+			index++;
+		}
+	}
+
+	virtual void drawInInspectorExcept(const std::vector<void*>& objectInstances, const std::vector<int>& ignoredIndex) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : getInstance().parentClassDescriptors)
+		{
+			parentClass->drawInInspectorExcept(objectInstances);
+		}
+
+		int index = 0;
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			if (std::find(ignoredIndex.begin(); ignoredIndex.end(), index) == ignoredIndex.end())
+				propertyDescriptor->drawInInspector(objectInstances);
+			index++;
 		}
 	}
 	/////////////////////////////
@@ -326,8 +482,8 @@ public:
 #define DEFINE_PROPS( seq ) protected: BOOST_PP_SEQ_FOR_EACH(DEFINE_PROP,_, seq) private:
 
 //class, type, name, meta -> Object<class>::registerProperty<type>(&class::name, meta)
-#define REGISTER_PROP____(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, Metas);
-#define REGISTER_PROP____BIS(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name);
+#define REGISTER_PROP____(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, Name, Metas);
+#define REGISTER_PROP____BIS(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, Name);
 
 //class, prop01 -> REGISTER_PROP___(class, prop01[0], prop01[1], prop01[2])
 #define REGISTER_PROP___(r, Class, elem) REGISTER_PROP____(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem), BOOST_PP_TUPLE_ELEM(2, elem))
@@ -360,13 +516,30 @@ private:
 
 #define CLASS_(Class, Class_and_parents, seq_props)\
 	friend class ObjectDescriptor<Class>;\
-	virtual BaseObjectDescriptor& getDescriptor() const{ return ObjectDescriptor<Class>::getInstance(); }\
+	BaseObjectDescriptor& getDescriptor() const{ return ObjectDescriptor<Class>::getInstance(); }\
 	REGISTER_PROPS(Class, Class_and_parents, seq_props)\
 	DEFINE_PROPS(seq_props)
 
 #define CLASS(Class_and_parents, seq_props)\
 	CLASS_(BOOST_PP_SEQ_ELEM(0, BOOST_PP_TUPLE_TO_SEQ(Class_and_parents)), BOOST_PP_TUPLE_TO_SEQ(Class_and_parents), seq_props)\
 private:
+
+// For interfaces :
+// You can also have ObjectDescriptor for interfaces.
+// The only difference is that you cannot register parent classes or member variables.
+// So you can have an interface registered as parent class : CLASS((MyClass, MyInterface) ,...)
+
+#define INTERFACE(Class)\
+	friend class ObjectDescriptor<Class>;\
+	virtual BaseObjectDescriptor& getDescriptor() const{ return ObjectDescriptor<Class>::getInstance(); }\
+public:\
+	static bool registerProperties() {\
+		ObjectDescriptor<Class>::registerClassName(#Class);\
+		return true;\
+	}\
+private:
+
+#define REGISTER_INTERFACE(Class) template<> bool ObjectDescriptor<Class>::isRegistered = Class::registerProperties();
 
 
 // Macro usage :

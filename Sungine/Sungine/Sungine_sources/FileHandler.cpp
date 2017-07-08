@@ -405,6 +405,12 @@ bool CompletePath::empty() const
 	return m_path.empty() && m_extention.empty() && m_fileName.empty();
 }
 
+void CompletePath::replaceExtension(const std::string& newExtension)
+{
+	m_extention = newExtension;
+	format();
+}
+
 bool CompletePath::hasValidExtention() const 
 {
 	return (m_extention != ""
@@ -726,6 +732,33 @@ std::size_t splitPathFileNameExtention(const std::string& pathAndFileNameAndExte
 
 	splitPathFileName(pathAndFileNameAndExtention, path, filenameAndExtention);
 	return splitFileNameExtention(filenameAndExtention, filename, extention);
+}
+
+bool createFile(const CompletePath &path, const std::string& content)
+{
+	if (fileExists(path))
+		return false;
+	else
+	{
+		std::ofstream s;
+		s.open(path.toString());
+		if (s.is_open())
+		{
+			s << content.c_str();
+			s.close();
+		}
+	}
+}
+
+bool createFileOverride(const CompletePath &path, const std::string& content)
+{
+	std::ofstream s;
+	s.open(path.toString(), std::ios::trunc);
+	if (s.is_open())
+	{
+		s << content.c_str();
+		s.close();
+	}
 }
 
 void copyPastFile(const CompletePath& from, const Path& to)

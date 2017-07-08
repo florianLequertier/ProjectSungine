@@ -96,7 +96,7 @@ struct PointLight : public Light
 	CLASS((PointLight, Light),
 	((PUBLIC)
 		// Point light parameters
-		(glm::vec3		, intensity		)
+		(glm::vec3		, position		)
 		(BoxCollider	, boundingBox	)
 	)
 	)

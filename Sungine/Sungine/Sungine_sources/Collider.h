@@ -12,9 +12,9 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
-#include "MeshRenderer.h"
-
 #include "Component.h"
+#include "CollisionInfo.h"
+#include "MeshRenderer.h"
 
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
@@ -24,16 +24,6 @@ class Ray;
 class Entity;
 class Rigidbody;
 
-
-struct CollisionInfo 
-{
-	Rigidbody* receiver;
-	Rigidbody* rigidbody;
-	glm::vec3 point;
-	glm::vec3 normal;
-
-	CollisionInfo(Rigidbody* _rigidbody = nullptr, const glm::vec3& _point = glm::vec3(0, 0, 0), const glm::vec3& _normal = glm::vec3(0, 0, 0));
-};
 
 struct Collider : public Component
 {

@@ -4,23 +4,41 @@
 
 #include "cereal.hpp"
 
+#include "ISingleton.h"
 #include "Object.h"
 #include "AssetPool.h"
 
-#include "Project.h"
+#define ASSET_ELEMENT_COUNT 1000
 
-class AssetManager
+class Mesh;
+class Texture;
+class CubeTexture;
+class Sungine::Animation::AnimationStateMachine;
+class ShaderProgram;
+class Material;
+class SkeletalAnimation;
+class ResourceFolder;
+
+class AssetManager : public ISingleton<AssetManager>
 {
 private:
-	static std::map<FileHandler::FileType, int> m_fileTypeToObjectClassId;
+	// Mapping : file type -> class id
+	static std::unordered_map<FileHandler::FileType, int> m_fileTypeToObjectClassId;
 
-	std::map<int, IObjectPool*> m_poolMapping;
+	// Mapping : class id -> asset pool
+	std::unordered_map<int, IAssetPool*> m_poolMapping;
 
+	// All the asset pools
 	AssetPool<Mesh> m_meshPool;
-	//...
+	AssetPool<Texture> m_texturePool;
+	AssetPool<CubeTexture> m_cubeTexturePool;
+	AssetPool<Sungine::Animation::AnimationStateMachine> m_animationStateMachinePool;
+	AssetPool<ShaderProgram> m_shaderProgramPool;
+	AssetPool<Material> m_materialPool;
+	AssetPool<SkeletalAnimation> m_skeletalAnimationPool;
 
 public:
-	void registerAssetFileTypes(int objectClassId, const std::vector<FileHandler::FileType>& fileTypes)
+	static void registerAssetFileTypes(int objectClassId, const std::vector<FileHandler::FileType>& fileTypes)
 	{
 		for (auto& fileType : fileTypes)
 		{
@@ -29,62 +47,75 @@ public:
 	}
 
 public:
-	AssetManager()
-	{
-		m_meshPool.resize(ASSET_ELEMENT_COUNT);
-		m_poolMapping[Object::getStaticClassId<Mesh>()] = &m_meshPool;
-		//...
-	}
+	AssetManager();
 
-	void loadAssets()
+	// Will load all assets which are in the asset folder into the engine AssetManager.
+	template<typename Archive>
+	void loadAssets(const Archive& archive)
 	{
+		for (auto& pool : m_poolMapping)
+		{
+			pool.second->load(archive);
+		}
+
 		const FileHandler::Path& assetsPath = Project::getAssetsFolderPath();
 
 		loadAssetsRec(m_assetTree, assetPath);
 	}
 
-	void loadAssetsRec(const AssetFolder& currentFolder, const FileHandler::Path& folderPath)
-	{
-		std::vector<std::string> dirNames;
-		FileHandler::getAllDirNames(folderPath, dirNames);
+	void loadAssetsRec(ResourceFolder& currentFolder, const FileHandler::Path& folderPath);
 
-		for (auto& dirName : dirNames)
-		{
-			int subFolderIdx = 0;
-			if (currentFolder.addSubFolder(dirName, &subFolderIdx) )
-			{
-				loadAssetsRec(FileHandler::Path(folderPath, dirName));
-			}
-		}
-
-		std::vector<std::string> fileNames;
-		FileHandler::getAllFileNames(folderPath, fileNames);
-		std::string outExtention;
-
-		for (auto& fileNameAndExtention : fileNames)
-		{
-			//We only add files that engine understand
-			FileHandler::getExtentionFromExtendedFilename(fileNameAndExtention, outExtention);
-			FileHandler::FileType fileType = FileHandler::getFileTypeFromExtention(outExtention);
-			if (FileHandler::getFileTypeFromExtention(outExtention) != FileHandler::FileType::NONE)
-			{
-				currentFolder.addFile(fileNameAndExtention);
-
-				FileHandler::CompletePath assetPath(folderPath, fileNameAndExtention);
-				auto foundClassId = m_fileTypeToObjectClassId.find(fileType);
-				if (foundClassId != m_fileTypeToObjectClassId.end())
-				{
-					m_poolMapping[foundClassId->second]->loadAsset(assetPath);
-				}
-			}
-		}
-	}
-
+	// Save/Load all the pools. Will mostly save metas and mappings and load mappings.
 	// Only serealize asset mapping
 	template<typename Archive>
 	void serialize(Archive& archive)
 	{
-		archive(m_meshPool);
-		//...
+		archive(m_meshPool
+		, m_texturePool
+		, m_cubeTexturePool
+		, m_animationStateMachinePool
+		, m_shaderProgramPool
+		, m_materialPool
+		, m_skeletalAnimationPool);
+	}
+
+	// Take an object (ex : a Mesh, created with "new Mesh()") and insert it to the asset system.
+	// This will call the saveAssetToFile function of the asset.
+	template<typename T>
+	AssetHandle<T> createAsset(const T& object, const FileHandler::CompletePath& assetPath)
+	{
+		getPool<T>()->createAsset(object, assetPath);
+	}
+
+	template<typename T>
+	AssetPool<T>* getPool()
+	{
+		return static_cast<PoolMapping<T>*>(m_poolMapping[Object::getStaticClassId<T>()]);
+	}
+
+	void createAssetMetaFile(const FileHandler::CompletePath& assetPath, const std::string& metaContent)
+	{
+		FileHandler::CompletePath assetMetaPath = assetPath;
+		assetMetaPath.replaceExtension("meta");
+
+		FileHandler::createFile(assetMetaPath, metaContent); // should use createFileOverride instead
+	}
+
+	template<typename T>
+	void addDefaultAsset(const Asset& asset)
+	{
+		getPool<T>()->addDefaultAsset(asset);
+	}
+
+	template<typename T>
+	bool getDefaultAsset(const std::string& assetName, AssetHandle& outHandle)
+	{
+		return getPool<T>()->getDefaultAsset(assetName, outHandle);
+	}
+
+	template<typename T>
+	bool getAsset(const std::string& assetName, AssetHandle& outHandle)
+	{
+		return getPool<T>()->getAsset(assetName, outHandle);
 	}
 };

@@ -83,8 +83,8 @@ public:
 	//ComponentType type() const;
 	bool getIsActive() const;
 
-	virtual void drawInInspector(Scene& scene) = 0;
-	virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) = 0;
+	//virtual void drawInInspector(Scene& scene) = 0;
+	//virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) = 0;
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat());
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat());
