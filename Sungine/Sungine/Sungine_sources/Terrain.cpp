@@ -1316,7 +1316,7 @@ void Terrain::load(const Json::Value & rootComponent)
 
 		std::string materialLayoutName = rootComponent["materialLayouts"][i]["materialName"].asString(); //TODO : supprimer ?
 
-		m_terrainLayouts.push_back(ResourcePtr<Material>(rootComponent["materialLayouts"][i]["material"]));
+		m_terrainLayouts.push_back(ResourcePtr<MaterialInstance>(rootComponent["materialLayouts"][i]["material"]));
 	}
 	//recreate m_filterTexture : 
 	m_filterTexture->freeGL();
@@ -1512,9 +1512,9 @@ void Terrain::drawUI()
 
 		ImGui::SliderFloat("draw radius", &m_drawRadius, 0.f, 1.f);
 
-		ResourcePtr<Material> materialPtrQuery;
-		//EditorGUI::ResourceField<Material>(materialPtrQuery, "new texture layout", m_newLayoutName, 30);
-		EditorGUI::ResourceField<Material>("new texture layout", materialPtrQuery);
+		ResourcePtr<MaterialInstance> materialPtrQuery;
+		//EditorGUI::ResourceField<MaterialInstance>(materialPtrQuery, "new texture layout", m_newLayoutName, 30);
+		EditorGUI::ResourceField<MaterialInstance>("new texture layout", materialPtrQuery);
 
 		ImGui::SameLine();
 		if (ImGui::SmallButton("add"))

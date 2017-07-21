@@ -45,14 +45,14 @@ struct Collider : public Component
 
 public:
 
-	ResourcePtr<Material> visualMaterial;
+	ResourcePtr<MaterialInstance> visualMaterial;
 	ResourcePtr<Mesh> visualMesh;
 
-	Collider(Mesh* _visualMesh = nullptr, Material* _visualMaterial = nullptr);
+	Collider(Mesh* _visualMesh = nullptr, MaterialInstance* _visualMaterial = nullptr);
 	virtual ~Collider();
 
 	//add a visual representation to this collider
-	void setVisual(ResourcePtr<Mesh> _visualMesh, ResourcePtr<Material> _visualMaterial);
+	void setVisual(ResourcePtr<Mesh> _visualMesh, ResourcePtr<MaterialInstance> _visualMaterial);
 
 	//apply transform operation to this collider
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale, const glm::quat& rotation) override;
@@ -151,7 +151,7 @@ struct BoxCollider : public Collider
 
 public:
 
-	BoxCollider(Mesh* _visualMesh = nullptr, Material* _visualMaterial = nullptr);
+	BoxCollider(Mesh* _visualMesh = nullptr, MaterialInstance* _visualMaterial = nullptr);
 
 	virtual void updateModelMatrix() override;
 	virtual void render(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& color = glm::vec3(1,0,0)) override;

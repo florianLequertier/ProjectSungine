@@ -21,11 +21,11 @@ private:
 	float scale;
 
 	Mesh mesh;
-	ResourcePtr<Material> material;
+	ResourcePtr<MaterialInstance> material;
 	BoxCollider collider[3];
 
 public:
-	Gizmo(ResourcePtr<Material> _material = nullptr, Editor* _editor = nullptr);
+	Gizmo(ResourcePtr<MaterialInstance> _material = nullptr, Editor* _editor = nullptr);
 
 	void setTarget(Entity* entity);
 	void setTargets(std::vector<Entity*> entity);

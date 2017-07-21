@@ -65,7 +65,7 @@ struct Light : public Component
 
 public:
 
-	ResourcePtr<Material> flareMaterial;
+	ResourcePtr<MaterialInstance> flareMaterial;
 
 	Light(float _intensity, glm::vec3 _color);
 	virtual ~Light();
@@ -113,7 +113,7 @@ public:
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation  = glm::quat()) override;
 
-	void setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<Material> visualMaterial);
+	void setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<MaterialInstance> visualMaterial);
 	void renderBoundingBox(const glm::mat4& projectile, const glm::mat4& view, glm::vec3 color);
 
 	virtual void save(Json::Value& rootComponent) const override;
@@ -179,7 +179,7 @@ public:
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat()) override;
 
-	void setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<Material> visualMaterial);
+	void setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<MaterialInstance> visualMaterial);
 	void renderBoundingBox(const glm::mat4& projectile, const glm::mat4& view, glm::vec3 color);
 
 	virtual void save(Json::Value& rootComponent) const override;

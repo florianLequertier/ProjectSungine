@@ -10,7 +10,7 @@
 class PathManager
 {
 private:
-	ResourcePtr<Material> m_material;
+	ResourcePtr<MaterialInstance> m_material;
 	std::vector<Path*> m_paths;
 
 public:

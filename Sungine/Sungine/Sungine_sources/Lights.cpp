@@ -188,7 +188,7 @@ void PointLight::applyTransform(const glm::vec3 & translation, const glm::vec3 &
 	updateBoundingBox();
 }
 
-void PointLight::setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<Material> visualMaterial)
+void PointLight::setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<MaterialInstance> visualMaterial)
 {
 	boundingBox.setVisual(visualMesh, visualMaterial);
 }
@@ -420,7 +420,7 @@ void SpotLight::applyTransform(const glm::vec3 & translation, const glm::vec3 & 
 	updateBoundingBox();
 }
 
-void SpotLight::setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<Material> visualMaterial)
+void SpotLight::setBoundingBoxVisual(ResourcePtr<Mesh> visualMesh, ResourcePtr<MaterialInstance> visualMaterial)
 {
 	boundingBox.setVisual(visualMesh, visualMaterial);
 }

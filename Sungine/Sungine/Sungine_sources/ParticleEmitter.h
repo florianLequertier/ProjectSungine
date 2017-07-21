@@ -57,7 +57,7 @@ namespace Physic{
 
 		//TODO : -> parameters
 		//materials : 
-		ResourcePtr<Material> m_materialParticules;
+		ResourcePtr<MaterialInstance> m_materialParticules;
 		//MaterialParticleSimulation* m_materialParticuleSimulation;
 
 		//particles soa : 
@@ -120,7 +120,7 @@ namespace Physic{
 
 		//herited from IRenderableComponent
 		virtual const IDrawable & getDrawable(int drawableIndex) const override;
-		virtual const Material & getDrawableMaterial(int drawableIndex) const override;
+		virtual const MaterialInstance & getDrawableMaterial(int drawableIndex) const override;
 		virtual const int getDrawableCount() const override;
 		virtual Component* getAsComponent() override;
 

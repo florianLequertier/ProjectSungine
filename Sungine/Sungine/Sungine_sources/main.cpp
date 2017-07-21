@@ -654,7 +654,7 @@ int main( int argc, char **argv )
 		
 		//ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiSetCond_FirstUseEver);
 		//ImGui::Begin("aogl");
-		//ImGui::SliderFloat("Material Specular Power", &(brickMaterial.specularPower), 0.0f, 100.f);
+		//ImGui::SliderFloat("MaterialInstance Specular Power", &(brickMaterial.specularPower), 0.0f, 100.f);
 		//lightManager.drawUI();
 		//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		//ImGui::End();

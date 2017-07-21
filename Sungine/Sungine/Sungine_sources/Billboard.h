@@ -23,7 +23,7 @@ private:
 	glm::vec3 m_translation;
 	glm::vec2 m_scale;
 	ResourcePtr<Mesh> m_quadMesh;
-	ResourcePtr<Material> m_billboardMaterial;
+	ResourcePtr<MaterialInstance> m_billboardMaterial;
 	ResourcePtr<Texture> m_texture;
 	glm::vec4 m_color;
 
@@ -51,7 +51,7 @@ public:
 
 	// Herited from IRenderableComponent
 	virtual const IDrawable & getDrawable(int drawableIndex) const override;
-	virtual const Material & getDrawableMaterial(int drawableIndex) const override;
+	virtual const MaterialInstance & getDrawableMaterial(int drawableIndex) const override;
 	virtual const int getDrawableCount() const override;
 	virtual Component* getAsComponent() override;
 

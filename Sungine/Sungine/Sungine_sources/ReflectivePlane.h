@@ -30,7 +30,7 @@ private:
 
 	// TODO : ->parameter
 	ResourcePtr<Mesh> m_mesh;
-	ResourcePtr<Material> m_material;
+	ResourcePtr<MaterialInstance> m_material;
 
 	glm::mat4 m_modelMatrix;
 	AABB m_aabb;
@@ -41,14 +41,14 @@ private:
 public:
 
 	ReflectivePlane();
-	ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<Material> material);
+	ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material);
 	ReflectivePlane(const ReflectivePlane& other);
 	virtual ~ReflectivePlane();
 
 	void setMesh(ResourcePtr<Mesh> _mesh);
-	void setMaterial(ResourcePtr<Material> _material);
+	void setMaterial(ResourcePtr<MaterialInstance> _material);
 
-	const Material* getMaterial() const;
+	const MaterialInstance* getMaterial() const;
 	const Mesh* getMesh() const;
 
 	void setModelMatrix(const glm::mat4& modelMatrix);
@@ -79,7 +79,7 @@ public:
 
 	// Herite from IRenderableComponent
 	virtual const IDrawable& getDrawable(int drawableIndex) const override;
-	virtual const Material& getDrawableMaterial(int drawableIndex) const override;
+	virtual const MaterialInstance& getDrawableMaterial(int drawableIndex) const override;
 	virtual const int getDrawableCount() const override;
 	virtual Component* getAsComponent() override;
 

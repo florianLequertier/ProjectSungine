@@ -229,9 +229,9 @@ void Inspector::drawUI()
 //	//		}
 //	//	}
 //	//}
-//	ResourcePtr<Material> materialPtrQuery;
-//	//EditorGUI::ResourceField<Material>(materialPtrQuery, "materialName", textValue, 100);
-//	EditorGUI::ResourceField<Material>("materialName", materialPtrQuery);
+//	ResourcePtr<MaterialInstance> materialPtrQuery;
+//	//EditorGUI::ResourceField<MaterialInstance>(materialPtrQuery, "materialName", textValue, 100);
+//	EditorGUI::ResourceField<MaterialInstance>("materialName", materialPtrQuery);
 //
 //	if (materialPtrQuery.isValid())
 //	{

@@ -19,7 +19,7 @@ ReflectivePlane::ReflectivePlane()
 {
 }
 
-ReflectivePlane::ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<Material> material)
+ReflectivePlane::ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material)
 	: Component(REFLECTIVE_PLANE)
 	, m_mesh(mesh)
 	, m_material(material)
@@ -43,8 +43,8 @@ ReflectivePlane::~ReflectivePlane()
 
 void ReflectivePlane::drawInInspector(Scene& scene)
 {
-	ResourcePtr<Material> materialQuery;
-	if (EditorGUI::ResourceField<Material>("materialName", materialQuery))
+	ResourcePtr<MaterialInstance> materialQuery;
+	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
 	{
 		if (materialQuery.isValid())
 		{
@@ -69,8 +69,8 @@ void ReflectivePlane::drawInInspector(Scene& scene)
 
 void ReflectivePlane::drawInInspector(Scene& scene, const std::vector<Component*>& components)
 {
-	ResourcePtr<Material> materialQuery;
-	EditorGUI::ResourceField<Material>("materialName", materialQuery);
+	ResourcePtr<MaterialInstance> materialQuery;
+	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
 	if (materialQuery.isValid())
 	{
 		for (auto component : components)
@@ -121,12 +121,12 @@ void ReflectivePlane::setMesh(ResourcePtr<Mesh> _mesh)
 	m_mesh = _mesh;
 }
 
-void ReflectivePlane::setMaterial(ResourcePtr<Material> _material)
+void ReflectivePlane::setMaterial(ResourcePtr<MaterialInstance> _material)
 {
 	m_material = _material;
 }
 
-const Material* ReflectivePlane::getMaterial() const
+const MaterialInstance* ReflectivePlane::getMaterial() const
 {
 	return m_material.get();
 }
@@ -213,7 +213,7 @@ const IDrawable & ReflectivePlane::getDrawable(int drawableIndex) const
 	return *this;
 }
 
-const Material & ReflectivePlane::getDrawableMaterial(int drawableIndex) const
+const MaterialInstance & ReflectivePlane::getDrawableMaterial(int drawableIndex) const
 {
 	return *m_material.get();
 }

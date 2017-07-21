@@ -185,7 +185,7 @@ private:
 	Texture m_drawMatTexture;
 	//Texture m_terrainDepth;
 
-	std::vector<ResourcePtr<Material>> m_terrainLayouts;
+	std::vector<ResourcePtr<MaterialInstance>> m_terrainLayouts;
 	std::vector<glm::vec2> m_textureRepetitions;
 
 	float m_noiseMax;

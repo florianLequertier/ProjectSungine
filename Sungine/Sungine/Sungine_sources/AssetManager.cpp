@@ -4,7 +4,7 @@
 //#include "Mesh.h"
 //#include "Texture.h"
 //#include "AnimationStateMachine.h"
-//#include "ShaderProgram.h"
+//#include "Material.h"
 //#include "Materials.h"
 //#include "SkeletalAnimation.h"
 
@@ -29,8 +29,8 @@ ASSET_POOL_GETTER_SPECIALISATION(Mesh, m_meshPool)
 ASSET_POOL_GETTER_SPECIALISATION(Texture, m_texturePool)
 ASSET_POOL_GETTER_SPECIALISATION(CubeTexture, m_cubeTexturePool)
 ASSET_POOL_GETTER_SPECIALISATION(Sungine::Animation::AnimationStateMachine, m_animationStateMachinePool)
-ASSET_POOL_GETTER_SPECIALISATION(ShaderProgram, m_shaderProgramPool)
-ASSET_POOL_GETTER_SPECIALISATION(Material, m_materialPool)
+ASSET_POOL_GETTER_SPECIALISATION(Material, m_shaderProgramPool)
+ASSET_POOL_GETTER_SPECIALISATION(MaterialInstance, m_materialPool)
 ASSET_POOL_GETTER_SPECIALISATION(SkeletalAnimation, m_skeletalAnimationPool)
 
 AssetManager::AssetManager()
@@ -47,12 +47,12 @@ AssetManager::AssetManager()
 	//AnimationStateMachine
 	m_animationStateMachinePool.resize(ASSET_ELEMENT_COUNT);
 	m_poolMapping[Object::getStaticClassId<Sungine::Animation::AnimationStateMachine>()] = &m_animationStateMachinePool;
-	//ShaderProgram
-	m_shaderProgramPool.resize(ASSET_ELEMENT_COUNT);
-	m_poolMapping[Object::getStaticClassId<ShaderProgram>()] = &m_shaderProgramPool;
 	//Material
+	m_shaderProgramPool.resize(ASSET_ELEMENT_COUNT);
+	m_poolMapping[Object::getStaticClassId<Material>()] = &m_shaderProgramPool;
+	//MaterialInstance
 	m_materialPool.resize(ASSET_ELEMENT_COUNT);
-	m_poolMapping[Object::getStaticClassId<Material>()] = &m_materialPool;
+	m_poolMapping[Object::getStaticClassId<MaterialInstance>()] = &m_materialPool;
 	//SkeletalAnimation
 	m_skeletalAnimationPool.resize(ASSET_ELEMENT_COUNT);
 	m_poolMapping[Object::getStaticClassId<SkeletalAnimation>()] = &m_skeletalAnimationPool;

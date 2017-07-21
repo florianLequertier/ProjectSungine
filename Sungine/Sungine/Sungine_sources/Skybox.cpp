@@ -43,8 +43,8 @@ Skybox::~Skybox()
 
 void Skybox::drawUI()
 {
-	ResourcePtr<Material> materialQuery = material;
-	if (EditorGUI::ResourceField<Material>("skybox material", materialQuery))
+	ResourcePtr<MaterialInstance> materialQuery = material;
+	if (EditorGUI::ResourceField<MaterialInstance>("skybox material", materialQuery))
 	{
 		material = materialQuery;
 	}

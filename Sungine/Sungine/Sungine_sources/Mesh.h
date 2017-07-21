@@ -13,10 +13,11 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "Resource.h"
 #include "IDrawable.h"
-
 #include "BatchableWith.h"
+
+#include "Asset.h"
+#include "AssetManager.h"
 
 
 //forwards : 
@@ -44,7 +45,7 @@ class AABB;
 
 class Skeleton;
 
-struct Mesh : public Resource
+class Mesh : public Asset
 {
 	Assimp::Importer* importer; //TODO : a quoi ça sert de laisser ça là ??? En fait ça doit servir pour gerer la durée de vie des animations, mais c'est pas cool...
 	std::vector<std::string> animNames; //pour retrouver le nom des sous-anim et les detruire quand on détruit le mesh.
@@ -88,17 +89,32 @@ struct Mesh : public Resource
 	GLenum primitiveType;
 	GLenum drawUsage;
 
+public:
+
+	//////////////////////////////////////////////////////////
+	// Constructors, destroctors, operators
+	//////////////////////////////////////////////////////////
 	Mesh(GLenum _primitiveType = GL_TRIANGLES, unsigned int _vbo_usage = (USE_INDEX | USE_VERTICES | USE_UVS | USE_NORMALS), int _coordCountByVertex = 3, GLenum _drawUsage = GL_STATIC_DRAW);
 	Mesh(const FileHandler::CompletePath& _path, const std::string& meshName = "");
-	
-	void init(const FileHandler::CompletePath& path, const ID& id) override;
-	void save() override;
-	void resolvePointersLoading() override;
-
-	void setMeshDatas(GLenum _primitiveType, unsigned int _vbo_usage, int _coordCountByVertex, GLenum _drawUsage);
-
 	~Mesh();
+	void setMeshDatas(GLenum _primitiveType, unsigned int _vbo_usage, int _coordCountByVertex, GLenum _drawUsage);
 	void clear();
+	//////////////////////////////////////////////////////////
+
+
+	//////////////////////////////////////////////////////////
+	// Asset override
+	//////////////////////////////////////////////////////////
+	void createNewAssetFile(const FileHandler::CompletePath& filePath) override;
+	void loadFromFile(const FileHandler::CompletePath& filePath) override;
+	void saveToFile(const FileHandler::CompletePath& filePath) override;
+	void saveMetas(const FileHandler::CompletePath& filePath) override;
+	void loadMetas(const FileHandler::CompletePath& filePath) override;
+	//////////////////////////////////////////////////////////
+
+	//void init(const FileHandler::CompletePath& path, const ID& id) override;
+	//void save() override;
+	//void resolvePointersLoading() override;
 
 	//initialize vbos and vao, based on the informations of the mesh.
 	void initGl();

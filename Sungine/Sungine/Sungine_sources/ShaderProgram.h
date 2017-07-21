@@ -1,207 +1,531 @@
 #pragma once
 
-#include <vector>
-#include <unordered_map>
-#include <memory>
-#include <istream>
-#include <glew/glew.h>
-#include <glm/glm.hpp>
-#include "FileHandler.h"
-#include "MaterialAggregation.h"
-
-//forwards :
-class InternalShaderParameterBase;
-class ExternalShaderParameterBase;
-class Material;
-class ResourceTreeView;
-class EditorFrame;
-
-namespace MVS {
-	class NodeManager;
-}
-
-namespace Rendering
+class ShaderProgram
 {
-	// WARNING : custom enum value must always be at the end of [...]ToString arrays !
-
-	enum class MaterialType
-	{
-		INTERNAL,
-		DEFAULT,
-		COUNT
-	};
-
-	static std::vector<std::string> MaterialTypeToString = {
-		"internal",
-		"default",
-	};
-
-	enum class MaterialUsage
-	{
-		MESH,
-		BILLBOARD,
-		PARTICLES,
-		REFLECTIVE_PLANE,
-		CUSTOM,
-		COUNT
-	};
-
-	static std::vector<std::string> MaterialUsageToString = {
-		"mesh",
-		"billboard",
-		"particles",
-		"reflective plane",
-		"custom",
-	};
-
-	enum class BaseMaterialType
-	{
-		OBJECT_3D = 0,
-		BILLBOARD,
-		PARTICLE,
-		REFLECTION,
-		CUSTOM,
-		COUNT
-	};
-
-	static std::vector<std::string> BaseMaterialTypeToString = {
-		"object3D",
-		"billboard",
-		"particle",
-		"reflection",
-		"custom",
-	};
-
-	enum class PipelineType
-	{
-		DEFERRED_PIPILINE = 0,
-		FORWARD_PIPELINE,
-		CUSTOM_PIPELINE,
-		COUNT
-	};
-
-	static std::vector<std::string> PipelineTypesToString = {
-		"deferred",
-		"forward",
-		"custom",
-	};
-}
-
-
-struct ShaderProgram : public Resource
-{
-
-private:
-	GLuint m_programId;
-
-	// Material parameters and aggregates.
-	std::vector<std::shared_ptr<InternalShaderParameterBase>> m_internalShaderParameters;
-	std::unordered_map<std::string, std::shared_ptr<MaterialAggregation>> m_aggregations;
-	std::unordered_map<std::string, std::shared_ptr<PerInstanceMaterialAggregation>> m_perInstanceAggregations;
-	//std::vector<std::shared_ptr<ExternalShaderParameterBase>> m_externalShaderParameters;
-
-	// How the material is used.
-	Rendering::MaterialType m_materialType;
-	Rendering::MaterialUsage m_usage;
-	Rendering::PipelineType m_pipeline;
-	//bool m_usedWithReflections;
-	bool m_usedWithSkeleton;
-	/*std::vector<Rendering::PipelineType> m_pipelineHandlingTypes;
-	Rendering::BaseMaterialType m_baseMaterialType;*/
-
-	// Pointers to materials using this program.
-	std::vector<ResourcePtr<Material>> m_materialRefs;
-
-	std::string m_vertexShaderName;
-	std::string m_fragmentShaderName;
-	std::string m_geometryShaderName;
-
-	// A pointer to the NodeManager associated with this material.
-	std::shared_ptr<MVS::NodeManager> m_nodeManager;
-	// A pointed to the window displaying the NodeManager
-	std::weak_ptr<EditorFrame> m_nodeManagerEditorFrameRef;
-
-	std::string m_computeShaderParameterFunction;
-	bool m_needRecompilation;
-
-public:
-	ShaderProgram();
-	ShaderProgram(const FileHandler::CompletePath& path, Rendering::MaterialType type, bool isDefaultResource = false);
-	//ShaderProgram(const FileHandler::CompletePath& vertexShaderPath, const FileHandler::CompletePath& fragmentShaderPath);
-	//ShaderProgram(const FileHandler::CompletePath& vertexShaderPath, const FileHandler::CompletePath& fragmentShaderPath, const FileHandler::CompletePath& geometryShaderPath);
-
-	const std::unordered_map<std::string, std::shared_ptr<MaterialAggregation>>& getAggregations() const;
-	const std::unordered_map<std::string, std::shared_ptr<PerInstanceMaterialAggregation>>& getPerInstanceAggregation() const;
-	GLuint getProgramId() const;
-	void compile(); // DEPRECATED
-	void compile(const std::string& computeShaderParameters);
-
-	void resetNodeManagerPtr();
-
-	void init(const FileHandler::CompletePath& path, const ID& id) override;
-	void save() override;
-	void resolvePointersLoading() override;
-
-	void load(const Json::Value& root);
-	void save(Json::Value& root) const;
-
-	void makeMaterialAggregates();
-	GLuint makeGLProgramForInternal(const FileHandler::CompletePath& shaderFolderPath, const std::string& vertexShaderName, const std::string& fragmentShaderName, const std::string& geometryShaderName);
-	//GLuint makeGLProgram(const FileHandler::CompletePath& shaderFolderPath, const std::string& vertexShaderName, const std::string& fragmentShaderName, const std::string& geometryShaderName);
-	GLuint makeGLProgramForDefault(const FileHandler::CompletePath& shaderFolderPath, const std::string& fragmentShaderName);
-	GLuint makeGLProgram();
-	GLuint makeGLProgram(const std::string& vertexShaderContent, const std::string& fragmentShaderContent);
-	//void load(const FileHandler::CompletePath& vertexShaderPath, const FileHandler::CompletePath& fragmentShaderPath);
-	//void load(const FileHandler::CompletePath& vertexShaderPath, const FileHandler::CompletePath& fragmentShaderPath, const FileHandler::CompletePath& geometryShaderPath);
-
-	//bool implementPipeline(Rendering::PipelineType pipelineType) const;
-	//int getImplementedPipelineCount() const;
-	//Rendering::PipelineType getImplementedPipeline(int idx) const;
-	//GLuint getProgramId(Rendering::PipelineType pipelineType) const;
-
-
-	//Material* makeNewMaterialInstance(const FileHandler::CompletePath& completePath);
-	//std::shared_ptr<Material> makeSharedMaterialInstance(const FileHandler::CompletePath& completePath);
-	////make a new material from this shaderProgram (warning : internaly use "new", you have to deal with deletion)
-	//Material* makeNewMaterialInstance();
-	////make a new material from this shaderProgram (use shared ptr for automatic deletion)
-	//std::shared_ptr<Material> makeSharedMaterialInstance();
-	//fill material datas from this shaderProgram
-	void LoadMaterialInstance(Material* material) const;
-
-	void addMaterialRef(Material* ref);
-	void removeMaterialRef(Material* ref);
-
-	const std::vector<std::shared_ptr<InternalShaderParameterBase>>& getInternalParameters() const;
-	void setInternalParameters(std::vector<std::shared_ptr<InternalShaderParameterBase>>& internals);
-	//const std::vector<std::shared_ptr<ExternalShaderParameterBase>>& getExternalParameters() const;
-
-	Rendering::MaterialType getMaterialType() const;
-	Rendering::MaterialUsage getMaterialUsage() const;
-	Rendering::PipelineType getPipelineType() const;
-	//bool getUsedWithReflections() const;
-	bool getUsedWithSkeletons() const;
-
-	void setMaterialUsage(Rendering::MaterialUsage usage);
-	void setPipelineType(Rendering::PipelineType pipeline);
-	//void setUsedWithReflections(bool state);
-	void setUsedWithSkeletons(bool state);
-
-	bool drawUIMaterialUsage();
-	bool drawUIPipelineType();
-	//bool drawUIUsedWithReflections();
-	bool drawUIUsedWithSkeleton();
-
-	virtual void drawInInspector(Scene & scene) override;
-
-
-	// We have to display a option to create material instance based on this shaderProgram.
-	virtual bool drawRightClicContextMenu(std::string& popupToOpen) override;
-
-	//Not copyable
-	ShaderProgram(const ShaderProgram& other) = delete;
-	const ShaderProgram& operator=(const ShaderProgram& other) = delete;
 
 };
 
-//Material* makeNewMaterialInstance(const FileHandler::CompletePath& path);
+
+class MaterialLight : public MaterialInstance
+{
+private:
+	GLuint uniform_ColorTexture;
+	GLuint uniform_NormalTexture;
+	GLuint uniform_DepthTexture;
+	GLuint uniform_SSAOTexture;
+	GLuint uniform_ScreenToView;
+	//GLuint uniform_CameraPosition; //No need in eye space
+	GLuint uniform_ShadowTexture;
+	GLuint uniform_ShadowFactor;
+
+public:
+	MaterialLight()
+		: MaterialInstance()
+	{}
+
+	MaterialLight(const AssetHandle<Material>& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialLight(const AssetHandle<Material>& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialLight()
+	{}
+
+	virtual void setExternalParameters() override
+	{
+		uniform_ColorTexture = MaterialHelper::getUniform(m_glProgramId, "ColorBuffer");
+		uniform_NormalTexture = MaterialHelper::getUniform(m_glProgramId, "NormalBuffer");
+		uniform_DepthTexture = MaterialHelper::getUniform(m_glProgramId, "DepthBuffer");
+		uniform_SSAOTexture = MaterialHelper::getUniform(m_glProgramId, "SSAOTexture");
+		uniform_ScreenToView = MaterialHelper::getUniform(m_glProgramId, "ScreenToView");
+		//uniform_CameraPosition = MaterialHelper::getUniform(m_glProgramId, "CameraPosition");
+		uniform_ShadowTexture = MaterialHelper::getUniform(m_glProgramId, "Shadow");
+		uniform_ShadowFactor = MaterialHelper::getUniform(m_glProgramId, "ShadowFactor");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformColorTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_ColorTexture, texUnitId);
+	}
+	void setUniformNormalTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_NormalTexture, texUnitId);
+	}
+	void setUniformDepthTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_DepthTexture, texUnitId);
+	}
+	void setUniformSSAOTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_SSAOTexture, texUnitId);
+	}
+	void setUniformScreenToView(const glm::mat4& screenToWorldMat)
+	{
+		GlHelper::pushParameterToGPU(uniform_ScreenToView, screenToWorldMat);
+	}
+	//void setUniformCameraPosition(const glm::vec3& cameraPosition)
+	//{
+	//	GlHelper::pushParameterToGPU(uniform_CameraPosition, cameraPosition);
+	//}
+	void setUniformShadowTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_ShadowTexture, texUnitId);
+	}
+	void setUniformShadowFactor(float factor)
+	{
+		GlHelper::pushParameterToGPU(uniform_ShadowFactor, factor);
+	}
+};
+
+
+class MaterialPointLight final : public MaterialLight
+{
+private:
+	GLuint uniform_Resize;
+	GLuint uniform_ViewToWorld;
+	GLuint uniform_FarPlane;
+	GLuint uniform_lightPosition;
+	GLuint uniform_lightColor;
+	GLuint uniform_lightIntensity;
+
+public:
+	MaterialPointLight()
+		: MaterialLight()
+	{}
+
+	MaterialPointLight(const Material& shaderProgram)
+		: MaterialLight(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialPointLight(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialLight(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialPointLight()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_Resize = MaterialHelper::getUniform(m_glProgramId, "Resize");
+		uniform_ViewToWorld = MaterialHelper::getUniform(m_glProgramId, "ViewToWorld");
+		uniform_FarPlane = MaterialHelper::getUniform(m_glProgramId, "FarPlane");
+		uniform_lightPosition = MaterialHelper::getUniform(m_glProgramId, "pointLight.position");
+		uniform_lightColor = MaterialHelper::getUniform(m_glProgramId, "pointLight.color");
+		uniform_lightIntensity = MaterialHelper::getUniform(m_glProgramId, "pointLight.intensity");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformResize(const glm::vec2& resize)
+	{
+		GlHelper::pushParameterToGPU(uniform_Resize, resize);
+	}
+
+	void setUniformViewToWorld(const glm::mat4& ViewToWorld)
+	{
+		GlHelper::pushParameterToGPU(uniform_ViewToWorld, ViewToWorld);
+	}
+
+	void setUniformFarPlane(float farPlane)
+	{
+		GlHelper::pushParameterToGPU(uniform_FarPlane, farPlane);
+	}
+
+	void setUniformLightPosition(const glm::vec3& lightPos)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightPosition, lightPos);
+	}
+	void setUniformLightColor(const glm::vec3& lightCol)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightColor, lightCol);
+	}
+	void setUniformLightIntensity(float lightIntensity)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightIntensity, lightIntensity);
+	}
+};
+
+class MaterialDirectionalLight final : public MaterialLight
+{
+private:
+	GLuint uniform_Resize;
+	GLuint uniform_ViewToLight;
+	GLuint uniform_lightDirection;
+	GLuint uniform_lightColor;
+	GLuint uniform_lightIntensity;
+
+public:
+	MaterialDirectionalLight()
+		: MaterialLight()
+	{}
+
+	MaterialDirectionalLight(const Material& shaderProgram)
+		: MaterialLight(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialDirectionalLight(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialLight(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialDirectionalLight()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_Resize = MaterialHelper::getUniform(m_glProgramId, "Resize");
+		uniform_ViewToLight = MaterialHelper::getUniform(m_glProgramId, "ViewToLightScreen");
+		uniform_lightDirection = MaterialHelper::getUniform(m_glProgramId, "directionalLight.direction");
+		uniform_lightColor = MaterialHelper::getUniform(m_glProgramId, "directionalLight.color");
+		uniform_lightIntensity = MaterialHelper::getUniform(m_glProgramId, "directionalLight.intensity");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformResize(const glm::vec2& resize)
+	{
+		GlHelper::pushParameterToGPU(uniform_Resize, resize);
+	}
+
+	void setUniformViewToLight(const glm::mat4& worldToLightMat)
+	{
+		GlHelper::pushParameterToGPU(uniform_ViewToLight, worldToLightMat);
+	}
+
+	void setUniformLightDirection(const glm::vec3& lightDir)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightDirection, lightDir);
+	}
+	void setUniformLightColor(const glm::vec3& lightCol)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightColor, lightCol);
+	}
+	void setUniformLightIntensity(float lightIntensity)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightIntensity, lightIntensity);
+	}
+};
+
+class MaterialSpotLight final : public MaterialLight
+{
+private:
+
+	GLuint uniform_Resize;
+	GLuint uniform_ViewToLight;
+	GLuint uniform_lightDirection;
+	GLuint uniform_lightPosition;
+	GLuint uniform_lightAngle;
+	GLuint uniform_lightColor;
+	GLuint uniform_lightIntensity;
+
+public:
+	MaterialSpotLight()
+		: MaterialLight()
+	{}
+
+	MaterialSpotLight(const Material& shaderProgram)
+		: MaterialLight(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialSpotLight(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialLight(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialSpotLight()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_Resize = MaterialHelper::getUniform(m_glProgramId, "Resize");
+		uniform_ViewToLight = MaterialHelper::getUniform(m_glProgramId, "ViewToLightScreen");
+		uniform_lightDirection = MaterialHelper::getUniform(m_glProgramId, "spotLight.direction");
+		uniform_lightAngle = MaterialHelper::getUniform(m_glProgramId, "spotLight.angle");
+		uniform_lightPosition = MaterialHelper::getUniform(m_glProgramId, "spotLight.position");
+		uniform_lightColor = MaterialHelper::getUniform(m_glProgramId, "spotLight.color");
+		uniform_lightIntensity = MaterialHelper::getUniform(m_glProgramId, "spotLight.intensity");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformResize(const glm::vec2& resize)
+	{
+		GlHelper::pushParameterToGPU(uniform_Resize, resize);
+	}
+
+	void setUniformViewToLight(const glm::mat4& viewToLightMat)
+	{
+		GlHelper::pushParameterToGPU(uniform_ViewToLight, viewToLightMat);
+	}
+
+	void setUniformLightPosition(const glm::vec3& lightPos)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightPosition, lightPos);
+	}
+	void setUniformLightDirection(const glm::vec3& lightDir)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightDirection, lightDir);
+	}
+	void setUniformLightAngle(float lightAngle)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightAngle, lightAngle);
+	}
+	void setUniformLightColor(const glm::vec3& lightCol)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightColor, lightCol);
+	}
+	void setUniformLightIntensity(float lightIntensity)
+	{
+		GlHelper::pushParameterToGPU(uniform_lightIntensity, lightIntensity);
+	}
+};
+
+//shadowing : 
+class MaterialShadowPass final : public MaterialInstance
+{
+private:
+
+	GLuint uniform_MVP;
+
+public:
+	MaterialShadowPass()
+		: MaterialInstance()
+	{}
+
+	MaterialShadowPass(const AssetHandle<Material>& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialShadowPass(const AssetHandle<Material>& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialShadowPass()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_MVP = MaterialHelper::getUniform(m_glProgramId, "MVP");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformMVP(const glm::mat4& mvp)
+	{
+		GlHelper::pushParameterToGPU(uniform_MVP, mvp);
+	}
+};
+
+
+class MaterialShadowPassOmni final : public MaterialInstance
+{
+private:
+
+	GLuint uniform_ModelMatrix;
+	GLuint uniform_VPLight[6];
+	GLuint uniform_LightPos;
+	GLuint uniform_FarPlane;
+
+public:
+	MaterialShadowPassOmni()
+		: MaterialInstance()
+	{}
+
+	MaterialShadowPassOmni(const Material& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialShadowPassOmni(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialShadowPassOmni()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_ModelMatrix = MaterialHelper::getUniform(m_glProgramId, "ModelMatrix");
+		for (int i = 0; i < 6; i++)
+			uniform_VPLight[i] = MaterialHelper::getUniform(m_glProgramId, "VPLight[" + std::to_string(i) + "]");
+		uniform_LightPos = MaterialHelper::getUniform(m_glProgramId, "LightPos");
+		uniform_FarPlane = MaterialHelper::getUniform(m_glProgramId, "FarPlane");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformModelMatrix(const glm::mat4& modelMatrix)
+	{
+		GlHelper::pushParameterToGPU(uniform_ModelMatrix, modelMatrix);
+	}
+
+	void setUniformVPLight(const glm::mat4& vpLight, int index)
+	{
+		assert(index < 6);
+		GlHelper::pushParameterToGPU(uniform_VPLight[index], vpLight);
+	}
+
+	void setUniformLightPos(const glm::vec3& lightPos)
+	{
+		GlHelper::pushParameterToGPU(uniform_LightPos, lightPos);
+	}
+
+	void setUniformFarPlane(float farPlane)
+	{
+		GlHelper::pushParameterToGPU(uniform_FarPlane, farPlane);
+	}
+};
+
+
+//blit material : 
+
+//Default materials :
+class MaterialBlit final : public MaterialInstance
+{
+private:
+	GLuint uniform_TextureBlit;
+
+public:
+	MaterialBlit()
+		: MaterialInstance()
+	{}
+
+	MaterialBlit(const Material& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialBlit(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialBlit()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_TextureBlit = MaterialHelper::getUniform(m_glProgramId, "Texture");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformBlitTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_TextureBlit, texUnitId);
+	}
+};
+
+
+class MaterialResizedBlit final : public MaterialInstance
+{
+private:
+	GLuint uniform_TextureBlit;
+	GLuint uniform_Resize;
+
+public:
+	MaterialResizedBlit()
+		: MaterialInstance()
+	{}
+
+	MaterialResizedBlit(const Material& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialResizedBlit(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	virtual ~MaterialResizedBlit()
+	{}
+
+	void setExternalParameters() override
+	{
+		uniform_TextureBlit = MaterialHelper::getUniform(m_glProgramId, "Texture");
+		uniform_Resize = MaterialHelper::getUniform(m_glProgramId, "Resize");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniformBlitTexture(int texUnitId)
+	{
+		GlHelper::pushParameterToGPU(uniform_TextureBlit, texUnitId);
+	}
+
+	void setUniformResize(const glm::vec2& resize)
+	{
+		GlHelper::pushParameterToGPU(uniform_Resize, resize);
+	}
+};
+
+
+struct MaterialDebugDrawer final : public MaterialInstance
+{
+private:
+	GLuint uniform_MVP;
+
+public:
+	MaterialDebugDrawer()
+		: MaterialInstance()
+	{}
+
+	MaterialDebugDrawer(const Material& shaderProgram)
+		: MaterialInstance(shaderProgram)
+	{
+		setExternalParameters();
+	}
+
+	MaterialDebugDrawer(const Material& shaderProgram, const FileHandler::CompletePath& completePath)
+		: MaterialInstance(shaderProgram, completePath)
+	{
+		setExternalParameters();
+	}
+
+	void setExternalParameters() override
+	{
+		uniform_MVP = MaterialHelper::getUniform(m_glProgramId, "MVP");
+
+		CHECK_GL_ERROR("error in material initialization.");
+	}
+
+	void setUniform_MVP(const glm::mat4& MVP) const
+	{
+		GlHelper::pushParameterToGPU<glm::mat4>(uniform_MVP, MVP);
+	}
+};
+
+
+
+

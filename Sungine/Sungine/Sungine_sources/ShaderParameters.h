@@ -5,7 +5,7 @@
 #include "EditorGUI.h"
 #include "ISerializable.h"
 
-#include "ResourcePointer.h"
+#include "Asset.h"
 #include "Texture.h"
 #include "ICloneable.h"
 
@@ -334,13 +334,13 @@ template<>
 class InternalShaderParameter<Texture, ShaderParameter::IsNotArray> : public InternalShaderParameterBase
 {
 private:
-	ResourcePtr<Texture> m_data;
+	AssetHandle<Texture> m_data;
 	GLuint m_uniformId;
 	bool m_isEditable;
 	EditorGUI::FieldDisplayType m_displayType;
 
 public:
-	InternalShaderParameter(const std::string& name, bool isEditable, ResourcePtr<Texture> defaultValue, const EditorGUI::FieldDisplayType& displayType);
+	InternalShaderParameter(const std::string& name, bool isEditable, const AssetHandle<Texture>& defaultValue, const EditorGUI::FieldDisplayType& displayType);
 
 	//init unifom id
 	void init(GLuint glProgramId);
@@ -365,13 +365,13 @@ template<>
 class InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray> : public InternalShaderParameterBase
 {
 private:
-	ResourcePtr<CubeTexture> m_data;
+	AssetHandle<CubeTexture> m_data;
 	GLuint m_uniformId;
 	bool m_isEditable;
 	EditorGUI::FieldDisplayType m_displayType;
 
 public:
-	InternalShaderParameter(const std::string& name, bool isEditable, ResourcePtr<CubeTexture> defaultValue, const EditorGUI::FieldDisplayType& displayType);
+	InternalShaderParameter(const std::string& name, bool isEditable, const AssetHandle<CubeTexture>& defaultValue, const EditorGUI::FieldDisplayType& displayType);
 	void init(GLuint glProgramId);
 	void drawUI() override;
 	void pushToGPU(int& boundTextureCount) const override;

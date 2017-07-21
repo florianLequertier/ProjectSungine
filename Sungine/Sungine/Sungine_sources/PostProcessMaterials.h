@@ -2,7 +2,7 @@
 
 #include "Materials.h"
 
-class MaterialBlur : public Material
+class MaterialBlur : public MaterialInstance
 {
 private:
 	GLuint m_uniformResize;
@@ -11,15 +11,15 @@ private:
 
 public:
 	MaterialBlur();
-	MaterialBlur(const ShaderProgram& shaderProgram);
-	MaterialBlur(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialBlur(const Material& shaderProgram);
+	MaterialBlur(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_passId(int passId);
 	void glUniform_Texture(int textureId);
 	void glUniform_Resize(const glm::vec2& resize);
 };
 
-class MaterialBloom : public Material
+class MaterialBloom : public MaterialInstance
 {
 private:
 	GLuint m_uniformResize;
@@ -30,8 +30,8 @@ private:
 
 public:
 	MaterialBloom();
-	MaterialBloom(const ShaderProgram& shaderProgram);
-	MaterialBloom(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialBloom(const Material& shaderProgram);
+	MaterialBloom(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_Texture(int textureId);
 	void glUniform_TextureBlur(int textureId);
@@ -40,7 +40,7 @@ public:
 	void glUniform_Resize(const glm::vec2& resize);
 };
 
-class MaterialAdd : public Material
+class MaterialAdd : public MaterialInstance
 {
 private:
 	GLuint m_uniformResize;
@@ -49,15 +49,15 @@ private:
 
 public:
 	MaterialAdd();
-	MaterialAdd(const ShaderProgram& shaderProgram);
-	MaterialAdd(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialAdd(const Material& shaderProgram);
+	MaterialAdd(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_Texture01(int textureId);
 	void glUniform_Texture02(int textureId);
 	void glUniform_Resize(const glm::vec2& resize);
 };
 
-class MaterialFlares : public Material
+class MaterialFlares : public MaterialInstance
 {
 private:
 	GLuint m_uniformVP;
@@ -65,14 +65,14 @@ private:
 
 public:
 	MaterialFlares();
-	MaterialFlares(const ShaderProgram& shaderProgram);
-	MaterialFlares(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialFlares(const Material& shaderProgram);
+	MaterialFlares(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_VP(const glm::mat4& VP) const;
 	void glUniform_Depth(int textureId) const;
 };
 
-class MaterialSSAO : public Material
+class MaterialSSAO : public MaterialInstance
 {
 private:
 	GLuint m_uniformResize;
@@ -86,8 +86,8 @@ private:
 
 public:
 	MaterialSSAO();
-	MaterialSSAO(const ShaderProgram& shaderProgram);
-	MaterialSSAO(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialSSAO(const Material& shaderProgram);
+	MaterialSSAO(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_Normals(int texId) const;
 	void glUniform_NoiseTexture(int texId) const;
@@ -98,7 +98,7 @@ public:
 	void glUniform_Resize(const glm::vec2& resize) const;
 };
 
-class MaterialSSAOBlur : public Material
+class MaterialSSAOBlur : public MaterialInstance
 {
 private:
 	GLuint m_uniformResize;
@@ -106,8 +106,8 @@ private:
 
 public:
 	MaterialSSAOBlur();
-	MaterialSSAOBlur(const ShaderProgram& shaderProgram);
-	MaterialSSAOBlur(const ShaderProgram& shaderProgram, const FileHandler::CompletePath& completePath);
+	MaterialSSAOBlur(const Material& shaderProgram);
+	MaterialSSAOBlur(const Material& shaderProgram, const FileHandler::CompletePath& completePath);
 	void setExternalParameters() override;
 	void glUniform_Texture(int texId) const;
 	void glUniform_Resize(const glm::vec2& resize) const;

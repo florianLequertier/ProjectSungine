@@ -353,7 +353,7 @@ void FactoriesDebugEditorFrame::drawContent(Project& project, EditorModal* paren
 
 	if (m_materialFactoryVisible)
 	{
-	ImGui::BeginChild("Material factory");
+	ImGui::BeginChild("MaterialInstance factory");
 	getMaterialFactory().drawUI();
 	ImGui::End();
 	}

@@ -3,7 +3,7 @@
 #include "Gizmo.h"
 #include "Editor.h"
 
-Gizmo::Gizmo(ResourcePtr<Material> _material, Editor* _editor) 
+Gizmo::Gizmo(ResourcePtr<MaterialInstance> _material, Editor* _editor) 
 	: position(0,0,0)
 	, material(_material)
 	, mesh(GL_TRIANGLES, (Mesh::USE_INDEX | Mesh::USE_VERTICES))

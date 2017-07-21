@@ -167,30 +167,6 @@ MetasFilter(const std::string& metas)\
 }
 
 
-template<>
-struct MetasFilter<int>
-{
-	METAS_FILTER_INT()
-};
-
-template<>
-struct MetasFilter<glm::ivec2>
-{
-	METAS_FILTER_INT()
-};
-
-template<>
-struct MetasFilter<glm::ivec3>
-{
-	METAS_FILTER_INT()
-};
-
-template<>
-struct MetasFilter<glm::ivec4>
-{
-	METAS_FILTER_INT()
-};
-
 #define METAS_FILTER_FLOAT()\
 float valueMin;\
 float valueMax;\
@@ -225,6 +201,31 @@ MetasFilter(const std::string& metas)\
 	}\
 }
 
+
+template<>
+struct MetasFilter<int>
+{
+	METAS_FILTER_INT()
+};
+
+template<>
+struct MetasFilter<glm::ivec2>
+{
+	METAS_FILTER_INT()
+};
+
+template<>
+struct MetasFilter<glm::ivec3>
+{
+	METAS_FILTER_INT()
+};
+
+template<>
+struct MetasFilter<glm::ivec4>
+{
+	METAS_FILTER_INT()
+};
+
 template<>
 struct MetasFilter<float>
 {
@@ -249,33 +250,100 @@ struct MetasFilter<glm::vec4>
 	METAS_FILTER_FLOAT()
 };
 
+
+template<>
+template<typename T>
+struct MetasFilter<AssetHandle<T>>
+{
+	
+};
+
 namespace Field
 {
 
 	// Properties
 	template<typename T>
-	bool PropertyField(const std::string& propertyName, const T& property, const MetasFilter<T>& metasFilter);
+	bool PropertyField(const std::string& propertyName, const T& property, const MetasFilter<T>& metasFilter)
+	{
+		assert(false);
+	}
 
 	template<typename T>
-	void PropertyField(const std::string& propertyName, const std::vector<T*>& properties, const MetasFilter<T>& metasFilter);
+	void PropertyField(const std::string& propertyName, const std::vector<T*>& properties, const MetasFilter<T>& metasFilter)
+	{
+		assert(false);
+	}
+
+	template<typename T>
+	bool AssetField(const std::string& propertyName, IAssetHandle& property)
+	{
+		const int bufSize = 100;
+		std::string currentResourceName(property.isValid() ? property->getName() : "INVALID");
+		currentResourceName.reserve(bufSize);
+
+		int resourceType = Object::getStaticClassId<T>();
+		bool canDropIntoField = DragAndDropManager::canDropInto(&resourceType, EditorDropContext::DropIntoResourceField);
+		bool isTextEdited = false;
+		bool needClearPtr = false;
+
+		int colStyleCount = 0;
+		if (canDropIntoField)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 255, 0, 255));
+			colStyleCount++;
+		}
+
+		if (property.isValid())
+		{
+			property->drawIconeInResourceField();
+			const bool iconHovered = ImGui::IsItemHovered();
+			ImGui::SameLine();
+			if (iconHovered)
+				property->drawUIOnHovered();
+		}
+		ImGui::InputText(label.c_str(), &currentResourceName[0], bufSize, ImGuiInputTextFlags_ReadOnly);
+		//isTextEdited = (enterPressed || ImGui::IsKeyPressed(GLFW_KEY_TAB) || (!ImGui::IsItemHovered() && ImGui::IsMouseClickedAnyButton()));
+		ImVec2 dropRectMin = ImGui::GetItemRectMin();
+		ImVec2 dropRectMax = ImGui::GetItemRectMax();
+
+		//borders if can drop here : 
+		if (ImGui::IsMouseHoveringRect(dropRectMin, dropRectMax) && canDropIntoField)
+		{
+			ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), 2.f);
+		}
+
+		//drop resource : 
+		AssetId droppedAssetId;
+		if (ImGui::IsMouseHoveringRect(dropRectMin, dropRectMax) && ImGui::IsMouseReleased(0) && canDropIntoField)
+		{
+			DragAndDropManager::dropDraggedItem(&droppedAssetId, (EditorDropContext::DropIntoResourceField));
+			isTextEdited = true;
+		}
+
+		ImGui::SameLine();
+		needClearPtr = ImGui::SmallButton(std::string("<##" + label).data());
+
+		ImGui::PopStyleColor(colStyleCount);
+
+		if (needClearPtr)
+			property.reset();
+		else if (isTextEdited)
+		{
+			bool assetFound = AssetManager::instance().getAsset<T>(droppedAssetId, property);
+		}
+
+		return isTextEdited;
+	}
+
+	template<typename T>
+	void ObjectField(const std::string& propertyName, const ObjectPtr<T>& property, const MetasFilter<T>& metasFilter)
+	{
+		// TODO
+	}
 
 	// Enum
 	template<typename T>
 	bool EnumField(const std::string& label, T value);
-}
-
-
-// Properties
-template<typename T>
-bool Field::PropertyField(const std::string& propertyName, const T& property, const MetasFilter<T>& metasFilter)
-{
-	assert(false);
-}
-
-template<typename T>
-void Field::PropertyField(const std::string& propertyName, const std::vector<T*>& properties, const MetasFilter<T>& metasFilter)
-{
-	assert(false);
 }
 
 VECTOR_PROPERTY_FIELD(2)
@@ -352,6 +420,14 @@ void Field::PropertyField<float>(const std::string& propertyName, const std::vec
 			}
 		}
 	}
+}
+
+// AssetHandle
+template<>
+template<typename T>
+bool PropertyField<AssetHandle<T>>(const std::string& propertyName, const AssetHandle<T>& property, const MetasFilter<AssetHandle<T>>& metasFilter)
+{
+	AssetField<AssetHandle<T>>(propertyName, property);
 }
 
 //VECTOR_PROPERTY_FIELD(2)

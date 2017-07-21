@@ -232,11 +232,11 @@ void ResourceTree::addNewShaderProgramTo(const std::string& shaderProgramName, R
 
 	//create new instance
 	const FileHandler::CompletePath resourceFilePath(/*Project::getPath().toString() + "/" + */folderTo.getPath().toString(), shaderProgramName, ".glProg");
-	ShaderProgram* newShaderProgram = new ShaderProgram(resourceCompletePath, Rendering::MaterialType::DEFAULT);
+	Material* newShaderProgram = new Material(resourceCompletePath, Rendering::MaterialType::DEFAULT);
 	newShaderProgram->setPipelineType(Rendering::PipelineType::DEFERRED_PIPILINE);
 	newShaderProgram->save(/*resourceFilePath*/);
 
-	folderTo.addFile<ShaderProgram>(resourceCompletePath, newShaderProgram);
+	folderTo.addFile<Material>(resourceCompletePath, newShaderProgram);
 }
 
 void ResourceTree::addNewMaterialTo(const std::string& newMaterialName, ResourceFile& shaderProgramFile, ResourceFolder& folderTo)
@@ -252,10 +252,10 @@ void ResourceTree::addNewMaterialTo(const std::string& newMaterialName, Resource
 
 	//create new instance
 	const FileHandler::CompletePath resourceFilePath(/*Project::getPath().toString() + "/" + */folderTo.getPath().toString(), newMaterialName, ".mat");
-	Material* newMaterial = new Material(*static_cast<ShaderProgram*>(shaderProgramFile.getPointedResource()), resourceCompletePath);//static_cast<ShaderProgram*>(shaderProgramFile.getPointedResource())->makeNewMaterialInstance(resourceCompletePath); //getProgramFactory().getDefault(materialModelName)->makeNewMaterialInstance(resourceCompletePath);
+	MaterialInstance* newMaterial = new MaterialInstance(*static_cast<Material*>(shaderProgramFile.getPointedResource()), resourceCompletePath);//static_cast<Material*>(shaderProgramFile.getPointedResource())->makeNewMaterialInstance(resourceCompletePath); //getProgramFactory().getDefault(materialModelName)->makeNewMaterialInstance(resourceCompletePath);
 	newMaterial->save(/*resourceFilePath*/);
 
-	folderTo.addFile<Material>(resourceCompletePath, newMaterial);
+	folderTo.addFile<MaterialInstance>(resourceCompletePath, newMaterial);
 }
 
 void ResourceTree::addNewCubeTextureTo(const std::string& textureName, ResourceFolder& folderTo)
@@ -816,7 +816,7 @@ void ResourceTreeView::displayModales()
 	//pop up to add resource :
 	if (ImGui::BeginPopup("AddResourcePopUp"))
 	{
-		if (ImGui::Button("ShaderProgram."))
+		if (ImGui::Button("Material."))
 		{
 			//ImGui::EndPopup();
 			//ImGui::Ext::openStackingPopUp("AddShaderProgramPopUp");
@@ -1215,7 +1215,7 @@ ImGui::EndPopup();
 //pop up to add resource :
 if (ImGui::BeginPopup("AddResourcePopUp"))
 {
-if (ImGui::Button("Material."))
+if (ImGui::Button("MaterialInstance."))
 {
 ImGui::EndPopup();
 ImGui::OpenPopupEx("ChooseMaterialPopUp", true);

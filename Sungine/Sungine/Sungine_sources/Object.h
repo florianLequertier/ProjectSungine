@@ -67,8 +67,14 @@ public:
 		getDescriptor().loadObjectInstanceJSON(this, archive);
 	}
 
-	virtual void OnBeforeObjectSaved() = 0;
-	virtual void OnAfterObjectLoaded() = 0;
+	virtual void OnBeforeObjectSaved()
+	{
+		// Nothing by default
+	}
+	virtual void OnAfterObjectLoaded()
+	{
+		// Nothing by default
+	}
 
 	virtual void drawInInspector()
 	{

@@ -112,104 +112,144 @@ std::shared_ptr<InternalShaderParameterBase> MakeNewInternalShaderParameter(cons
 	{
 	case ShaderParameter::ShaderParameterType::INT:
 	{
-		int defaultValue = parameterAsJsonValue.get("default", 0).asInt();
-		return std::make_shared<InternalShaderParameter<int, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//int defaultValue = parameterAsJsonValue.get("default", 0).asInt();
+		//return std::make_shared<InternalShaderParameter<int, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<int, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::INT2:
 	{
-		glm::ivec2 defaultValue(0, 0);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 2)
-		{
-			defaultValue.x = arrayValue[0].asInt();
-			defaultValue.y = arrayValue[1].asInt();
-		}
-		return std::make_shared<InternalShaderParameter<glm::ivec2, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::ivec2 defaultValue(0, 0);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 2)
+		//{
+		//	defaultValue.x = arrayValue[0].asInt();
+		//	defaultValue.y = arrayValue[1].asInt();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::ivec2, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::ivec2, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::INT3:
 	{
-		glm::ivec3 defaultValue(0, 0, 0);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 3)
-		{
-			defaultValue.x = arrayValue[0].asInt();
-			defaultValue.y = arrayValue[1].asInt();
-			defaultValue.z = arrayValue[2].asInt();
-		}
-		return std::make_shared<InternalShaderParameter<glm::ivec3, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::ivec3 defaultValue(0, 0, 0);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 3)
+		//{
+		//	defaultValue.x = arrayValue[0].asInt();
+		//	defaultValue.y = arrayValue[1].asInt();
+		//	defaultValue.z = arrayValue[2].asInt();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::ivec3, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::ivec3, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::INT4:
 	{
-		glm::ivec4 defaultValue(0, 0, 0, 0);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 4)
-		{
-			defaultValue.x = arrayValue[0].asInt();
-			defaultValue.y = arrayValue[1].asInt();
-			defaultValue.z = arrayValue[2].asInt();
-			defaultValue.w = arrayValue[3].asInt();
-		}
-		return std::make_shared<InternalShaderParameter<glm::ivec4, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::ivec4 defaultValue(0, 0, 0, 0);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 4)
+		//{
+		//	defaultValue.x = arrayValue[0].asInt();
+		//	defaultValue.y = arrayValue[1].asInt();
+		//	defaultValue.z = arrayValue[2].asInt();
+		//	defaultValue.w = arrayValue[3].asInt();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::ivec4, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::ivec4, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::FLOAT:
 	{
-		float defaultValue = parameterAsJsonValue.get("default", 0).asFloat();
-		return std::make_shared<InternalShaderParameter<float, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//float defaultValue = parameterAsJsonValue.get("default", 0).asFloat();
+		//return std::make_shared<InternalShaderParameter<float, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<float, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::FLOAT2:
 	{
-		glm::vec2 defaultValue(0.f, 0.f);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 2)
-		{
-			defaultValue.x = arrayValue[0].asFloat();
-			defaultValue.y = arrayValue[1].asFloat();
-		}
-		return std::make_shared<InternalShaderParameter<glm::vec2, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::vec2 defaultValue(0.f, 0.f);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 2)
+		//{
+		//	defaultValue.x = arrayValue[0].asFloat();
+		//	defaultValue.y = arrayValue[1].asFloat();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::vec2, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::vec2, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::FLOAT3:
 	{
-		glm::vec3 defaultValue(0.f, 0.f, 0.f);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 3)
-		{
-			defaultValue.x = arrayValue[0].asFloat();
-			defaultValue.y = arrayValue[1].asFloat();
-			defaultValue.z = arrayValue[2].asFloat();
-		}
-		return std::make_shared<InternalShaderParameter<glm::vec3, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::vec3 defaultValue(0.f, 0.f, 0.f);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 3)
+		//{
+		//	defaultValue.x = arrayValue[0].asFloat();
+		//	defaultValue.y = arrayValue[1].asFloat();
+		//	defaultValue.z = arrayValue[2].asFloat();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::vec3, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::vec3, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::FLOAT4:
 	{
-		glm::vec4 defaultValue(0.f, 0.f, 0.f, 0.f);
-		Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
-		if (arrayValue.size() == 4)
-		{
-			defaultValue.x = arrayValue[0].asFloat();
-			defaultValue.y = arrayValue[1].asFloat();
-			defaultValue.z = arrayValue[2].asFloat();
-			defaultValue.w = arrayValue[3].asFloat();
-		}
-		return std::make_shared<InternalShaderParameter<glm::vec4, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//glm::vec4 defaultValue(0.f, 0.f, 0.f, 0.f);
+		//Json::Value arrayValue = parameterAsJsonValue.get("default", Json::Value(Json::ValueType::arrayValue));
+		//if (arrayValue.size() == 4)
+		//{
+		//	defaultValue.x = arrayValue[0].asFloat();
+		//	defaultValue.y = arrayValue[1].asFloat();
+		//	defaultValue.z = arrayValue[2].asFloat();
+		//	defaultValue.w = arrayValue[3].asFloat();
+		//}
+		//return std::make_shared<InternalShaderParameter<glm::vec4, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<glm::vec4, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::TEXTURE:
 	{
-		ResourcePtr<Texture> defaultValue = getTextureFactory().getDefault(parameterAsJsonValue.get("default", "default").asString());
-		return std::make_shared<InternalShaderParameter<Texture, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//ResourcePtr<Texture> defaultValue = getTextureFactory().getDefault(parameterAsJsonValue.get("default", "default").asString());
+		//return std::make_shared<InternalShaderParameter<Texture, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<Texture, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	case ShaderParameter::ShaderParameterType::CUBE_TEXTURE:
 	{
-		ResourcePtr<CubeTexture> defaultValue = getCubeTextureFactory().getDefault(parameterAsJsonValue.get("default", "default").asString());
-		return std::make_shared<InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+		//ResourcePtr<CubeTexture> defaultValue = getCubeTextureFactory().getDefault(parameterAsJsonValue.get("default", "default").asString());
+		//return std::make_shared<InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>>(name, isEditable, defaultValue, displayType);
+
+		auto newParameter = std::make_shared<InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>>();
+		newParameter->load(parameterAsJsonValue);
+		return newParameter;
 		break;
 	}
 	default:
@@ -281,7 +321,7 @@ std::shared_ptr<ExternalShaderParameterBase> MakeNewExternalShaderParameter(cons
 	}
 }
 
-InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::InternalShaderParameter(const std::string& name, bool isEditable, ResourcePtr<Texture> defaultValue, const EditorGUI::FieldDisplayType& displayType)
+InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::InternalShaderParameter(const std::string& name, bool isEditable, const AssetHandle<Texture>& defaultValue, const EditorGUI::FieldDisplayType& displayType)
 	: InternalShaderParameterBase(name)
 	, m_uniformId(-1)
 	, m_isEditable(isEditable)
@@ -312,14 +352,25 @@ void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::pushToGPU(in
 	boundTextureCount++;
 }
 
-void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::save(Json::Value & entityRoot) const
+void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::save(Json::Value & root) const
 {
-	m_data.save(entityRoot);
+	root["type"] = ShaderParameter::LiteralShaderParameterType[(int)ShaderParameter::ShaderParameterType::TEXTURE];
+	root["name"] = m_name;
+	root["default"] = "default";
+	m_data.save(root["value"]);
 }
 
-void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::load(const Json::Value & entityRoot)
+void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::load(const Json::Value & root)
 {
-	m_data.load(entityRoot);
+	m_name = root.get("name", "").asString();
+	if (root.isMember("value"))
+	{
+		m_data.load(root["value"]);
+	}
+	else
+	{
+		m_data.load(root["default"]);
+	}
 }
 
 void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::setData(const void* data)
@@ -335,7 +386,7 @@ void InternalShaderParameter<Texture, ShaderParameter::IsNotArray>::getData(void
 
 // Cube texture : 
 
-InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::InternalShaderParameter(const std::string& name, bool isEditable, ResourcePtr<CubeTexture> defaultValue, const EditorGUI::FieldDisplayType& displayType)
+InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::InternalShaderParameter(const std::string& name, bool isEditable, const AssetHandle<CubeTexture>& defaultValue, const EditorGUI::FieldDisplayType& displayType)
 	: InternalShaderParameterBase(name)
 	, m_uniformId(-1)
 	, m_isEditable(isEditable)
@@ -364,13 +415,25 @@ void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::pushToGP
 	boundTextureCount++;
 }
 
-void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::save(Json::Value & entityRoot) const
+void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::save(Json::Value & root) const
 {
-	m_data.save(entityRoot);
+	root["type"] = ShaderParameter::LiteralShaderParameterType[(int)ShaderParameter::ShaderParameterType::CUBE_TEXTURE];
+	root["name"] = m_name;
+	root["default"] = "default";
+	m_data.save(root["value"]);
 }
-void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::load(const Json::Value & entityRoot)
+
+void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::load(const Json::Value & root)
 {
-	m_data.load(entityRoot);
+	m_name = root.get("name", "").asString();
+	if (root.isMember("value"))
+	{
+		m_data.load(root["value"]);
+	}
+	else
+	{
+		m_data.load(root["default"]);
+	}
 }
 
 void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::setData(const void* data)
@@ -381,3 +444,35 @@ void InternalShaderParameter<CubeTexture, ShaderParameter::IsNotArray>::getData(
 {
 	outData = (void*)(&m_data);
 }
+
+// Specializations : 
+// Only not array version for now
+#define SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(type, shaderParamTypeEnum)\
+void InternalShaderParameter<type, ShaderParameter::IsNotArray>::save(Json::Value & root) const\
+{\
+	root["type"] = ShaderParameter::LiteralShaderParameterType[(int)shaderParamTypeEnum];\
+	root["name"] = m_name;\
+	root["default"] = "default";\
+	root["value"] = toJsonValue<type>(m_data);\
+}\
+void InternalShaderParameter<type, ShaderParameter::IsNotArray>::load(const Json::Value & root)\
+{\
+	m_name = root.get("name", "").asString();\
+	if (root.isMember("value"))\
+	{\
+		m_data = fromJsonValue<type>(root["value"]);\
+	}\
+	else\
+	{\
+		m_data = fromJsonValue<type>(root["default"]);\
+	}\
+}
+
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(float, ShaderParameter::ShaderParameterType::FLOAT)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::vec2, ShaderParameter::ShaderParameterType::FLOAT2)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::vec3, ShaderParameter::ShaderParameterType::FLOAT3)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::vec4, ShaderParameter::ShaderParameterType::FLOAT4)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(int, ShaderParameter::ShaderParameterType::INT)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::ivec2, ShaderParameter::ShaderParameterType::INT2)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::ivec3, ShaderParameter::ShaderParameterType::INT3)
+SHADER_PARAMETER_SPECIALISATION_NOT_ARRAY(glm::ivec4, ShaderParameter::ShaderParameterType::INT4)

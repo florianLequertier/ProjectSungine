@@ -4,7 +4,7 @@
 #include "FrameBuffer.h"
 #include "Camera.h"
 
-class Material;
+class MaterialInstance;
 class SubMesh;
 class Renderer;
 class RenderTarget;
@@ -25,7 +25,7 @@ private:
 	glm::vec3 m_cameraUp;
 	float m_cameraPhi;
 	float m_cameraTheta;
-	std::shared_ptr<Material> m_materialInstance;
+	std::shared_ptr<MaterialInstance> m_materialInstance;
 	std::vector<PointLight*> m_pointLights;
 	std::vector<DirectionalLight*> m_directionalLights;
 	std::vector<SpotLight*> m_spotLights;
@@ -39,7 +39,7 @@ public:
 
 	// For Mesh Visualizer
 	void setMesh(Mesh * mesh);
-	void setMaterial(std::shared_ptr<Material> material);
+	void setMaterial(std::shared_ptr<MaterialInstance> material);
 	void render(Renderer& renderer);
 	void rotateCamera(float x, float y);
 	void panCamera(float x, float y);

@@ -50,7 +50,7 @@ void MeshVisualizer::setMesh(Mesh * mesh)
 	//m_pipelineType = pipeline;
 }
 
-void MeshVisualizer::setMaterial(std::shared_ptr<Material> material)
+void MeshVisualizer::setMaterial(std::shared_ptr<MaterialInstance> material)
 {
 	m_materialInstance = material;
 	Rendering::PipelineType newPipelineType = material->getPipelineType();

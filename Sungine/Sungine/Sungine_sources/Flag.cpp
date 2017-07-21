@@ -18,7 +18,7 @@ namespace Physic {
 
 	}
 
-	Flag::Flag(ResourcePtr<Material> material, int subdivision, float width, float height) 
+	Flag::Flag(ResourcePtr<MaterialInstance> material, int subdivision, float width, float height) 
 		: Component(FLAG)
 		, m_mesh(GL_TRIANGLES, (Mesh::USE_INDEX | Mesh::USE_VERTICES | Mesh::USE_UVS | Mesh::USE_NORMALS | Mesh::USE_TANGENTS), 3, GL_STREAM_DRAW)
 		, m_material(material)
@@ -715,7 +715,7 @@ namespace Physic {
 		return *this;
 	}
 
-	const Material & Flag::getDrawableMaterial(int drawableIndex) const
+	const MaterialInstance & Flag::getDrawableMaterial(int drawableIndex) const
 	{
 		return *m_material.get();
 	}
@@ -924,7 +924,7 @@ namespace Physic {
 		//}
 
 		//EditorGUI::ResourceField(m_material, "materialName", tmpMaterialName, 100);
-		EditorGUI::ResourceField<Material>("materialName", m_material);
+		EditorGUI::ResourceField<MaterialInstance>("materialName", m_material);
 
 		//m_material->drawUI();
 	}
@@ -1019,7 +1019,7 @@ namespace Physic {
 			}
 		}
 
-		if (EditorGUI::ResourceField<Material>("materialName", m_material))
+		if (EditorGUI::ResourceField<MaterialInstance>("materialName", m_material))
 		{
 			for (auto component : components)
 			{

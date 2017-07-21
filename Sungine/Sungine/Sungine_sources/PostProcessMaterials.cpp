@@ -1,17 +1,17 @@
 #include "PostProcessMaterials.h"
 
 MaterialBlur::MaterialBlur()
-	: Material()
+	: MaterialInstance()
 {}
 
-MaterialBlur::MaterialBlur(const ShaderProgram& shaderProgram)
-	: Material(shaderProgram)
+MaterialBlur::MaterialBlur(const Material& shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialBlur::MaterialBlur(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialBlur::MaterialBlur(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }
@@ -43,19 +43,19 @@ void MaterialBlur::glUniform_Resize(const glm::vec2 & resize)
 ///////////////////////////////
 
 MaterialBloom::MaterialBloom()
-	: Material()
+	: MaterialInstance()
 {
 
 }
 
-MaterialBloom::MaterialBloom(const ShaderProgram& shaderProgram)
-	: Material(shaderProgram)
+MaterialBloom::MaterialBloom(const Material& shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialBloom::MaterialBloom(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialBloom::MaterialBloom(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }
@@ -99,18 +99,18 @@ void MaterialBloom::glUniform_Resize(const glm::vec2 & resize)
 /////////////////////////////
 
 MaterialAdd::MaterialAdd()
-	: Material()
+	: MaterialInstance()
 {
 }
 
-MaterialAdd::MaterialAdd(const ShaderProgram & shaderProgram)
-	: Material(shaderProgram)
+MaterialAdd::MaterialAdd(const Material & shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialAdd::MaterialAdd(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialAdd::MaterialAdd(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }
@@ -142,18 +142,18 @@ void MaterialAdd::glUniform_Resize(const glm::vec2 & resize)
 ///////////////////////////
 
 MaterialFlares::MaterialFlares()
-	: Material()
+	: MaterialInstance()
 {
 }
 
-MaterialFlares::MaterialFlares(const ShaderProgram & shaderProgram)
-	: Material(shaderProgram)
+MaterialFlares::MaterialFlares(const Material & shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialFlares::MaterialFlares(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialFlares::MaterialFlares(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }
@@ -177,18 +177,18 @@ void MaterialFlares::glUniform_Depth(int textureId) const
 }
 
 MaterialSSAO::MaterialSSAO()
-	: Material()
+	: MaterialInstance()
 {
 }
 
-MaterialSSAO::MaterialSSAO(const ShaderProgram & shaderProgram)
-	: Material(shaderProgram)
+MaterialSSAO::MaterialSSAO(const Material & shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialSSAO::MaterialSSAO(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialSSAO::MaterialSSAO(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }
@@ -242,18 +242,18 @@ void MaterialSSAO::glUniform_Resize(const glm::vec2 & resize) const
 }
 
 MaterialSSAOBlur::MaterialSSAOBlur()
-	: Material()
+	: MaterialInstance()
 {
 }
 
-MaterialSSAOBlur::MaterialSSAOBlur(const ShaderProgram & shaderProgram)
-	: Material(shaderProgram)
+MaterialSSAOBlur::MaterialSSAOBlur(const Material & shaderProgram)
+	: MaterialInstance(shaderProgram)
 {
 	setExternalParameters();
 }
 
-MaterialSSAOBlur::MaterialSSAOBlur(const ShaderProgram & shaderProgram, const FileHandler::CompletePath & completePath)
-	: Material(shaderProgram, completePath)
+MaterialSSAOBlur::MaterialSSAOBlur(const Material & shaderProgram, const FileHandler::CompletePath & completePath)
+	: MaterialInstance(shaderProgram, completePath)
 {
 	setExternalParameters();
 }

@@ -12,7 +12,7 @@ class DebugDrawer
 {
 private:
 
-	ResourcePtr<Material> m_material;
+	ResourcePtr<MaterialInstance> m_material;
 	int m_maxPoint;
 	GLuint m_vao;
 	GLuint m_vboPositions;

@@ -9,7 +9,8 @@
 #include "jsoncpp/json/json.h"
 
 Texture::Texture(int width, int height, bool useAlpha)
-	: glId(0)
+	: Asset(Object::getStaticClassId<Texture>())
+	, glId(0)
 	, type(GL_UNSIGNED_BYTE)
 	, generateMipMap(true)
 	, m_textureUseCounts(0)
@@ -88,7 +89,7 @@ Texture::Texture(int width, int height, const glm::vec3& color)
 }
 
 Texture::Texture(const FileHandler::CompletePath& _path, AlphaMode alphaMode)
-	: Resource(_path)
+	: Asset(Object::getStaticClassId<Texture>())
 	, glId(0)
 	, generateMipMap(true)
 	, m_textureUseCounts(0)
@@ -146,19 +147,93 @@ Texture::Texture(const FileHandler::CompletePath& _path, AlphaMode alphaMode)
 	}
 }
 
-void Texture::init(const FileHandler::CompletePath& path, const ID& id)
+Texture::~Texture()
 {
-	Resource::init(path, id);
+	delete[] pixels;
+	freeGL();
+}
 
-	assert(!Project::isPathPointingInsideProjectFolder(path));
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
+//
+//void Texture::init(const FileHandler::CompletePath& path, const ID& id)
+//{
+//	Resource::init(path, id);
+//
+//	assert(!Project::isPathPointingInsideProjectFolder(path));
+//	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
+//
+//	type = GL_UNSIGNED_BYTE;
+//	int texComp;
+//	pixels = stbi_load(absolutePath.c_str(), &w, &h, &texComp, 0);
+//	CHECK_STBI_ERROR("Error when loading texture : %s", absolutePath.c_str());
+//	//ErrorHandler::error("Error when loading texture : %d, %f", 10, 4.5);
+//
+//	assert(pixels != nullptr);
+//	comp = texComp;
+//	if (comp == 4)
+//	{
+//		internalFormat = GL_RGBA;
+//		format = GL_RGBA;
+//	}
+//	else if (comp == 3)
+//	{
+//		internalFormat = GL_RGB;
+//		format = GL_RGB;
+//	}
+//	else if (comp == 1)
+//	{
+//		internalFormat = GL_RED;
+//		format = GL_RED;
+//	}
+//	else
+//	{
+//		ASSERT(false, "You are initalizing a texture wing wrong number of component. Number of component supported : 1, 3 or4");
+//	}
+//
+//	initGL();
+//}
+//
+//void Texture::save()
+//{
+//	// TODO : metadatas
+//	//assert(false && "metadatas for textures aren't yet implamented.");
+//	PRINT_WARNING("metadatas for textures aren't yet implamented.");
+//}
+//
+//void Texture::resolvePointersLoading()
+//{
+//	// No pointers.
+//}
+//
+//void Texture::drawInInspector(Scene & scene)
+//{
+//	Resource::drawInInspector(scene);
+//
+//	ImGui::Image((void*)glId, ImVec2(w, h), ImVec2(0, 1), ImVec2(1, 0));
+//}
+
+
+//////////////////////////////////////////////////////////
+// Asset override
+//////////////////////////////////////////////////////////
+void Texture::createNewAssetFile(const FileHandler::CompletePath& filePath)
+{
+	// TODO : export by default in bmp
+}
+
+void Texture::loadFromFile(const FileHandler::CompletePath& filePath)
+{
+	loadMetas(filePath);
+	// TODO : use metas infos to modify following infos :
+	generateMipMap = true;
+	textureWrapping_u = GL_REPEAT;
+	textureWrapping_v = GL_REPEAT;
+	minFilter = GL_LINEAR;
+	magFilter = GL_LINEAR;
+
 
 	type = GL_UNSIGNED_BYTE;
 	int texComp;
-	pixels = stbi_load(absolutePath.c_str(), &w, &h, &texComp, 0);
-	CHECK_STBI_ERROR("Error when loading texture : %s", absolutePath.c_str());
-	//ErrorHandler::error("Error when loading texture : %d, %f", 10, 4.5);
-
+	pixels = stbi_load(filePath.c_str(), &w, &h, &texComp, 0);
 	assert(pixels != nullptr);
 	comp = texComp;
 	if (comp == 4)
@@ -180,27 +255,24 @@ void Texture::init(const FileHandler::CompletePath& path, const ID& id)
 	{
 		ASSERT(false, "You are initalizing a texture wing wrong number of component. Number of component supported : 1, 3 or4");
 	}
-
-	initGL();
 }
 
-void Texture::save()
+void Texture::saveToFile(const FileHandler::CompletePath& filePath)
 {
-	// TODO : metadatas
-	//assert(false && "metadatas for textures aren't yet implamented.");
-	PRINT_WARNING("metadatas for textures aren't yet implamented.");
+	// We don't override texture file, only the metadatas
+	saveMetas(filePath);
 }
 
-void Texture::resolvePointersLoading()
+void Texture::saveMetas(const FileHandler::CompletePath& filePath)
 {
-	// No pointers.
+	Asset::saveMetas(filePath);
+	// TODO : save other infos ?
 }
 
-void Texture::drawInInspector(Scene & scene)
+void Texture::loadMetas(const FileHandler::CompletePath& filePath)
 {
-	Resource::drawInInspector(scene);
-
-	ImGui::Image((void*)glId, ImVec2(w, h), ImVec2(0, 1), ImVec2(1, 0));
+	Asset::loadMetas(filePath);
+	// TODO : load other infos ?
 }
 
 void Texture::drawIconeInResourceTree()
@@ -220,11 +292,36 @@ void Texture::drawIconeInResourceField()
 {
 	ImGui::Image((void*)glId, ImVec2(40, 40), ImVec2(0, 1), ImVec2(1, 0));
 }
+//////////////////////////////////////////////////////////
 
-Texture::~Texture()
+
+//////////////////////////////////////////////////////////
+// Setters / Getters / Actions
+//////////////////////////////////////////////////////////
+int Texture::getWidth() const
 {
-	delete[] pixels;
-	freeGL();
+	return w;
+}
+
+int Texture::getHeight() const
+{
+	return h;
+}
+
+int Texture::getComp() const
+{
+	return comp;
+}
+
+const unsigned char* Texture::getPixels() const
+{
+	return pixels;
+}
+
+unsigned char Texture::getPixel(int index) const
+{
+	assert(index >= 0 && index < w * h * comp);
+	return pixels[index];
 }
 
 void Texture::setTextureParameters(GLint _internalFormat, GLenum _format, GLenum _type, bool _generateMipMap)
@@ -249,6 +346,8 @@ void Texture::setTextureWrapping(GLint _uWrapping, GLint _vWrapping)
 
 void Texture::setPixels(const std::vector<unsigned char>& _pixels, int _width, int _height, int _comp)
 {
+	assert(_pixels.size() == _width * _height * _comp);
+
 	if (pixels != nullptr)
 		delete[] pixels;
 
@@ -265,6 +364,8 @@ void Texture::setPixels(const std::vector<unsigned char>& _pixels, int _width, i
 
 void Texture::setPixels(const std::vector<glm::vec3>& _pixels, int _width, int _height)
 {
+	assert(_pixels.size() == _width * _height * 3);
+
 	if (pixels != nullptr)
 		delete[] pixels;
 
@@ -336,7 +437,11 @@ void Texture::resizeTexture(int width, int height)
 	w = width;
 	h = height;
 }
+//////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////
+// Opengl asset
+//////////////////////////////////////////////////////////
 void Texture::initGL()
 {
 
@@ -376,9 +481,15 @@ void Texture::freeGL()
 		glId = 0;
 	}
 }
+//////////////////////////////////////////////////////////
 
-//////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////
+// Constructors / Operators
+//////////////////////////////////////////////////////////
 CubeTexture::CubeTexture()
 	: CubeTexture(0, 0, 0)
 {
@@ -386,7 +497,7 @@ CubeTexture::CubeTexture()
 }
 
 CubeTexture::CubeTexture(const FileHandler::CompletePath& path)
-	: Resource(path)
+	: Asset(Object::getStaticClassId<CubeTexture>())
 	, glId(0)
 	, internalFormat(GL_RGB)
 	, format(GL_RGB)
@@ -406,7 +517,7 @@ CubeTexture::CubeTexture(const FileHandler::CompletePath& path)
 
 	for (int i = 0; i < 6; i++)
 	{
-		m_textures[i] = ResourcePtr<Texture>();
+		m_textures[i] = AssetHandle<Texture>();
 	}
 
 	for (int i = 0; i < 6; i++)
@@ -419,7 +530,8 @@ CubeTexture::CubeTexture(const FileHandler::CompletePath& path)
 }
 
 CubeTexture::CubeTexture(char r, char g, char b) 
-	: glId(0)
+	: Asset(Object::getStaticClassId<CubeTexture>())
+	, glId(0)
 	, internalFormat(GL_RGB)
 	, format(GL_RGB)
 	, type(GL_UNSIGNED_BYTE)
@@ -438,7 +550,7 @@ CubeTexture::CubeTexture(char r, char g, char b)
 
 	for (int i = 0; i < 6; i++)
 	{
-		m_textures[i] = ResourcePtr<Texture>();
+		m_textures[i] = AssetHandle<Texture>();
 	}
 
 	for (int i = 0; i < 6; i++)
@@ -450,8 +562,9 @@ CubeTexture::CubeTexture(char r, char g, char b)
 	}
 }
 
-CubeTexture::CubeTexture(const std::vector<ResourcePtr<Texture>>& textures) 
-	: glId(0)
+CubeTexture::CubeTexture(const std::vector<AssetHandle<Texture>>& textures) 
+	: Asset(Object::getStaticClassId<CubeTexture>())
+	, glId(0)
 	, internalFormat(GL_RGB)
 	, format(GL_RGB)
 	, type(GL_UNSIGNED_BYTE)
@@ -471,7 +584,6 @@ CubeTexture::CubeTexture(const std::vector<ResourcePtr<Texture>>& textures)
 	initFromTextures(textures);
 }
 
-
 CubeTexture::~CubeTexture()
 {
 	for (int i = 0; i < 6; i++)
@@ -480,7 +592,179 @@ CubeTexture::~CubeTexture()
 	}
 	freeGL();
 }
+//////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////
+// Asset override
+//////////////////////////////////////////////////////////
+void CubeTexture::createNewAssetFile(const FileHandler::CompletePath& filePath)
+{
+	// TODO : export by default in bmp
+}
+
+void CubeTexture::loadFromFile(const FileHandler::CompletePath& filePath)
+{
+	/////////////////////////////////
+	// Load metas
+	/////////////////////////////////
+	loadMetas(filePath);
+	/////////////////////////////////
+
+	/////////////////////////////////
+	// Open stream
+	/////////////////////////////////
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	std::ifstream stream;
+	stream.open(absolutePath.toString());
+	if (!stream.is_open())
+	{
+		std::cout << "error, can't load cube texture at path : " << absolutePath.toString() << std::endl;
+		return;
+	}
+	Json::Value root;
+	stream >> root;
+	/////////////////////////////////
+
+	/////////////////////////////////
+	// Read values
+	/////////////////////////////////
+	internalFormat = root["internalFormat"].asInt();
+	format = root["format"].asInt();
+	type = root["type"].asInt();
+	generateMipMap = root["generateMipMap"].asBool();
+
+	Json::Value json_textures = root["textures"];
+	for (int i = 0; i < 6; i++)
+	{
+		m_textures[i].load(json_textures[i]);
+	}
+	/////////////////////////////////
+
+	initGL();
+}
+
+void CubeTexture::saveToFile(const FileHandler::CompletePath& filePath)
+{
+	/////////////////////////////////
+	// Save metas
+	/////////////////////////////////
+	saveMetas(filePath);
+	/////////////////////////////////
+
+	/////////////////////////////////
+	// Open stream
+	/////////////////////////////////
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	std::ofstream stream;
+	stream.open(absolutePath.toString());
+	if (!stream.is_open())
+	{
+		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
+		return;
+	}
+	Json::Value root;
+	/////////////////////////////////
+
+	/////////////////////////////////
+	// Write values
+	/////////////////////////////////
+	root["textures"] = Json::Value(Json::arrayValue);
+	for (int i = 0; i < 6; i++)
+	{
+		m_textures[i].save(root["textures"][i]);
+	}
+
+	root["internalFormat"] = (int)internalFormat;
+	root["format"] = (int)format;
+	root["type"] = (int)type;
+	root["generateMipMap"] = generateMipMap;
+	/////////////////////////////////
+
+	stream << root;
+}
+
+void CubeTexture::saveMetas(const FileHandler::CompletePath& filePath)
+{
+	Asset::saveMetas(filePath);
+	// TODO : save other infos ?
+}
+
+void CubeTexture::loadMetas(const FileHandler::CompletePath& filePath)
+{
+	Asset::loadMetas(filePath);
+	// TODO : load other infos ?
+}
+
+void CubeTexture::drawIconeInResourceTree()
+{
+	//TODO
+}
+
+void CubeTexture::drawUIOnHovered()
+{
+	//TODO
+}
+
+void CubeTexture::drawIconeInResourceField()
+{
+	//TODO
+}
+
+void CubeTexture::drawInInspector()
+{
+	if (ImGui::Button("Clear"))
+	{
+		clearTextures();
+	}
+		
+	bool modified = false;
+	if (Field::AssetField<Texture>("texturePositiveX", m_textures[0]))
+	{
+		setTexture(0, m_textures[0]);
+		modified = true;
+	}
+	if (Field::AssetField<Texture>("textureNegativeX", m_textures[1]))
+	{
+		setTexture(1, m_textures[1]);
+		modified = true;
+	}
+	if (Field::AssetField<Texture>("texturePositiveY", m_textures[2]))
+	{
+		setTexture(2, m_textures[2]);
+		modified = true;
+	}
+	if (Field::AssetField<Texture>("textureNegativeY", m_textures[3]))
+	{
+		setTexture(3, m_textures[3]);
+		modified = true;
+	}
+	if (Field::AssetField<Texture>("texturePositiveZ", m_textures[4]))
+	{
+		setTexture(4, m_textures[4]);
+		modified = true;
+	}
+	if (Field::AssetField<Texture>("textureNegativeZ", m_textures[5]))
+	{
+		setTexture(5, m_textures[5]);
+		modified = true;
+	}
+		
+	if (modified)
+	{
+		freeGL();
+		initGL();
+	}
+}
+//////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////
+// Getters / Setters / Actions
+//////////////////////////////////////////////////////////
 void CubeTexture::setTextureParameters(GLint _internalFormat, GLenum _format, GLenum _type, bool _generateMipMap)
 {
 	internalFormat = _internalFormat;
@@ -551,15 +835,15 @@ void CubeTexture::resizeTexture(int width, int height)
 	h = height;
 }
 
-void CubeTexture::setTextureWithoutCheck(int index, ResourcePtr<Texture> texture)
+void CubeTexture::setTextureWithoutCheck(int index, AssetHandle<Texture> texture)
 {
 	// Check if given texture have been initialized
-	if (!m_textures[index].isValid() || m_textures[index]->pixels == nullptr)
+	if (!m_textures[index].isValid() || m_textures[index]->getPixels() == nullptr)
 		return;
 
-	w = texture->w;
-	h = texture->h;
-	comp = texture->comp;
+	w = texture->getWidth();
+	h = texture->getHeight();
+	comp = texture->getComp();
 	m_textures[index] = texture;
 	if (pixels[index] != nullptr)
 		delete[] pixels[index];
@@ -568,12 +852,12 @@ void CubeTexture::setTextureWithoutCheck(int index, ResourcePtr<Texture> texture
 	{
 		for (int k = 0; k < comp; k++)
 		{
-			pixels[index][j + k] = m_textures[index]->pixels[j + k];
+			pixels[index][j + k] = m_textures[index]->getPixel(j + k);
 		}
 	}
 }
 
-bool CubeTexture::setTexture(int index, ResourcePtr<Texture> texture)
+bool CubeTexture::setTexture(int index, AssetHandle<Texture> texture)
 {
 	if (!checkTextureCanBeAdded(texture))
 	{
@@ -587,14 +871,14 @@ bool CubeTexture::setTexture(int index, ResourcePtr<Texture> texture)
 	}
 }
 
-bool CubeTexture::initFromTextures(const std::vector<ResourcePtr<Texture>>& textures)
+bool CubeTexture::initFromTextures(const std::vector<AssetHandle<Texture>>& textures)
 {
 	assert(textures.size() > 0);
 
 	bool sameSize = true;
-	w = textures[0]->w;
-	h = textures[0]->h;
-	comp = textures[0]->comp;
+	w = textures[0]->getWidth();
+	h = textures[0]->getHeight();
+	comp = textures[0]->getComp();
 	for (int i = 0; i < 6; i++)
 	{
 		if (!checkTextureCanBeAdded(textures[i]))
@@ -615,23 +899,23 @@ bool CubeTexture::initFromTextures(const std::vector<ResourcePtr<Texture>>& text
 	return true;
 }
 
-bool CubeTexture::checkTextureCanBeAdded(const ResourcePtr<Texture>& textureToAdd) const
+bool CubeTexture::checkTextureCanBeAdded(const AssetHandle<Texture>& textureToAdd) const
 {
 	if (!textureToAdd.isValid())
 		return false;
-	else if (textureToAdd->w != textureToAdd->h)
+	else if (textureToAdd->getWidth() != textureToAdd->getHeight())
 	{
 		PRINT_ERROR("You are trying to create a cubeTexture with a textures with width != height.")
 			return false;
 	}
 	else if (!m_isInitialized)
 		return true;
-	if (textureToAdd->w != w || textureToAdd->h != h)
+	if (textureToAdd->getWidth() != w || textureToAdd->getHeight() != h)
 	{
 		PRINT_ERROR("You are trying to create a cubeTexture with textures with different size.")
 			return false;
 	}
-	else if (textureToAdd->comp != comp)
+	else if (textureToAdd->getComp() != comp)
 	{
 		PRINT_ERROR("You are trying to create a cubeTexture with textures with different format.")
 			return false;
@@ -662,7 +946,11 @@ void CubeTexture::clearTextures()
 		pixels[i][2] = 255;
 	}
 }
+//////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////
+// Opengl asset
+//////////////////////////////////////////////////////////
 void CubeTexture::initGL()
 {
 	if (glId <= 0){
@@ -704,179 +992,181 @@ void CubeTexture::freeGL()
 		glId = 0;
 	}
 }
+//////////////////////////////////////////////////////////
 
-void CubeTexture::init(const FileHandler::CompletePath & path, const ID& id)
-{
-	Resource::init(path, id);
-
-	assert(!Project::isPathPointingInsideProjectFolder(path)); //path should be relative
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
-
-	std::ifstream stream;
-	stream.open(absolutePath.toString());
-	if (!stream.is_open())
-	{
-		std::cout << "error, can't load cube texture at path : " << absolutePath.toString() << std::endl;
-		return;
-	}
-	Json::Value root;
-	stream >> root;
-
-	load(root);
-
-	initGL();
-}
-
-void CubeTexture::save()
-{
-	assert(!Project::isPathPointingInsideProjectFolder(m_completePath)); //path should be relative
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(m_completePath);
-
-	std::ofstream stream;
-	stream.open(absolutePath.toString());
-	if (!stream.is_open())
-	{
-		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
-		return;
-	}
-	Json::Value root;
-
-	save(root);
-
-	stream << root;
-}
-
-void CubeTexture::resolvePointersLoading()
-{
-	assert(!Project::isPathPointingInsideProjectFolder(m_completePath)); //path should be relative
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(m_completePath);
-
-	std::ifstream stream;
-	stream.open(absolutePath.toString());
-	if (!stream.is_open())
-	{
-		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
-		return;
-	}
-	Json::Value root;
-	stream >> root;
-
-	/////////////////
-
-	bool allTexturesOk = true;
-	for (int i = 0; i < 6; i++)
-	{
-		m_textures[i].load(root["textures"][i]);
-		allTexturesOk &= checkTextureCanBeAdded(m_textures[i]);
-	}
-	if (allTexturesOk)
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			setTextureWithoutCheck(i, m_textures[i]);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			m_textures[i] = ResourcePtr<Texture>();
-		}
-		PRINT_ERROR("error in cubeTexture loading !")
-	}
-}
-
-void CubeTexture::load(const Json::Value& root)
-{
-	/*bool allTexturesOk = true;
-	for (int i = 0; i < 6; i++)
-	{
-		m_textures[i].load(root["textures"][i]);
-		allTexturesOk &= checkTextureCanBeAdded(m_textures[i]);
-	}
-	if (allTexturesOk)
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			setTextureWithoutCheck(i, m_textures[i]);
-		}
-	}
-	else
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			m_textures[i] = ResourcePtr<Texture>();
-		}
-		PRINT_ERROR("error in cubeTexture loading !")
-	}*/
-
-	internalFormat = root["internalFormat"].asInt();
-	format = root["format"].asInt();
-	type = root["type"].asInt();
-	generateMipMap = root["generateMipMap"].asBool();
-}
-
-void CubeTexture::save(Json::Value& root) const
-{
-	root["textures"] = Json::Value(Json::arrayValue);
-	for (int i = 0; i < 6; i++)
-	{
-		m_textures[i].save(root["textures"][i]);
-	}
-
-	root["internalFormat"] = (int)internalFormat;
-	root["format"] = (int)format;
-	root["type"] = (int)type;
-	root["generateMipMap"] = generateMipMap;
-}
-
-void CubeTexture::drawInInspector(Scene & scene)
-{
-	Resource::drawInInspector(scene);
-
-	if (ImGui::Button("Clear"))
-	{
-		clearTextures();
-	}
-
-	bool modified = false;
-	if (EditorGUI::ResourceField<Texture>("texturePositiveX", m_textures[0]))
-	{
-		setTexture(0, m_textures[0]);
-		modified = true;
-	}
-	if (EditorGUI::ResourceField<Texture>("textureNegativeX", m_textures[1]))
-	{
-		setTexture(1, m_textures[1]);
-		modified = true;
-	}
-	if (EditorGUI::ResourceField<Texture>("texturePositiveY", m_textures[2]))
-	{
-		setTexture(2, m_textures[2]);
-		modified = true;
-	}
-	if (EditorGUI::ResourceField<Texture>("textureNegativeY", m_textures[3]))
-	{
-		setTexture(3, m_textures[3]);
-		modified = true;
-	}
-	if (EditorGUI::ResourceField<Texture>("texturePositiveZ", m_textures[4]))
-	{
-		setTexture(4, m_textures[4]);
-		modified = true;
-	}
-	if (EditorGUI::ResourceField<Texture>("textureNegativeZ", m_textures[5]))
-	{
-		setTexture(5, m_textures[5]);
-		modified = true;
-	}
-
-	if (modified)
-	{
-		freeGL();
-		initGL();
-	}
-}
+//
+//void CubeTexture::init(const FileHandler::CompletePath & path, const ID& id)
+//{
+//	Resource::init(path, id);
+//
+//	assert(!Project::isPathPointingInsideProjectFolder(path)); //path should be relative
+//	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
+//
+//	std::ifstream stream;
+//	stream.open(absolutePath.toString());
+//	if (!stream.is_open())
+//	{
+//		std::cout << "error, can't load cube texture at path : " << absolutePath.toString() << std::endl;
+//		return;
+//	}
+//	Json::Value root;
+//	stream >> root;
+//
+//	load(root);
+//
+//	initGL();
+//}
+//
+//void CubeTexture::save()
+//{
+//	assert(!Project::isPathPointingInsideProjectFolder(m_completePath)); //path should be relative
+//	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(m_completePath);
+//
+//	std::ofstream stream;
+//	stream.open(absolutePath.toString());
+//	if (!stream.is_open())
+//	{
+//		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
+//		return;
+//	}
+//	Json::Value root;
+//
+//	save(root);
+//
+//	stream << root;
+//}
+//
+//void CubeTexture::resolvePointersLoading()
+//{
+//	assert(!Project::isPathPointingInsideProjectFolder(m_completePath)); //path should be relative
+//	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(m_completePath);
+//
+//	std::ifstream stream;
+//	stream.open(absolutePath.toString());
+//	if (!stream.is_open())
+//	{
+//		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
+//		return;
+//	}
+//	Json::Value root;
+//	stream >> root;
+//
+//	/////////////////
+//
+//	bool allTexturesOk = true;
+//	for (int i = 0; i < 6; i++)
+//	{
+//		m_textures[i].load(root["textures"][i]);
+//		allTexturesOk &= checkTextureCanBeAdded(m_textures[i]);
+//	}
+//	if (allTexturesOk)
+//	{
+//		for (int i = 0; i < 6; i++)
+//		{
+//			setTextureWithoutCheck(i, m_textures[i]);
+//		}
+//	}
+//	else
+//	{
+//		for (int i = 0; i < 6; i++)
+//		{
+//			m_textures[i] = AssetHandle<Texture>();
+//		}
+//		PRINT_ERROR("error in cubeTexture loading !")
+//	}
+//}
+//
+//void CubeTexture::load(const Json::Value& root)
+//{
+//	/*bool allTexturesOk = true;
+//	for (int i = 0; i < 6; i++)
+//	{
+//		m_textures[i].load(root["textures"][i]);
+//		allTexturesOk &= checkTextureCanBeAdded(m_textures[i]);
+//	}
+//	if (allTexturesOk)
+//	{
+//		for (int i = 0; i < 6; i++)
+//		{
+//			setTextureWithoutCheck(i, m_textures[i]);
+//		}
+//	}
+//	else
+//	{
+//		for (int i = 0; i < 6; i++)
+//		{
+//			m_textures[i] = AssetHandle<Texture>();
+//		}
+//		PRINT_ERROR("error in cubeTexture loading !")
+//	}*/
+//
+//	internalFormat = root["internalFormat"].asInt();
+//	format = root["format"].asInt();
+//	type = root["type"].asInt();
+//	generateMipMap = root["generateMipMap"].asBool();
+//}
+//
+//void CubeTexture::save(Json::Value& root) const
+//{
+//	root["textures"] = Json::Value(Json::arrayValue);
+//	for (int i = 0; i < 6; i++)
+//	{
+//		m_textures[i].save(root["textures"][i]);
+//	}
+//
+//	root["internalFormat"] = (int)internalFormat;
+//	root["format"] = (int)format;
+//	root["type"] = (int)type;
+//	root["generateMipMap"] = generateMipMap;
+//}
+//
+//void CubeTexture::drawInInspector(Scene & scene)
+//{
+//	Resource::drawInInspector(scene);
+//
+//	if (ImGui::Button("Clear"))
+//	{
+//		clearTextures();
+//	}
+//
+//	bool modified = false;
+//	if (EditorGUI::ResourceField<Texture>("texturePositiveX", m_textures[0]))
+//	{
+//		setTexture(0, m_textures[0]);
+//		modified = true;
+//	}
+//	if (EditorGUI::ResourceField<Texture>("textureNegativeX", m_textures[1]))
+//	{
+//		setTexture(1, m_textures[1]);
+//		modified = true;
+//	}
+//	if (EditorGUI::ResourceField<Texture>("texturePositiveY", m_textures[2]))
+//	{
+//		setTexture(2, m_textures[2]);
+//		modified = true;
+//	}
+//	if (EditorGUI::ResourceField<Texture>("textureNegativeY", m_textures[3]))
+//	{
+//		setTexture(3, m_textures[3]);
+//		modified = true;
+//	}
+//	if (EditorGUI::ResourceField<Texture>("texturePositiveZ", m_textures[4]))
+//	{
+//		setTexture(4, m_textures[4]);
+//		modified = true;
+//	}
+//	if (EditorGUI::ResourceField<Texture>("textureNegativeZ", m_textures[5]))
+//	{
+//		setTexture(5, m_textures[5]);
+//		modified = true;
+//	}
+//
+//	if (modified)
+//	{
+//		freeGL();
+//		initGL();
+//	}
+//}
 
 ///////////////////////////////////////////
 //// BEGIN : texture helpers

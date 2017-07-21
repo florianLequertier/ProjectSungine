@@ -1085,7 +1085,7 @@ void Editor::removeDroppedFile(const FileHandler::CompletePath& filePath)
 //
 //	if (m_materialFactoryVisible)
 //	{
-//		ImGui::BeginChild("Material factory");
+//		ImGui::BeginChild("MaterialInstance factory");
 //		getMaterialFactory().drawUI();
 //		ImGui::End();
 //	}

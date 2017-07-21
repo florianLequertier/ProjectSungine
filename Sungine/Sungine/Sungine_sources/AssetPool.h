@@ -1,7 +1,10 @@
 #pragma once
 
+#include <jsoncpp/json/json.h>
+
 #include "FileHandler.h"
 #include "Asset.h"
+
 
 template<typename T>
 class AssetHandle
@@ -14,6 +17,12 @@ private:
 	AssetLink<T>* link;
 
 public:
+	AssetHandle()
+	{
+		ptr = nullptr;
+		link = nullptr;
+	}
+
 	AssetHandle(T* _ptr, AssetLink<T>* _link)
 	{
 		ptr = _ptr;
@@ -23,8 +32,7 @@ public:
 
 	~AssetHandle()
 	{
-		if(link != nullptr)
-			link->deleteLink(linkIndex);
+		reset();
 	}
 
 	AssetHandle(const AssetHandle& other)
@@ -43,8 +51,16 @@ public:
 		return *this;
 	}
 
+	void reset()
+	{
+		if (ptr != nullptr)
+			ptr = nullptr;
+		if (link != nullptr)
+			link->deleteLink(linkIndex);
+	}
+
 	template<typename Archive>
-	void save(Archive& archive)
+	void save(Archive& archive) const
 	{
 		int _index = -1;
 		int _dataIdx = -1;
@@ -53,7 +69,7 @@ public:
 		if (link != nullptr)
 		{
 			_index = link->index;
-			_index = link->dataIdx;
+			_dataIdx = link->dataIdx;
 			_assetId = link->id;
 		}
 
@@ -61,7 +77,7 @@ public:
 	}
 
 	template<typename Archive>
-	void load(Archive& archive)
+	void load(const Archive& archive)
 	{
 		int _index = -1;
 		int _dataIdx = -1;
@@ -76,11 +92,60 @@ public:
 		}
 	}
 
+	// Specialisation for JsonCPP
+	void save(Json::Value& archive) const
+	{
+		int _index = -1;
+		int _dataIdx = -1;
+		AssetId _assetId;
+
+		if (link != nullptr)
+		{
+			_index = link->index;
+			_dataIdx = link->dataIdx;
+			_assetId = link->id;
+		}
+
+		archive["index"] = _index;
+		archive["dataIdx"] = _dataIdx;
+		archive["assetIdx"] = _assetId;
+	}
+
+	void load(const Json::Value& archive)
+	{
+		int _index = -1;
+		int _dataIdx = -1;
+		AssetId _assetId;
+
+		_index = archive["index"];
+		_dataIdx = archive["dataIdx"];
+		_assetId = archive["assetIdx"];
+
+		if (_index != -1 && _dataIndex != -1)
+		{
+			link = AssetManager::instance().getPool<T>()->getLink(_assetId);
+			ptr = link->getLinkedObject();
+		}
+	}
+
+
+
 	T* getPtr()
 	{
 		return ptr;
 	}
+
+	bool isValid() const
+	{
+		return ptr != nullptr;
+	}
+
+	T* operator->() const
+	{
+		return ptr;
+	}
 };
+
 
 class IAssetPool
 {
@@ -304,7 +369,8 @@ public:
 		{
 			Json::Value readMetaFile;
 			AssetManager::loadMetaFile(metaPath, readMetaFile);
-			fileId = (AssetID)readMetaFile["id"].asInt();
+			fileId.id = readMetaFile["id"]["id"].asInt();
+			fileId.type = readMetaFile["id"]["type"].asInt();
 		}
 
 		// We check if we have a valid mapping for this id.
@@ -338,7 +404,7 @@ public:
 		auto found = defaults.find(assetName);
 		if (found != defaults.end())
 		{
-			outHandle = found.second;
+			outHandle = found->second;
 			return true;
 		}
 		else
@@ -347,18 +413,32 @@ public:
 		}
 	}
 
+	const AssetHandle<T>& getDefaultAsset(const std::string& assetName)
+	{
+		auto found = defaults.find(assetName);
+		assert(found != defaults.end());
+		return found->second;
+	}
+
 	bool getAsset(const AssetId& assetId, AssetHandle<T>& outHandle)
 	{
 		auto found = dataLinkMapping.find(assetId);
 		if (found != dataLinkMapping.end())
 		{
-			outHandle = found.second;
+			outHandle = found->second;
 			return true;
 		}
 		else
 		{
 			return false;
 		}
+	}
+
+	const AssetHandle<T>& getAsset(const AssetId& assetId)
+	{
+		auto found = dataLinkMapping.find(assetId);
+		assert(found != dataLinkMapping.end());
+		return found->second;
 	}
 };
 

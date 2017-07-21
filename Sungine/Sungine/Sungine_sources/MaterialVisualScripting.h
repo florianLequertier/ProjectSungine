@@ -13,7 +13,7 @@
 #include "MeshVisualizer.h"
 
 class Mesh;
-class ShaderProgram;
+class Material;
 
 namespace MVS {
 
@@ -1069,7 +1069,7 @@ private:
 	std::string m_compileResult;
 	bool m_lastCompilationSucceeded;
 
-	ShaderProgram* m_programPtr;
+	Material* m_programPtr;
 
 	glm::vec2 m_dragAnchorPos;
 	bool m_isDraggingNode;
@@ -1086,7 +1086,7 @@ private:
 	MeshVisualizer m_meshVisualizer;
 
 public:
-	NodeManager(ShaderProgram* programPtr);
+	NodeManager(Material* programPtr);
 	~NodeManager();
 
 	void compile();

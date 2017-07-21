@@ -895,7 +895,7 @@ namespace Physic {
 		return *this;
 	}
 
-	const Material & ParticleEmitter::getDrawableMaterial(int drawableIndex) const
+	const MaterialInstance & ParticleEmitter::getDrawableMaterial(int drawableIndex) const
 	{
 		return *m_materialParticules.get();
 	}

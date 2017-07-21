@@ -32,7 +32,7 @@ private:
 	int triangleCount;
 	int instanceCount;
 
-	ResourcePtr<Material> material;
+	ResourcePtr<MaterialInstance> material;
 
 public:
 	void initGl();

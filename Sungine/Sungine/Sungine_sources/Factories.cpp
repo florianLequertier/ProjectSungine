@@ -8,9 +8,9 @@
 
 //addings : 
 template<>
-void ResourceFactory<Material>::addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey)
+void ResourceFactory<MaterialInstance>::addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey)
 {
-	Material* newResource = new Material(); //makeNewMaterialInstance(path);
+	MaterialInstance* newResource = new MaterialInstance(); //makeNewMaterialInstance(path);
 	newResource->init(path, hashKey);
 
 	m_resources[path] = newResource;
@@ -19,9 +19,9 @@ void ResourceFactory<Material>::addResourceForce(const FileHandler::CompletePath
 }
 
 template<>
-void ResourceFactory<Material>::addResourceSoft(const FileHandler::CompletePath& path)
+void ResourceFactory<MaterialInstance>::addResourceSoft(const FileHandler::CompletePath& path)
 {
-	Material* newResource = new Material(); //makeNewMaterialInstance(path);
+	MaterialInstance* newResource = new MaterialInstance(); //makeNewMaterialInstance(path);
 
 	ID newId = IDGenerator<Resource>::instance().lockID();
 	newResource->init(path, newId);
@@ -33,13 +33,13 @@ void ResourceFactory<Material>::addResourceSoft(const FileHandler::CompletePath&
 
 //Creation : 
 //template<>
-//Material* ResourceFactory<Material>::createNewResource(const FileHandler::CompletePath& path, void* data)
+//MaterialInstance* ResourceFactory<MaterialInstance>::createNewResource(const FileHandler::CompletePath& path, void* data)
 //{
 //	//TODO 01
 //
 //	std::string* materialModelName = static_cast<std::string>(data);
 //
-//	Material* newMaterial = MaterialModelsFactory::instance().getInstance(materialModelName);
+//	MaterialInstance* newMaterial = MaterialModelsFactory::instance().getInstance(materialModelName);
 //	
 //	return newMaterial;
 //}
@@ -49,53 +49,53 @@ void ResourceFactory<Material>::addResourceSoft(const FileHandler::CompletePath&
 //Shader Programes
 /*
 template<>
-void ResourceFactory<ShaderProgram>::initDefaults()
+void ResourceFactory<Material>::initDefaults()
 {
 	//////////////////// CPU PARTICLE shaders ////////////////////////
-	addDefault("defaultParticlesCPU", new ShaderProgram(FileHandler::CompletePath("particleCPU.vert"), FileHandler::CompletePath("particleCPU.frag")));
+	addDefault("defaultParticlesCPU", new Material(FileHandler::CompletePath("particleCPU.vert"), FileHandler::CompletePath("particleCPU.frag")));
 
 	//////////////////// PARTICLE shaders ////////////////////////
-	addDefault("defaultParticles", new ShaderProgram(FileHandler::CompletePath("particle.vert"), FileHandler::CompletePath("particle.frag"), FileHandler::CompletePath("particle.geom")));
+	addDefault("defaultParticles", new Material(FileHandler::CompletePath("particle.vert"), FileHandler::CompletePath("particle.frag"), FileHandler::CompletePath("particle.geom")));
 
 	//////////////////// PARTICLE SIMULATION shaders ////////////////////////
-	addDefault("particleSimulation", new ShaderProgram(FileHandler::CompletePath("particleSimulation.vert"), FileHandler::CompletePath(), FileHandler::CompletePath("particleSimulation.geom")));
+	addDefault("particleSimulation", new Material(FileHandler::CompletePath("particleSimulation.vert"), FileHandler::CompletePath(), FileHandler::CompletePath("particleSimulation.geom")));
 
 	//////////////////// BILLBOARD shaders ////////////////////////
-	addDefault("defaultBillboard", new ShaderProgram(FileHandler::CompletePath("billboard.vert"), FileHandler::CompletePath("billboard.frag")));
+	addDefault("defaultBillboard", new Material(FileHandler::CompletePath("billboard.vert"), FileHandler::CompletePath("billboard.frag")));
 
 	//////////////////// SKYBOX shaders ////////////////////////
-	addDefault("defaultSkybox", new ShaderProgram(FileHandler::CompletePath("skybox.vert"), FileHandler::CompletePath("skybox.frag")));
+	addDefault("defaultSkybox", new Material(FileHandler::CompletePath("skybox.vert"), FileHandler::CompletePath("skybox.frag")));
 
 	//////////////////// 3D Gpass shaders ////////////////////////
-	addDefault("defaultLit", new ShaderProgram(FileHandler::CompletePath("aogl.vert"), FileHandler::CompletePath("aogl_gPass.frag")));
+	addDefault("defaultLit", new Material(FileHandler::CompletePath("aogl.vert"), FileHandler::CompletePath("aogl_gPass.frag")));
 
 	//////////////////// WIREFRAME shaders ////////////////////////
-	addDefault("defaultUnlit", new ShaderProgram(FileHandler::CompletePath("wireframe.vert"), FileHandler::CompletePath("wireframe.frag")));
+	addDefault("defaultUnlit", new Material(FileHandler::CompletePath("wireframe.vert"), FileHandler::CompletePath("wireframe.frag")));
 
 	//////////////////// TERRAIN shaders ////////////////////////
-	addDefault("defaultTerrain", new ShaderProgram(FileHandler::CompletePath("terrain.vert"), FileHandler::CompletePath("terrain.frag")));
+	addDefault("defaultTerrain", new Material(FileHandler::CompletePath("terrain.vert"), FileHandler::CompletePath("terrain.frag")));
 
 	//////////////////// TERRAIN EDITION shaders ////////////////////////
-	addDefault("defaultTerrainEdition", new ShaderProgram(FileHandler::CompletePath("terrainEdition.vert"), FileHandler::CompletePath("terrainEdition.frag")));
+	addDefault("defaultTerrainEdition", new Material(FileHandler::CompletePath("terrainEdition.vert"), FileHandler::CompletePath("terrainEdition.frag")));
 
 	//////////////////// DRAW ON TEXTURE shaders ////////////////////////
-	addDefault("defaultDrawOnTexture", new ShaderProgram(FileHandler::CompletePath("drawOnTexture.vert"), FileHandler::CompletePath("drawOnTexture.frag")));
+	addDefault("defaultDrawOnTexture", new Material(FileHandler::CompletePath("drawOnTexture.vert"), FileHandler::CompletePath("drawOnTexture.frag")));
 
 	//////////////////// GRASS FIELD shaders ////////////////////////
-	addDefault("defaultGrassField", new ShaderProgram(FileHandler::CompletePath("grassField.vert"), FileHandler::CompletePath("grassField.frag")));
+	addDefault("defaultGrassField", new Material(FileHandler::CompletePath("grassField.vert"), FileHandler::CompletePath("grassField.frag")));
 
 	//////////////////// GRASS FIELD shaders ////////////////////////
-	addDefault("wireframeInstanced", new ShaderProgram(FileHandler::CompletePath("wireframeInstanced.vert"), FileHandler::CompletePath("wireframeInstanced.frag")));
+	addDefault("wireframeInstanced", new Material(FileHandler::CompletePath("wireframeInstanced.vert"), FileHandler::CompletePath("wireframeInstanced.frag")));
 
 	//////////////////// DEBUG DRAWER shaders ////////////////////////
-	addDefault("debugDrawer", new ShaderProgram(FileHandler::CompletePath("debugDrawer.vert"), FileHandler::CompletePath("debugDrawer.frag")));
+	addDefault("debugDrawer", new Material(FileHandler::CompletePath("debugDrawer.vert"), FileHandler::CompletePath("debugDrawer.frag")));
 }
 */
 
 //template<>
-//void ResourceFactory<Material>::add(const FileHandler::CompletePath& path)
+//void ResourceFactory<MaterialInstance>::add(const FileHandler::CompletePath& path)
 //{
-//	Material* newResource = makeNewMaterialInstance(path);
+//	MaterialInstance* newResource = makeNewMaterialInstance(path);
 //	newResource->init(path);
 //
 //	m_resources[path] = newResource;
@@ -104,9 +104,9 @@ void ResourceFactory<ShaderProgram>::initDefaults()
 //}
 //
 //template<>
-//void ResourceFactory<Material>::add(const FileHandler::CompletePath& path, unsigned int hashKey)
+//void ResourceFactory<MaterialInstance>::add(const FileHandler::CompletePath& path, unsigned int hashKey)
 //{
-//	Material* newResource = makeNewMaterialInstance(path);
+//	MaterialInstance* newResource = makeNewMaterialInstance(path);
 //	newResource->init(path);
 //
 //	m_resources[path] = newResource;
@@ -174,18 +174,18 @@ void ResourceFactory<Texture>::initDefaults()
 
 //Materials
 template<>
-void ResourceFactory<Material>::initDefaults()
+void ResourceFactory<MaterialInstance>::initDefaults()
 {
 	/*
 	//we construct by default one material instance by shader program
 	for (auto& it = getProgramFactory().resourceBegin(); it != getProgramFactory().resourceEnd(); it++)
 	{
-		Material* newMat = it->second->makeNewMaterialInstance();
+		MaterialInstance* newMat = it->second->makeNewMaterialInstance();
 		addDefault(newMat->getCompletePath().getFilename(), newMat);
 	}
 	*/
 	
-	Material* newMat = new MaterialLit(*getProgramFactory().getDefault("lit"));
+	MaterialInstance* newMat = new MaterialLit(*getProgramFactory().getDefault("lit"));
 	addDefaultResource("defaultLit", newMat);
 
 	newMat = new MaterialSkybox(*getProgramFactory().getDefault("skybox"));
@@ -374,7 +374,7 @@ void ResourceFactory<Mesh>::initDefaults()
 	addDefaultResource("quad", quad);
 }
 
-void loadAllPrograms(ResourceFactory<ShaderProgram>* programFactory, const FileHandler::Path& absolutePath, const FileHandler::Path& relativePath)
+void loadAllPrograms(ResourceFactory<Material>* programFactory, const FileHandler::Path& absolutePath, const FileHandler::Path& relativePath)
 {
 	std::vector<std::string> dirNames;
 	FileHandler::getAllDirNames(absolutePath, dirNames);
@@ -395,7 +395,7 @@ void loadAllPrograms(ResourceFactory<ShaderProgram>* programFactory, const FileH
 		if (FileHandler::getFileTypeFromExtention(outExtention) == FileHandler::FileType::SHADER_PROGRAM)
 		{
 			FileHandler::CompletePath shaderPath(absolutePath.toString() + "/" + fileNameAndExtention);
-			ShaderProgram* newShaderProgram = new ShaderProgram(shaderPath, Rendering::MaterialType::INTERNAL, true);
+			Material* newShaderProgram = new Material(shaderPath, Rendering::MaterialType::INTERNAL, true);
 			newShaderProgram->getIsDefaultResource();
 			ID newID = IDGenerator<Resource>::instance().lockID();
 			newShaderProgram->init(shaderPath, newID);
@@ -405,7 +405,7 @@ void loadAllPrograms(ResourceFactory<ShaderProgram>* programFactory, const FileH
 }
 
 //load all programs which are in "[projectPath]/shaders/"
-void ResourceFactory<ShaderProgram>::initDefaults()
+void ResourceFactory<Material>::initDefaults()
 {
 	FileHandler::Path shadersPath = FileHandler::Path(Project::getShaderFolderPath());
 	loadAllPrograms(this, shadersPath, FileHandler::Path(shadersPath.back(2)));
@@ -422,10 +422,10 @@ void initAllResourceFactories()
 	getResourceFactory<Texture>().initDefaults();
 
 	//Shader Programes
-	getResourceFactory<ShaderProgram>().initDefaults();
+	getResourceFactory<Material>().initDefaults();
 
 	//Materials
-	getResourceFactory<Material>().initDefaults();
+	getResourceFactory<MaterialInstance>().initDefaults();
 
 	//Mesh
 	getResourceFactory<Mesh>().initDefaults();
@@ -449,9 +449,9 @@ ResourceFactory<Sungine::Animation::AnimationStateMachine>& getAnimationStateMac
 	return ResourceFactory<Sungine::Animation::AnimationStateMachine>::instance();
 }
 
-ResourceFactory<ShaderProgram>& getProgramFactory()
+ResourceFactory<Material>& getProgramFactory()
 {
-	return ResourceFactory<ShaderProgram>::instance();
+	return ResourceFactory<Material>::instance();
 }
 
 ResourceFactory<Mesh>& getMeshFactory()
@@ -469,9 +469,9 @@ ResourceFactory<CubeTexture>& getCubeTextureFactory()
 	return ResourceFactory<CubeTexture>::instance();
 }
 
-ResourceFactory<Material>& getMaterialFactory()
+ResourceFactory<MaterialInstance>& getMaterialFactory()
 {
-	return ResourceFactory<Material>::instance();
+	return ResourceFactory<MaterialInstance>::instance();
 }
 
 ResourceFactory<SkeletalAnimation>& getSkeletalAnimationFactory()
@@ -510,13 +510,13 @@ ResourceType getResourceType<SkeletalAnimation>()
 }
 
 template<>
-ResourceType getResourceType<Material>()
+ResourceType getResourceType<MaterialInstance>()
 {
 	return ResourceType::MATERIAL;
 }
 
 template<>
-ResourceType getResourceType<ShaderProgram>()
+ResourceType getResourceType<Material>()
 {
 	return ResourceType::SHADER_PROGRAM;
 }
@@ -556,8 +556,8 @@ Resource* getResourceFromTypeAndCompletePath(ResourceType resourceType, const Fi
 		return nullptr;
 		break;
 	case SHADER_PROGRAM:
-		//PRINT_WARNING("Your are trying to use getResourceFromTypeAndCompletePath() on ShaderProgram. It will return null");
-		return getResourceFactory<ShaderProgram>().get(completePath);
+		//PRINT_WARNING("Your are trying to use getResourceFromTypeAndCompletePath() on Material. It will return null");
+		return getResourceFactory<Material>().get(completePath);
 		break;
 	case TEXTURE:
 		return getResourceFactory<Texture>().get(completePath);
@@ -573,7 +573,7 @@ Resource* getResourceFromTypeAndCompletePath(ResourceType resourceType, const Fi
 		return nullptr;
 		break;
 	case MATERIAL:
-		return getResourceFactory<Material>().get(completePath);
+		return getResourceFactory<MaterialInstance>().get(completePath);
 		break;
 	case ANIMATION_STATE_MACHINE:
 		return getResourceFactory<Sungine::Animation::AnimationStateMachine>().get(completePath);
@@ -605,10 +605,10 @@ void addResourceToFactory(const FileHandler::CompletePath& completePath)
 		//getResourceFactory<SkeletalAnimation>().add(completePath); //TODO
 		break;
 	case MATERIAL:
-		getResourceFactory<Material>().addResourceSoft(completePath);
+		getResourceFactory<MaterialInstance>().addResourceSoft(completePath);
 		break;
 	case SHADER_PROGRAM:
-		getResourceFactory<ShaderProgram>().addResourceSoft(completePath);
+		getResourceFactory<Material>().addResourceSoft(completePath);
 		break;
 	case ANIMATION_STATE_MACHINE:
 		getResourceFactory<Sungine::Animation::AnimationStateMachine>().addResourceSoft(completePath);
@@ -630,9 +630,9 @@ void renameResourceInFactory(const FileHandler::CompletePath& oldResourcePath, c
 	case NONE:
 		break;
 	case SHADER_PROGRAM:
-		//getResourceFactory<ShaderProgram>().changeResourceKey(oldResourcePath, newResourcePath);
+		//getResourceFactory<Material>().changeResourceKey(oldResourcePath, newResourcePath);
 		//std::cout << "warning : can't edit shaderProgram factory ! in : renameResourceInFactory()"<<std::endl;
-		getResourceFactory<ShaderProgram>().changeResourceKey(oldResourcePath, newResourcePath);
+		getResourceFactory<Material>().changeResourceKey(oldResourcePath, newResourcePath);
 		break;
 	case TEXTURE:
 		getResourceFactory<Texture>().changeResourceKey(oldResourcePath, newResourcePath);
@@ -647,7 +647,7 @@ void renameResourceInFactory(const FileHandler::CompletePath& oldResourcePath, c
 		//getResourceFactory<SkeletalAnimation>().changeResourceKey(oldResourcePath, newResourcePath); //TODO
 		break;
 	case MATERIAL:
-		getResourceFactory<Material>().changeResourceKey(oldResourcePath, newResourcePath);
+		getResourceFactory<MaterialInstance>().changeResourceKey(oldResourcePath, newResourcePath);
 		break;
 	case ANIMATION_STATE_MACHINE:
 		getResourceFactory<Sungine::Animation::AnimationStateMachine>().changeResourceKey(oldResourcePath, newResourcePath);
@@ -667,9 +667,9 @@ void removeResourceFromFactory(const FileHandler::CompletePath& resourcePath)
 	case NONE:
 		break;
 	case SHADER_PROGRAM:
-		//getResourceFactory<ShaderProgram>().erase(resourcePath);
+		//getResourceFactory<Material>().erase(resourcePath);
 		//std::cout << "warning : can't edit shaderProgram factory ! in : renameResourceInFactory()" << std::endl;
-		getResourceFactory<ShaderProgram>().erase(resourcePath);
+		getResourceFactory<Material>().erase(resourcePath);
 		break;
 	case TEXTURE:
 		getResourceFactory<Texture>().erase(resourcePath);
@@ -684,7 +684,7 @@ void removeResourceFromFactory(const FileHandler::CompletePath& resourcePath)
 		//getResourceFactory<SkeletalAnimation>().erase(resourcePath); //TODO
 		break;
 	case MATERIAL:
-		getResourceFactory<Material>().erase(resourcePath);
+		getResourceFactory<MaterialInstance>().erase(resourcePath);
 		break;
 	case ANIMATION_STATE_MACHINE:
 		getResourceFactory<Sungine::Animation::AnimationStateMachine>().erase(resourcePath);
@@ -697,17 +697,17 @@ void removeResourceFromFactory(const FileHandler::CompletePath& resourcePath)
 
 void removeAllResourcesFromFactories()
 {
-	getResourceFactory<ShaderProgram>().clear();
+	getResourceFactory<Material>().clear();
 	getResourceFactory<Texture>().clear();
 	getResourceFactory<CubeTexture>().clear();
 	getResourceFactory<Mesh>().clear();
 	getResourceFactory<SkeletalAnimation>().clear();
-	getResourceFactory<Material>().clear();
+	getResourceFactory<MaterialInstance>().clear();
 	getResourceFactory<Sungine::Animation::AnimationStateMachine>().clear();
 }
 
 template<>
-inline const std::string& getResourceExtention<Material>()
+inline const std::string& getResourceExtention<MaterialInstance>()
 {
 	return ".mat";
 }

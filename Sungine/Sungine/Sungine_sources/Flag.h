@@ -72,11 +72,11 @@ namespace Physic {
 
 		// Flag material
 		std::string m_materialName;
-		ResourcePtr<Material> m_material;
+		ResourcePtr<MaterialInstance> m_material;
 
 	public:
 		Flag();
-		Flag(ResourcePtr<Material> material, int subdivision = 10, float width = 10.f, float height = 10.f);
+		Flag(ResourcePtr<MaterialInstance> material, int subdivision = 10, float width = 10.f, float height = 10.f);
 		Flag(const Flag& other);
 		Flag& operator=(const Flag& other);
 		~Flag();
@@ -125,7 +125,7 @@ namespace Physic {
 
 		// Herited from IRenderableComponent
 		virtual const IDrawable & getDrawable(int drawableIndex) const override;
-		virtual const Material & getDrawableMaterial(int drawableIndex) const override;
+		virtual const MaterialInstance & getDrawableMaterial(int drawableIndex) const override;
 		virtual const int getDrawableCount() const override;
 		virtual Component* getAsComponent() override;
 

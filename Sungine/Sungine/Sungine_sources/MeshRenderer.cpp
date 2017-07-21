@@ -18,7 +18,7 @@ MeshRenderer::MeshRenderer()
 	m_materials.push_back(getMaterialFactory().getDefault("defaultLit"));
 }
 
-MeshRenderer::MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<Material> material) 
+MeshRenderer::MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material) 
 	: Component(MESH_RENDERER)
 	, m_mesh(mesh)
 {
@@ -42,8 +42,8 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::drawInInspector(Scene& scene)
 {
-	ResourcePtr<Material> materialQuery;
-	if (EditorGUI::ResourceField<Material>("materialName", materialQuery))
+	ResourcePtr<MaterialInstance> materialQuery;
+	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
 	{
 		if (materialQuery.isValid())
 		{
@@ -77,8 +77,8 @@ void MeshRenderer::drawInInspector(Scene& scene)
 
 void MeshRenderer::drawInInspector(Scene& scene, const std::vector<Component*>& components)
 {
-	ResourcePtr<Material> materialQuery;
-	EditorGUI::ResourceField<Material>("materialName", materialQuery);
+	ResourcePtr<MaterialInstance> materialQuery;
+	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
 	if (materialQuery.isValid())
 	{
 		for (auto component : components)
@@ -146,7 +146,7 @@ void MeshRenderer::setMesh(ResourcePtr<Mesh> _mesh)
 	updateLocalMeshDatas();
 }
 
-void MeshRenderer::addMaterial(ResourcePtr<Material> _material)
+void MeshRenderer::addMaterial(ResourcePtr<MaterialInstance> _material)
 {
 	m_materials.push_back(_material);
 }
@@ -158,7 +158,7 @@ void MeshRenderer::removeMaterial(int idx)
 	m_materials.erase(m_materials.begin() + idx);
 }
 
-void MeshRenderer::setMaterial(ResourcePtr<Material> _material, int idx)
+void MeshRenderer::setMaterial(ResourcePtr<MaterialInstance> _material, int idx)
 {
 	assert(idx >= 0 && idx < m_materials.size());
 
@@ -173,7 +173,7 @@ void MeshRenderer::setMaterial(ResourcePtr<Material> _material, int idx)
 //	m_materials = _material;
 //}
 
-const Material* MeshRenderer::getMaterial(int idx) const
+const MaterialInstance* MeshRenderer::getMaterial(int idx) const
 {
 	return m_materials[idx].get();
 }
@@ -294,7 +294,7 @@ void MeshRenderer::load(const Json::Value & rootComponent)
 	m_materials.clear();
 	for (int i = 0; i < materialCount; i++)
 	{
-		ResourcePtr<Material> newMaterial(rootComponent["material"][i]);
+		ResourcePtr<MaterialInstance> newMaterial(rootComponent["material"][i]);
 		m_materials.push_back(newMaterial);
 		//material.back()->initGL(); //TODO INITGL
 	}
@@ -306,7 +306,7 @@ const IDrawable & MeshRenderer::getDrawable(int drawableIndex) const
 	return *m_subMeshes[drawableIndex];
 }
 
-const Material & MeshRenderer::getDrawableMaterial(int drawableIndex) const
+const MaterialInstance & MeshRenderer::getDrawableMaterial(int drawableIndex) const
 {
 	return (drawableIndex >= m_materials.size()) ? *getMaterial(m_materials.size() - 1) : *getMaterial(drawableIndex);
 }

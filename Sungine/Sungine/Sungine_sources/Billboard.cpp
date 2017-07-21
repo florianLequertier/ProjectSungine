@@ -170,7 +170,7 @@ const IDrawable & Billboard::getDrawable(int drawableIndex) const
 	return *this;
 }
 
-const Material & Billboard::getDrawableMaterial(int drawableIndex) const
+const MaterialInstance & Billboard::getDrawableMaterial(int drawableIndex) const
 {
 	return *m_billboardMaterial.get();
 }

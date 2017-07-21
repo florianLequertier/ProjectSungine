@@ -9,7 +9,7 @@
 #include "RenderBatch.h"
 #include "Texture.h"
 #include "SkeletalAnimation.h"
-#include "ShaderProgram.h"
+#include "Material.h"
 #include "AnimationStateMachine.h"
 
 #include "FileHandler.h"
@@ -92,14 +92,14 @@ private:
 };
 
 //
-////Specialization for ShaderProgram
+////Specialization for Material
 //template<>
-//class ResourceFactory<ShaderProgram> : public ISingleton<ResourceFactory<ShaderProgram>>, public ISerializable
+//class ResourceFactory<Material> : public ISingleton<ResourceFactory<Material>>, public ISerializable
 //{
 //private:
 //	std::map<std::string, ID> m_resourceMapping;
-//	std::map<ID, ShaderProgram*> m_resourcesFromHashKey;
-//	std::map<std::string, ShaderProgram*> m_resources;
+//	std::map<ID, Material*> m_resourcesFromHashKey;
+//	std::map<std::string, Material*> m_resources;
 //
 //public:
 //
@@ -117,7 +117,7 @@ private:
 //			return;
 //
 //		ID newID = IDGenerator<Resource>::instance().lockID();
-//		ShaderProgram* newResource = new ShaderProgram(path);
+//		Material* newResource = new Material(path);
 //		newResource->init(path, newID);
 //
 //		m_resources[name] = newResource;
@@ -127,7 +127,7 @@ private:
 //		//m_resourcesFromHashKey[s_resourceCount] = newResource;
 //		
 //	}
-//	void addResourceForce(const std::string& name, ShaderProgram* value)
+//	void addResourceForce(const std::string& name, Material* value)
 //	{
 //		m_resources[name] = value;
 //		ID newID = IDGenerator<Resource>::instance().lockID();
@@ -146,7 +146,7 @@ private:
 //		m_resourceMapping.erase(name);
 //		m_resourcesFromHashKey.erase(resourceID);
 //	}
-//	ShaderProgram* get(const std::string& name)
+//	Material* get(const std::string& name)
 //	{
 //		return m_resources[name];
 //	}
@@ -154,7 +154,7 @@ private:
 //	{
 //		return m_resources.find(name) != m_resources.end();
 //	}
-//	ShaderProgram* getRaw(const ID& hashKey)
+//	Material* getRaw(const ID& hashKey)
 //	{
 //		return m_resourcesFromHashKey[hashKey];
 //	}
@@ -174,7 +174,7 @@ private:
 //		loadAllPrograms(shadersPath, FileHandler::Path(shadersPath.back()));
 //	}
 //
-//	//add all programs recursivly to the ShaderProgram factory 
+//	//add all programs recursivly to the Material factory 
 //	//void loadAllPrograms(const FileHandler::Path& shaderFolderPath)
 //	//{
 //	//	std::vector<std::string> dirNames;
@@ -214,7 +214,7 @@ private:
 //	{
 //		for (auto& it = m_resources.begin(); it != m_resources.end(); it++)
 //		{
-//			ShaderProgram* resource = it->second;
+//			Material* resource = it->second;
 //			delete resource;
 //		}
 //
@@ -230,11 +230,11 @@ private:
 //		//no need to load these resources
 //	}
 //
-//	std::map<std::string, ShaderProgram*>::iterator resourceBegin()
+//	std::map<std::string, Material*>::iterator resourceBegin()
 //	{
 //		return m_resources.begin();
 //	}
-//	std::map<std::string, ShaderProgram*>::iterator resourceEnd()
+//	std::map<std::string, Material*>::iterator resourceEnd()
 //	{
 //		return m_resources.end();
 //	}
@@ -244,7 +244,7 @@ private:
 //private:
 //	void addResourceForce(const std::string& name, const ID& hashKey)
 //	{
-//		ShaderProgram* newResource = new ShaderProgram();
+//		Material* newResource = new Material();
 //		newResource->init(name, hashKey);
 //
 //		m_resources[name] = newResource;
@@ -532,22 +532,22 @@ typename std::map<std::string, T*>::iterator ResourceFactory<T>::defaultResource
 //Specialisations : 
 
 template<>
-void ResourceFactory<Material>::addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey);
+void ResourceFactory<MaterialInstance>::addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey);
 template<>
-void ResourceFactory<Material>::addResourceSoft(const FileHandler::CompletePath& path);
+void ResourceFactory<MaterialInstance>::addResourceSoft(const FileHandler::CompletePath& path);
 //
 //template<>
-//void ResourceFactory<Material>::add(const FileHandler::CompletePath& path, unsigned int hashKey);
+//void ResourceFactory<MaterialInstance>::add(const FileHandler::CompletePath& path, unsigned int hashKey);
 // Creation : 
 
 //template<>
-//void ResourceFactory<Material>::createNewResource(const FileHandler::CompletePath& path);
+//void ResourceFactory<MaterialInstance>::createNewResource(const FileHandler::CompletePath& path);
 
 //Initialisations : 
 
 //Shader Programes
 //template<>
-//void ResourceFactory<ShaderProgram>::initDefaults();
+//void ResourceFactory<Material>::initDefaults();
 
 //AnimationStateMachine
 template<>
@@ -563,7 +563,7 @@ void ResourceFactory<Texture>::initDefaults();
 
 //Materials
 template<>
-void ResourceFactory<Material>::initDefaults();
+void ResourceFactory<MaterialInstance>::initDefaults();
 
 //Mesh
 template<>
@@ -571,7 +571,7 @@ void ResourceFactory<Mesh>::initDefaults();
 
 
 //ShderPrograms
-void ResourceFactory<ShaderProgram>::initDefaults();
+void ResourceFactory<Material>::initDefaults();
 
 //Animations : nothing by default
 
@@ -581,11 +581,11 @@ void clearAllResourceFactories();
 
 //Access helper
 ResourceFactory<Sungine::Animation::AnimationStateMachine>& getAnimationStateMachineFactory();
-ResourceFactory<ShaderProgram>& getProgramFactory();
+ResourceFactory<Material>& getProgramFactory();
 ResourceFactory<Mesh>& getMeshFactory();
 ResourceFactory<Texture>& getTextureFactory();
 ResourceFactory<CubeTexture>& getCubeTextureFactory();
-ResourceFactory<Material>& getMaterialFactory();
+ResourceFactory<MaterialInstance>& getMaterialFactory();
 ResourceFactory<SkeletalAnimation>& getSkeletalAnimationFactory();
 
 template<typename T>
@@ -612,9 +612,9 @@ ResourceType getResourceType<Mesh>();
 template<>
 ResourceType getResourceType<SkeletalAnimation>();
 template<>
-ResourceType getResourceType<Material>();
+ResourceType getResourceType<MaterialInstance>();
 template<>
-ResourceType getResourceType<ShaderProgram>();
+ResourceType getResourceType<Material>();
 
 ResourceType getResourceTypeFromFileType(FileHandler::FileType fileType);
 
@@ -632,7 +632,7 @@ const std::string& getResourceExtention()
 }
 
 template<>
-const std::string& getResourceExtention<Material>();
+const std::string& getResourceExtention<MaterialInstance>();
 
 void loadResourcesInAllFactories(const Json::Value& rootResources);
 void saveResourcesInAllFactories(Json::Value& rootResources);
@@ -659,11 +659,11 @@ void ResourcePtr<T>::load(const Json::Value & entityRoot)
 }
 
 //template<>
-//inline void ResourcePtr<ShaderProgram>::load(const Json::Value & entityRoot)
+//inline void ResourcePtr<Material>::load(const Json::Value & entityRoot)
 //{
 //	m_isDefaultResource = entityRoot["isDefaultResource"].asBool();
 //	m_resourceHashKey.load(entityRoot.get("resourceHashKey", Json::nullValue));
-//	m_rawPtr = getResourceFactory<ShaderProgram>().getRaw(m_resourceHashKey);
+//	m_rawPtr = getResourceFactory<Material>().getRaw(m_resourceHashKey);
 //
 //	assert(m_rawPtr != nullptr);
 //	m_rawPtr->addReferenceToThis(this);

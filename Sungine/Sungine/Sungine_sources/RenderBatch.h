@@ -16,7 +16,7 @@ protected:
 	GLuint m_programId;
 	std::vector<const IDrawable*> m_drawables;
 public:
-	virtual void add(const IDrawable* drawable, const Material* material) = 0;
+	virtual void add(const IDrawable* drawable, const MaterialInstance* material) = 0;
 	virtual void clear() = 0;
 	virtual void render(const glm::mat4& projection, const glm::mat4& view, const RenderDatas& renderDatas) const = 0;
 	//virtual void renderForward(const glm::mat4& projection, const glm::mat4& view, const RenderDatas& renderDatas) const = 0;
@@ -39,7 +39,7 @@ protected:
 	std::map<const MaterialType*, std::vector<const IDrawable*>> m_container;
 
 public:
-	void add(const IDrawable* drawable, const Material* material) override;
+	void add(const IDrawable* drawable, const MaterialInstance* material) override;
 	void clear() override;
 	void render(const glm::mat4& projection, const glm::mat4& view, const RenderDatas& renderDatas) const override;
 	//void renderForward(const glm::mat4& projection, const glm::mat4& view, const RenderDatas& renderDatas) const override;
@@ -49,7 +49,7 @@ public:
 
 
 template<typename MaterialType>
-inline void RenderBatch<MaterialType>::add(const IDrawable * drawable, const Material * material)
+inline void RenderBatch<MaterialType>::add(const IDrawable * drawable, const MaterialInstance * material)
 {
 	assert(drawable != nullptr && material != nullptr);
 
@@ -150,16 +150,16 @@ inline void RenderBatch<MaterialType>::render(const glm::mat4& projection, const
 
 /////////////////////////////////////////////
 
-inline std::shared_ptr<IRenderBatch> Material::makeSharedRenderBatch() const
+inline std::shared_ptr<IRenderBatch> MaterialInstance::makeSharedRenderBatch() const
 {
-	return std::make_shared<RenderBatch<Material>>();
+	return std::make_shared<RenderBatch<MaterialInstance>>();
 }
 
-template<typename BatchMaterialType, typename ParentMaterialType>
-inline std::shared_ptr<IRenderBatch> BatchableMaterial<BatchMaterialType, ParentMaterialType>::makeSharedRenderBatch() const
-{
-	return std::make_shared<RenderBatch<BatchMaterialType>>();
-}
+//template<typename BatchMaterialType, typename ParentMaterialType>
+//inline std::shared_ptr<IRenderBatch> BatchableMaterial<BatchMaterialType, ParentMaterialType>::makeSharedRenderBatch() const
+//{
+//	return std::make_shared<RenderBatch<BatchMaterialType>>();
+//}
 
 
 //template<typename DrawableType, typename MaterialType>
@@ -170,7 +170,7 @@ inline std::shared_ptr<IRenderBatch> BatchableMaterial<BatchMaterialType, Parent
 //	std::map<const MaterialType*, std::vector<const DrawableType*>> m_container;
 //
 //public:
-//	void add(const IDrawable* drawable, const Material* material) override;
+//	void add(const IDrawable* drawable, const MaterialInstance* material) override;
 //	void clear() override;
 //	void render(const glm::mat4& projection, const glm::mat4& view) const override;
 //
@@ -195,7 +195,7 @@ inline std::shared_ptr<IRenderBatch> BatchableMaterial<BatchMaterialType, Parent
 //////////////////////////////////////////////
 //
 //template<typename DrawableType, typename MaterialType>
-//inline void RenderBatch<DrawableType, MaterialType>::add(const IDrawable * drawable, const Material * material)
+//inline void RenderBatch<DrawableType, MaterialType>::add(const IDrawable * drawable, const MaterialInstance * material)
 //{
 //	assert(drawable != nullptr && material != nullptr);
 //

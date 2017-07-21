@@ -13,9 +13,13 @@
 class Mesh;
 class Texture;
 class CubeTexture;
-class Sungine::Animation::AnimationStateMachine;
-class ShaderProgram;
+namespace Sungine {
+	namespace Animation {
+		class AnimationStateMachine;
+	}
+}
 class Material;
+class MaterialInstance;
 class SkeletalAnimation;
 class ResourceFolder;
 
@@ -33,8 +37,8 @@ private:
 	AssetPool<Texture> m_texturePool;
 	AssetPool<CubeTexture> m_cubeTexturePool;
 	AssetPool<Sungine::Animation::AnimationStateMachine> m_animationStateMachinePool;
-	AssetPool<ShaderProgram> m_shaderProgramPool;
-	AssetPool<Material> m_materialPool;
+	AssetPool<Material> m_shaderProgramPool;
+	AssetPool<MaterialInstance> m_materialPool;
 	AssetPool<SkeletalAnimation> m_skeletalAnimationPool;
 
 public:
@@ -93,7 +97,7 @@ public:
 		return static_cast<PoolMapping<T>*>(m_poolMapping[Object::getStaticClassId<T>()]);
 	}
 
-	void createAssetMetaFile(const FileHandler::CompletePath& assetPath, const std::string& metaContent)
+	static void createAssetMetaFile(const FileHandler::CompletePath& assetPath, const std::string& metaContent)
 	{
 		FileHandler::CompletePath assetMetaPath = assetPath;
 		assetMetaPath.replaceExtension("meta");
@@ -108,14 +112,26 @@ public:
 	}
 
 	template<typename T>
-	bool getDefaultAsset(const std::string& assetName, AssetHandle& outHandle)
+	bool getDefaultAsset(const std::string& assetName, AssetHandle<T>& outHandle)
 	{
 		return getPool<T>()->getDefaultAsset(assetName, outHandle);
 	}
 
 	template<typename T>
-	bool getAsset(const std::string& assetName, AssetHandle& outHandle)
+	const AssetHandle<T>& getDefaultAsset(const std::string& assetName)
+	{
+		return getPool<T>()->getDefaultAsset(assetName);
+	}
+
+	template<typename T>
+	bool getAsset(const AssetId& assetId, AssetHandle<T>& outHandle)
 	{
 		return getPool<T>()->getAsset(assetName, outHandle);
+	}
+
+	template<typename T>
+	const AssetHandle<T>& getAsset(const AssetId& assetId)
+	{
+		return getPool<T>()->getAsset(assetName);
 	}
 };

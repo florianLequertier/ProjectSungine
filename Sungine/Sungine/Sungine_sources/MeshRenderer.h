@@ -29,11 +29,11 @@ private:
 	ResourcePtr<Mesh> m_mesh;
 
 	std::vector<std::shared_ptr<SubMesh>> m_subMeshes; // Warning ! Deep copy needed !
-	std::vector<ResourcePtr<Material>> m_materials;
+	std::vector<ResourcePtr<MaterialInstance>> m_materials;
 
 public:
 	MeshRenderer();
-	MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<Material> material);
+	MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material);
 	MeshRenderer(const MeshRenderer& other);
 	virtual ~MeshRenderer();
 
@@ -44,11 +44,11 @@ public:
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat()) override;
 
 	void setMesh(ResourcePtr<Mesh> _mesh);
-	void addMaterial(ResourcePtr<Material> _material);
+	void addMaterial(ResourcePtr<MaterialInstance> _material);
 	void removeMaterial(int idx);
-	void setMaterial(ResourcePtr<Material> _material, int idx);
+	void setMaterial(ResourcePtr<MaterialInstance> _material, int idx);
 
-	const Material* getMaterial(int idx) const;
+	const MaterialInstance* getMaterial(int idx) const;
 	const Mesh* getMesh() const;
 
 	std::string getMaterialName(int idx) const;
@@ -64,7 +64,7 @@ public:
 	virtual void load(const Json::Value& rootComponent) override;
 
 	virtual const IDrawable& getDrawable(int drawableIndex) const override;
-	virtual const Material& getDrawableMaterial(int drawableIndex) const override;
+	virtual const MaterialInstance& getDrawableMaterial(int drawableIndex) const override;
 	virtual const int getDrawableCount() const override;
 	virtual Component* getAsComponent() override;
 

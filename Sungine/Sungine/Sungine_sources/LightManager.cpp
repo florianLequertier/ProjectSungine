@@ -1,7 +1,7 @@
 
 
 #include "LightManager.h"
-#include "Factories.h"
+#include "AssetManager.h"
 #include "EditorTools.h"
 #include "Renderer.h"
 
@@ -184,10 +184,10 @@ LightManager::LightManager()
 	, directionalShadowMapViewportFar(100.f)
 {
 	//////////////////// shadow pass shader ////////////////////////
-	shadowPassMaterial = std::make_shared<MaterialShadowPass>(*getProgramFactory().getDefault("shadowPass"));
+	shadowPassMaterial = std::make_shared<MaterialShadowPass>(AssetManager::instance().getDefaultAsset<MaterialInstance>("shadowPass"));
 
 	//////////////////// omnidirectional shadow pass shader ////////////////////////
-	shadowPassOmniMaterial = std::make_shared<MaterialShadowPassOmni>(*getProgramFactory().getDefault("shadowPassOmni"));
+	shadowPassOmniMaterial = std::make_shared<MaterialShadowPassOmni>(AssetManager::instance().getDefaultAsset("shadowPassOmni"));
 }
 
 void LightManager::setShadowMapCount(LightType lightType, unsigned int count)

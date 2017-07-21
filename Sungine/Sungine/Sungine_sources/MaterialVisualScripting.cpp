@@ -1,5 +1,5 @@
 #include "MaterialVisualScripting.h"
-#include "ShaderProgram.h"
+#include "Material.h"
 #include "Factories.h"
 
 namespace MVS {
@@ -474,7 +474,7 @@ const glm::vec2& Node::getPosition() const
 ///////////////////////////////////////////
 //// BEGIN : NodeManager
 
-NodeManager::NodeManager(ShaderProgram* programPtr)
+NodeManager::NodeManager(Material* programPtr)
 	: m_programPtr(programPtr)
 	, m_draggedNode(nullptr)
 	, m_isDraggingNode(false)
@@ -530,7 +530,7 @@ void NodeManager::compile()
 	}
 
 	// For Mesh Visualizer
-	m_meshVisualizer.setMaterial(std::make_shared<Material>(*m_programPtr));
+	m_meshVisualizer.setMaterial(std::make_shared<MaterialInstance>(*m_programPtr));
 }
 
 void NodeManager::internalOnBeforeCompilation(CompilationErrorCheck & errorCheck)

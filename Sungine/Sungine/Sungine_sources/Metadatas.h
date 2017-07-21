@@ -272,7 +272,7 @@ public:
 public:
 	/////////////// Registering
 	template<typename MemberClass>
-	static void registerProperty(MemberClass ObjectClass::* pointerToMember, const std::string& propertyName)
+	static void registerProperty(MemberClass ObjectClass::* pointerToMember , const std::string& propertyName)
 	{
 		getInstance().propertyDescriptors.push_back(new PropertyDescriptor<ObjectClass, MemberClass>(pointerToMember, propertyName));
 		getInstance().propertyDescriptorsMapping[memberName] = getInstance().propertyDescriptors.size() - 1;
@@ -482,8 +482,8 @@ public:
 #define DEFINE_PROPS( seq ) protected: BOOST_PP_SEQ_FOR_EACH(DEFINE_PROP,_, seq) private:
 
 //class, type, name, meta -> Object<class>::registerProperty<type>(&class::name, meta)
-#define REGISTER_PROP____(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, Name, Metas);
-#define REGISTER_PROP____BIS(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, Name);
+#define REGISTER_PROP____(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name, #Metas);
+#define REGISTER_PROP____BIS(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name);
 
 //class, prop01 -> REGISTER_PROP___(class, prop01[0], prop01[1], prop01[2])
 #define REGISTER_PROP___(r, Class, elem) REGISTER_PROP____(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem), BOOST_PP_TUPLE_ELEM(2, elem))

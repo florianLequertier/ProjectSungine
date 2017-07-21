@@ -8,6 +8,9 @@
 #include "Factories.h"
 #include "Skeleton.h"
 #include "BasicColliders.h"
+#include <assimp/Exporter.hpp>
+#include <assimp/scene.h>
+#include <assimp/mesh.h>
 
 //////////////////////////////////////////////////////
 //// BEGIN : Mesh
@@ -62,6 +65,114 @@ Mesh::Mesh(const FileHandler::CompletePath& _path, const std::string& meshName)
 	else {
 		std::cout << "Error parsing " << _path.toString() << " : " << importer->GetErrorString() << std::endl;
 	}
+}
+
+void Mesh::createNewAssetFile(const FileHandler::CompletePath& filePath)
+{
+	// Save the mesh datas as an obj file, and save the metas
+	//////////////////////
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	Assimp::Exporter exporter;
+	aiScene scene;
+	aiMesh** meshArray = new aiMesh*[1];
+
+	// setup the mesh
+	aiMesh* theMesh = meshArray[0];
+	// vertices
+	theMesh->mNumVertices = vertices.size();
+	theMesh->mVertices = new aiVector3D[vertices.size() / 3];
+	for (int i = 0, j = 0; i < vertices.size(); i+=3, j++)
+	{
+		theMesh->mVertices[j] = aiVector3D(vertices[i], vertices[i+1], vertices[i+2]);
+	}
+	// normals	
+	theMesh->mNormals = new aiVector3D[normals.size() / 3];
+	for (int i = 0, j = 0; i < normals.size(); i += 3, j++)
+	{
+		theMesh->mNormals[j] = aiVector3D(normals[i], normals[i + 1], normals[i + 2]);
+	}
+	// uv
+	theMesh->mTextureCoords[0] = new aiVector3D[uvs.size() / 2];
+	for (int i = 0, j = 0; i < normals.size(); i += 2, j++)
+	{
+		theMesh->mTextureCoords[0][j] = aiVector3D(uvs[i], uvs[i + 1], 0);
+	}
+
+	scene.mMeshes = meshArray;
+	exporter.Export(&scene, "obj", absolutePath.toString(), 0);
+
+	/////////////////////////////
+
+	saveMetas(filePath);
+}
+
+void Mesh::loadFromFile(const FileHandler::CompletePath& filePath)
+{
+	// Load metas
+	Asset::loadFromFile(filePath);
+
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	primitiveType = GL_TRIANGLES;
+	coordCountByVertex = 3;
+	vbo_usage = (USE_INDEX | USE_VERTICES | USE_UVS | USE_NORMALS | USE_TANGENTS);
+	vbo_index = 0;
+	vbo_vertices = 0;
+	vbo_uvs = 0;
+	vbo_normals = 0;
+	vbo_tangents = 0;
+	drawUsage = GL_STATIC_DRAW;
+
+	if (skeleton != nullptr)
+		delete skeleton;
+	skeleton = nullptr;
+	isSkeletalMesh = false;
+
+	subMeshCount = 1;
+	totalTriangleCount = 0;
+	triangleCount.push_back(0);
+	indexOffsets.push_back(0);
+
+	// Load mesh datas from file with assimp
+	bool Ret = false;
+	if (importer != nullptr)
+		delete importer;
+	importer = new Assimp::Importer();
+
+	const aiScene* pScene = importer->ReadFile(absolutePath.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+	if (pScene) {
+		Ret = initFromScene(pScene, absolutePath);
+	}
+	else {
+		std::cout << "Error parsing " << absolutePath.toString() << " : " << importer->GetErrorString() << std::endl;
+	}
+	//////////////////////
+
+	// Push datas to opengl
+	initGl();
+	//////////////////////
+}
+
+void Mesh::saveToFile(const FileHandler::CompletePath& filePath)
+{
+	// We don't override mesh file, only the metadatas
+	saveMetas(filePath);
+}
+
+void Mesh::saveMetas(const FileHandler::CompletePath& filePath)
+{
+	Asset::saveMetas(filePath);
+	// TODO : save more infos
+}
+
+void Mesh::loadMetas(const FileHandler::CompletePath& filePath)
+{
+	Asset::loadMetas(filePath);
+	// TODO : load more infos
 }
 
 void Mesh::init(const FileHandler::CompletePath & path, const ID& id)
