@@ -2,7 +2,7 @@
 
 #include "Editor.h"
 #include "EditorGUI.h"
-#include "ResourceTree.h"
+#include "AssetTree.h"
 
 ///////////////////////////////////////////////////////////
 //// BEGIN : DroppedFileDragAndDropOperation
@@ -26,11 +26,11 @@ void DroppedFileDragAndDropOperation::dropOperation(void* customData, int dropCo
 
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder)
 	{
-		ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
+		AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
 
-		if (!resourceFolder->hasFile(ResourceFileKey(m_resourcePath)))
+		if (!assetFolder->hasFile(m_resourcePath.getFilenameWithExtention()))
 		{
-			ResourceTree::addExternalResourceTo(m_resourcePath, *resourceFolder);
+			AssetTree::addExternalAssetTo(m_resourcePath, *assetFolder);
 			Editor::instance().removeDroppedFile(m_resourcePath);
 
 			m_resourcePath = FileHandler::CompletePath();
@@ -60,8 +60,8 @@ bool DroppedFileDragAndDropOperation::canDropInto(void* customData, int dropCont
 {
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder)
 	{
-		ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
-		return !resourceFolder->hasFile(ResourceFileKey(m_resourcePath));
+		AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
+		return !assetFolder->hasFile(m_resourcePath.getFilenameWithExtention());
 	}
 	else
 		return false;
@@ -71,18 +71,18 @@ bool DroppedFileDragAndDropOperation::canDropInto(void* customData, int dropCont
 ///////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////
-//// BEGIN : ResourceDragAndDropOperation
+//// BEGIN : AssetDragAndDropOperation
 
-ResourceDragAndDropOperation::ResourceDragAndDropOperation(const ResourceFile* resource, ResourceFolder* resourceFolder)
-	: DragAndDropOperation(EditorDragAndDropType::ResourceDragAndDrop, (EditorDropContext::DropIntoFileOrFolder | EditorDropContext::DropIntoResourceField))
-	, m_folderResourceBelongsTo(resourceFolder)
-	, m_resourceDragged(resource)
+AssetDragAndDropOperation::AssetDragAndDropOperation(const AssetFile* resource, AssetFolder* assetFolder)
+	: DragAndDropOperation(EditorDragAndDropType::AssetDragAndDrop, (EditorDropContext::DropIntoFileOrFolder | EditorDropContext::DropIntoResourceField))
+	, m_folderAssetBelongsTo(assetFolder)
+	, m_assetDragged(resource)
 { }
 
-void ResourceDragAndDropOperation::dragOperation()
+void AssetDragAndDropOperation::dragOperation()
 { }
 
-void ResourceDragAndDropOperation::dropOperation(void* customData, int dropContext)
+void AssetDragAndDropOperation::dropOperation(void* customData, int dropContext)
 {
 	if (!canDropInto(customData, dropContext))
 	{
@@ -92,20 +92,20 @@ void ResourceDragAndDropOperation::dropOperation(void* customData, int dropConte
 
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder)
 	{
-		ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
+		AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
 
-		if (!resourceFolder->hasFile(m_resourceDragged->getKey()))
+		if (!assetFolder->hasFile(m_assetDragged->getFilenameWithExtention()))
 		{
-			//const FileHandler::CompletePath newResourcePath(resourceFolder->getPath(), m_resourceDragged->getPath().getFilenameWithExtention());
+			//const FileHandler::CompletePath newResourcePath(assetFolder->getPath(), m_assetDragged->getPath().getFilenameWithExtention());
 			//On fait expres de copier ca c'est une nouvelle resource (copier collé)
-			ResourceTree::moveResourceTo(*m_resourceDragged, *m_folderResourceBelongsTo, *resourceFolder);
-			//resourceFolder->addFile(ResourceFile(newResourcePath));
-			//m_folderResourceBelongsTo->removeFile(m_resourceDragged->getName());
+			AssetTree::moveAssetTo(*m_assetDragged, *m_folderAssetBelongsTo, *assetFolder);
+			//assetFolder->addFile(AssetFile(newResourcePath));
+			//m_folderAssetBelongsTo->removeFile(m_assetDragged->getName());
 
-			//FileHandler::copyPastFile(m_resourceDragged->getPath(), newResourcePath.getPath()); //NOT_SAFE
+			//FileHandler::copyPastFile(m_assetDragged->getPath(), newResourcePath.getPath()); //NOT_SAFE
 
-			m_folderResourceBelongsTo = nullptr;
-			m_resourceDragged = nullptr;
+			m_folderAssetBelongsTo = nullptr;
+			m_assetDragged = nullptr;
 		}
 		else
 			cancelOperation();
@@ -113,64 +113,65 @@ void ResourceDragAndDropOperation::dropOperation(void* customData, int dropConte
 	else if (dropContext == EditorDropContext::DropIntoResourceField)
 	{
 		FileHandler::CompletePath* resourcePath = static_cast<FileHandler::CompletePath*>(customData);
-		*resourcePath = m_resourceDragged->getPath();
+		*resourcePath = m_assetDragged->getPath();
 
-		m_folderResourceBelongsTo = nullptr;
-		m_resourceDragged = nullptr;
+		m_folderAssetBelongsTo = nullptr;
+		m_assetDragged = nullptr;
 	}
 	else
 		cancelOperation();
 }
 
-void ResourceDragAndDropOperation::cancelOperation()
+void AssetDragAndDropOperation::cancelOperation()
 {
-	m_folderResourceBelongsTo = nullptr;
-	m_resourceDragged = nullptr;
+	m_folderAssetBelongsTo = nullptr;
+	m_assetDragged = nullptr;
 }
 
-void ResourceDragAndDropOperation::updateOperation()
+void AssetDragAndDropOperation::updateOperation()
 {
 	ImVec2 mousePos = ImGui::GetMousePos();
 	ImGui::SetNextWindowPos(mousePos);
 	ImGui::Begin("DragAndDropWidget", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoInputs);
-	ImGui::Text(m_resourceDragged->getName().c_str());
+	ImGui::Text(m_assetDragged->getDisplayName().c_str());
 	ImGui::End();
 }
 
-bool ResourceDragAndDropOperation::canDropInto(void* customData, int dropContext)
+bool AssetDragAndDropOperation::canDropInto(void* customData, int dropContext)
 {
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder)
 	{
-		ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
-		return !resourceFolder->hasFile(m_resourceDragged->getKey());
+		AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
+		bool isDefaultAsset = Project::isPathPointingInsideDefaultAssetFolder(m_assetDragged->getPath());
+		return !isDefaultAsset && !assetFolder->hasFile(m_assetDragged->getFilenameWithExtention());
 	}
 	else if(dropContext == EditorDropContext::DropIntoResourceField)
-		return (m_resourceDragged->getType() && *static_cast<ResourceType*>(customData)) != 0;
+		return (m_assetDragged->getType() && *static_cast<AssetType*>(customData)) != 0;
 }
 
-//// END : ResourceDragAndDropOperation
+//// END : AssetDragAndDropOperation
 ///////////////////////////////////////////////////////////
 
 
 
 ///////////////////////////////////////////////////////////
-//// BEGIN : ResourceFolderDragAndDropOperation
+//// BEGIN : AssetFolderDragAndDropOperation
 
-ResourceFolderDragAndDropOperation::ResourceFolderDragAndDropOperation(const ResourceFolder* folder, ResourceFolder* parentFolder, ResourceTree* resourceTree)
-	: DragAndDropOperation(EditorDragAndDropType::ResourceFolderDragAndDrop, EditorDropContext::DropIntoFileOrFolder)
-	, m_resourceTree(resourceTree)
+AssetFolderDragAndDropOperation::AssetFolderDragAndDropOperation(const AssetFolder* folder, AssetFolder* parentFolder, AssetTree* resourceTree)
+	: DragAndDropOperation(EditorDragAndDropType::AssetFolderDragAndDrop, EditorDropContext::DropIntoFileOrFolder)
+	, m_assetTree(resourceTree)
 	, m_parentFolder(parentFolder)
 	, m_folderDragged(folder)
 {
 
 }
 
-void ResourceFolderDragAndDropOperation::dragOperation()
+void AssetFolderDragAndDropOperation::dragOperation()
 {
 
 }
 
-void ResourceFolderDragAndDropOperation::dropOperation(void* customData, int dropContext)
+void AssetFolderDragAndDropOperation::dropOperation(void* customData, int dropContext)
 {
 	if (!canDropInto(customData, dropContext))
 	{
@@ -178,36 +179,36 @@ void ResourceFolderDragAndDropOperation::dropOperation(void* customData, int dro
 		return;
 	}
 
-	ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
+	AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
 
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder
-		&& !resourceFolder->hasSubFolder(m_folderDragged->getName()) && resourceFolder->getName() != m_folderDragged->getName())
+		&& !assetFolder->hasSubFolder(m_folderDragged->getName()) && assetFolder->getName() != m_folderDragged->getName())
 	{
 		if (m_parentFolder != nullptr)
-			ResourceTree::moveSubFolderTo(m_folderDragged->getName(), *m_parentFolder , *resourceFolder);
+			AssetTree::moveSubFolderTo(m_folderDragged->getName(), *m_parentFolder , *assetFolder);
 
 		//if (m_parentFolder != nullptr)
-		//	m_parentFolder->moveSubFolderToNewLocation(m_folderDragged->getName(), *resourceFolder);
+		//	m_parentFolder->moveSubFolderToNewLocation(m_folderDragged->getName(), *assetFolder);
 		//else
-		//	m_resourceTree->moveSubFolderToNewLocation(m_folderDragged->getName(), *resourceFolder);
+		//	m_assetTree->moveSubFolderToNewLocation(m_folderDragged->getName(), *assetFolder);
 		//%NOCOMMIT% : TODO : transvaser les fichiers et sous dossier dans le dossier cible
 
 		m_parentFolder = nullptr;
 		m_folderDragged = nullptr;
-		m_resourceTree = nullptr;
+		m_assetTree = nullptr;
 	}
 	else
 		cancelOperation();
 }
 
-void ResourceFolderDragAndDropOperation::cancelOperation()
+void AssetFolderDragAndDropOperation::cancelOperation()
 {
 	m_parentFolder = nullptr;
 	m_folderDragged = nullptr;
-	m_resourceTree = nullptr;
+	m_assetTree = nullptr;
 }
 
-void ResourceFolderDragAndDropOperation::updateOperation()
+void AssetFolderDragAndDropOperation::updateOperation()
 {
 	ImVec2 mousePos = ImGui::GetMousePos();
 	ImGui::SetNextWindowPos(mousePos);
@@ -216,17 +217,17 @@ void ResourceFolderDragAndDropOperation::updateOperation()
 	ImGui::End();
 }
 
-bool ResourceFolderDragAndDropOperation::canDropInto(void* customData, int dropContext)
+bool AssetFolderDragAndDropOperation::canDropInto(void* customData, int dropContext)
 {
 	if (dropContext == EditorDropContext::DropIntoFileOrFolder)
 	{
-		ResourceFolder* resourceFolder = static_cast<ResourceFolder*>(customData);
-		return !resourceFolder->hasSubFolder(m_folderDragged->getName()) && (resourceFolder->getName() != m_folderDragged->getName());
+		AssetFolder* assetFolder = static_cast<AssetFolder*>(customData);
+		return !assetFolder->hasSubFolder(m_folderDragged->getName()) && (assetFolder->getName() != m_folderDragged->getName());
 	}
 }
 
 
-//// END : ResourceFolderDragAndDropOperation
+//// END : AssetFolderDragAndDropOperation
 ///////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////

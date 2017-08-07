@@ -139,6 +139,8 @@ void Project::open(const FileHandler::Path & projectAbsolutePath)
 	m_projectPath = projectAbsolutePath;
 	m_assetFolderPath = FileHandler::Path("assets/");
 	assert(FileHandler::directoryExists(m_assetFolderPath));
+	m_defaultAssetFolderPath = FileHandler::Path("engineResources/");
+	assert(FileHandler::directoryExists(m_defaultAssetFolderPath));
 	m_shaderFolderPath = FileHandler::Path("engineResources/shaders/");
 	assert(FileHandler::directoryExists(m_shaderFolderPath));
 	m_scenesFolderPath = FileHandler::Path("scenes/");
@@ -168,6 +170,8 @@ void Project::open()
 
 	m_assetFolderPath = FileHandler::Path("assets/");
 	assert(FileHandler::directoryExists(m_assetFolderPath));
+	m_defaultAssetFolderPath = FileHandler::Path("engineResources/");
+	assert(FileHandler::directoryExists(m_defaultAssetFolderPath));
 	m_shaderFolderPath = FileHandler::Path("engineResources/shaders/");
 	assert(FileHandler::directoryExists(m_shaderFolderPath));
 	m_scenesFolderPath = FileHandler::Path("scenes/");
@@ -772,6 +776,11 @@ const FileHandler::Path& Project::getAssetsFolderPath()
 	return m_assetFolderPath;
 }
 
+const FileHandler::Path& Project::getDefaultAssetsFolderPath()
+{
+	return m_defaultAssetFolderPath;
+}
+
 const FileHandler::Path& Project::getShaderFolderPath()
 {
 	return m_shaderFolderPath;
@@ -806,6 +815,17 @@ bool Project::isPathPointingInsideProjectFolder(const FileHandler::CompletePath&
 {
 	return false; // completePath.toString().find(getPath().toString()) != std::string::npos;
 }
+
+bool Project::isPathPointingInsideDefaultAssetFolder(const FileHandler::Path& path)
+{
+	return path.toString().find(m_defaultAssetFolderPath.toString()) != std::string::npos;
+}
+
+bool Project::isPathPointingInsideDefaultAssetFolder(const FileHandler::CompletePath& completePath)
+{
+	return completePath.toString().find(m_defaultAssetFolderPath.toString()) != std::string::npos;
+}
+
 //
 //void Project::drawUI()
 //{

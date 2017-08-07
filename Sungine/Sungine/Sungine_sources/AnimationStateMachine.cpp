@@ -9,6 +9,8 @@ using namespace Animation;
 
 namespace Sungine {	namespace Animation {
 
+std::string AnimationStateMachine::s_extention = "asm";
+
 AnimationStateMachine::AnimationStateMachine(const AnimationStateMachine& other)
 	: m_entryNodeIdx(other.m_entryNodeIdx)
 	, m_currentNodeIdx(other.m_currentNodeIdx)

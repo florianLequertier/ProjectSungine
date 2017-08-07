@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include "FileHandler.h"
 #include "MaterialAggregation.h"
+#include "ICloneable.h"
 
 #include "Asset.h"
 #include "AssetManager.h"
@@ -91,8 +92,12 @@ namespace Rendering
 }
 
 
-struct Material : public Asset
+struct Material : public Asset, public ICloneable<Material>
 {
+	CLONABLE_IMPL(Material, Material)
+
+public:
+	static std::string s_extention;
 
 private:
 	GLuint m_programId;
@@ -141,9 +146,9 @@ public:
 	//////////////////////////////////////////////////////////
 	void createNewAssetFile(const FileHandler::CompletePath& filePath) override;
 	void loadFromFile(const FileHandler::CompletePath& filePath) override;
-	void saveToFile(const FileHandler::CompletePath& filePath) override;
-	void saveMetas(const FileHandler::CompletePath& filePath) override;
-	void loadMetas(const FileHandler::CompletePath& filePath) override;
+	void saveToFile() override;
+	void saveMetas() override;
+	void loadMetas() override;
 	void drawInInspector() override;
 	bool drawRightClicContextMenu(std::string& popupToOpen) override;
 	//////////////////////////////////////////////////////////

@@ -10,22 +10,26 @@
 
 class Billboard : public Component, public IRenderableComponent, public IBatchableWith<MaterialBillboard>
 {
-	OBJECT_CLASS(Billboard,
-	ObjectDescriptor<Billboard>::registerParentClass<Component>();
-	ObjectDescriptor<Billboard>::registerProperty<glm::vec3>(&Billboard::m_translation);
-	ObjectDescriptor<Billboard>::registerProperty<glm::vec2>(&Billboard::m_scale);
-	ObjectDescriptor<Billboard>::registerProperty<glm::vec4>(&Billboard::m_color)
-	)
-
 	COMPONENT_IMPLEMENTATION_HEADER(Billboard)
 
+	CLASS((Billboard, Component),
+		((PRIVATE)
+			(glm::vec3, m_translation)
+			(glm::vec2, m_scale)
+			(glm::vec4, m_color)
+			(AssetHandle<Mesh>, m_quadMesh)
+			(AssetHandle<MaterialInstance>, m_billboardMaterial)
+			(AssetHandle<Texture>, m_texture)
+		)
+	)
+
 private:
-	glm::vec3 m_translation;
-	glm::vec2 m_scale;
-	ResourcePtr<Mesh> m_quadMesh;
-	ResourcePtr<MaterialInstance> m_billboardMaterial;
-	ResourcePtr<Texture> m_texture;
-	glm::vec4 m_color;
+	//glm::vec3 m_translation;
+	//glm::vec2 m_scale;
+	//glm::vec4 m_color;
+	//ResourcePtr<Mesh> m_quadMesh;
+	//ResourcePtr<MaterialInstance> m_billboardMaterial;
+	//ResourcePtr<Texture> m_texture;
 
 public:
 	Billboard();

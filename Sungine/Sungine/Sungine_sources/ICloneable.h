@@ -20,6 +20,7 @@ public:
 };
 
 #define CLONABLE_IMPL(BaseType, Type)\
+public:\
 	virtual BaseType* clone() const override\
 	{\
 		auto cloned = new Type();\
@@ -29,7 +30,8 @@ public:
 	{\
 		auto cloned = std::make_shared<Type>();\
 		return cloned;\
-	}
+	}\
+private:
 
 template<typename T>
 class ICloneableWithName

@@ -25,9 +25,7 @@ class Behavior : public Component
 {
 	COMPONENT_IMPLEMENTATION_HEADER(Behavior)
 
-	OBJECT_CLASS(Behavior,
-		ObjectDescriptor<Behavior>::registerParentClass<Component>()
-	)
+	CLASS((Behavior, Component))
 
 private:
 	friend class BehaviorManager;

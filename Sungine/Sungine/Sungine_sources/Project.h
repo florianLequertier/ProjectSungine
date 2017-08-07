@@ -53,6 +53,7 @@ private:
 	//meta : 
 	static FileHandler::Path m_projectPath;
 	static FileHandler::Path m_assetFolderPath;
+	static FileHandler::Path m_defaultAssetFolderPath;
 	static FileHandler::Path m_shaderFolderPath;
 	static FileHandler::Path m_scenesFolderPath;
 	static FileHandler::Path m_projectInfosFolderPath;
@@ -126,6 +127,7 @@ public:
 	static void setPath(const FileHandler::Path& path);
 	static const FileHandler::Path& getAbsolutePath();
 	static const FileHandler::Path& getAssetsFolderPath();
+	static const FileHandler::Path& getDefaultAssetsFolderPath();
 	static const FileHandler::Path& getShaderFolderPath();
 	static const FileHandler::Path& getScenesFolderPath();
 	static const FileHandler::Path& getEngineResourcesFolderPath();
@@ -135,6 +137,8 @@ public:
 
 	static bool isPathPointingInsideProjectFolder(const FileHandler::Path& path);
 	static bool isPathPointingInsideProjectFolder(const FileHandler::CompletePath& completePath);
+	static bool isPathPointingInsideDefaultAssetFolder(const FileHandler::Path& path);
+	static bool isPathPointingInsideDefaultAssetFolder(const FileHandler::CompletePath& completePath);
 
 private :
 	GLFWwindow* Project::initGLFW(int width, int height);

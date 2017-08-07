@@ -24,8 +24,8 @@ class Editor;
 
 enum EditorDragAndDropType
 {
-	ResourceDragAndDrop = 1<<0,
-	ResourceFolderDragAndDrop = 1<<1,
+	AssetDragAndDrop = 1<<0,
+	AssetFolderDragAndDrop = 1<<1,
 	DroppedFileDragAndDrop = 1<<2,
 	EditorFrameDragAndDrop = 1<<3
 };
@@ -54,13 +54,13 @@ public:
 	virtual bool canDropInto(void* customData, int dropContext) override;
 };
 
-class ResourceDragAndDropOperation : public DragAndDropOperation
+class AssetDragAndDropOperation : public DragAndDropOperation
 {
 private:
-	ResourceFolder* m_folderResourceBelongsTo;
-	const ResourceFile* m_resourceDragged;
+	AssetFolder* m_folderAssetBelongsTo;
+	const AssetFile* m_assetDragged;
 public:
-	ResourceDragAndDropOperation(const ResourceFile* resource, ResourceFolder* resourceFolder);
+	AssetDragAndDropOperation(const AssetFile* asset, AssetFolder* assetFolder);
 	virtual void dragOperation() override;
 	virtual void dropOperation(void* customData, int dropContext) override;
 	virtual void cancelOperation() override;
@@ -68,14 +68,14 @@ public:
 	virtual bool canDropInto(void* customData, int dropContext) override;
 };
 
-class ResourceFolderDragAndDropOperation : public DragAndDropOperation
+class AssetFolderDragAndDropOperation : public DragAndDropOperation
 {
 private:
-	ResourceTree* m_resourceTree;
-	ResourceFolder* m_parentFolder;
-	const ResourceFolder* m_folderDragged;
+	AssetTree* m_assetTree;
+	AssetFolder* m_parentFolder;
+	const AssetFolder* m_folderDragged;
 public:
-	ResourceFolderDragAndDropOperation(const ResourceFolder* folder, ResourceFolder* parentFolder, ResourceTree* resourceTree);
+	AssetFolderDragAndDropOperation(const AssetFolder* folder, AssetFolder* parentFolder, AssetTree* assetTree);
 	virtual void dragOperation() override;
 	virtual void dropOperation(void* customData, int dropContext) override;
 	virtual void cancelOperation() override;

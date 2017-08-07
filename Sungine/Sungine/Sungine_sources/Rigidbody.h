@@ -14,32 +14,31 @@ class Rigidbody : public Component
 
 	CLASS((Rigidbody, Component),
 	((PRIVATE)
-		(glm::vec3	, m_translation	)
-		(glm::quat	, m_rotation	)
-		(glm::vec3	, m_scale		)
+		(glm::vec3	, m_translation		)
+		(glm::quat	, m_rotation		)
+		(glm::vec3	, m_scale			)
 					
-		(btScalar	, m_mass		)
-		(btVector3	, m_inertia		)
+		(btScalar	, m_mass			,"", onMassChanged)
+		(btVector3	, m_inertia			,"", onPhysicPropChanged)
 					 
-		(bool		, m_isTrigger	)
+		(bool		, m_isTrigger		,"", onPhysicPropChanged)
 
-		(bool		, m_useGravit	)
+		(bool		, m_useGravity		,"", onPhysicPropChanged)
+
+		(bool		, m_frozenAxis		,"", onPhysicPropChanged) // ???
+		(bool		, m_frozenAngles	,"", onPhysicPropChanged) // ???
 	)
 	)
 
 private:
 
-	// TODO ->parameter
-	bool m_frozenAxis[3];
-	bool m_frozenAngles[3];
+	btRigidBody* m_bulletRigidbody; // nosave, hide
 
-	btRigidBody* m_bulletRigidbody;
+	MotionState* m_motionState; // nosave, hide
+	btCompoundShape* m_shape; // nosave, hide
+	std::vector<Collider*> m_colliders; // nosave, hide
 
-	MotionState* m_motionState;
-	btCompoundShape* m_shape;
-	std::vector<Collider*> m_colliders;
-
-	btDiscreteDynamicsWorld* m_ptrToPhysicWorld;
+	btDiscreteDynamicsWorld* m_ptrToPhysicWorld; // nosave, hide
 	
 public:
 	Rigidbody();
@@ -71,6 +70,9 @@ public:
      */
     void init(btDiscreteDynamicsWorld* physicSimulation);
 
+	void onMassChanged();
+	void onPhysicPropChanged();
+
     float getMass() const;
     void setMass(float mass);
     btVector3 getInertia() const;
@@ -88,9 +90,8 @@ public:
 
 	void setIsTrigger(bool state);
 
-
-	virtual void drawInInspector(Scene& scene) override;
-	virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
+	//virtual void drawInInspector(Scene& scene) override;
+	//virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat());
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat());
@@ -99,8 +100,8 @@ public:
 	virtual void save(Json::Value& componentRoot) const override;
 	virtual void load(const Json::Value& componentRoot) override;
 
-	virtual void onAfterComponentAddedToScene(Scene& scene) override;
-	virtual void onAfterComponentAddedToEntity(Entity& entity) override;
+	virtual void onAfterAddedToScene(Scene& scene) override;
+	virtual void onAfterAddedToEntity(Entity& entity) override;
 };
 
 REGISTER_CLASS(Rigidbody)

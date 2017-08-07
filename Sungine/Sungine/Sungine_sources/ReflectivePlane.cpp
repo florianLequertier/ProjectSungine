@@ -19,7 +19,7 @@ ReflectivePlane::ReflectivePlane()
 {
 }
 
-ReflectivePlane::ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material)
+ReflectivePlane::ReflectivePlane(AssetHandle<Mesh> mesh, AssetHandle<MaterialInstance> material)
 	: Component(REFLECTIVE_PLANE)
 	, m_mesh(mesh)
 	, m_material(material)
@@ -40,68 +40,68 @@ ReflectivePlane::~ReflectivePlane()
 	m_mesh.reset();
 	m_material.reset();
 }
-
-void ReflectivePlane::drawInInspector(Scene& scene)
-{
-	ResourcePtr<MaterialInstance> materialQuery;
-	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
-	{
-		if (materialQuery.isValid())
-		{
-			setMaterial(materialQuery);
-		}
-	}
-
-	ResourcePtr<Mesh> meshQuery;
-	if (EditorGUI::ResourceField<Mesh>("meshName", meshQuery))
-	{
-		if (meshQuery.isValid())
-		{
-			setMesh(meshQuery);
-		}
-	}
-
-	if (ImGui::RadioButton("castShadows", m_castShadow))
-	{
-		m_castShadow = !m_castShadow;
-	}
-}
-
-void ReflectivePlane::drawInInspector(Scene& scene, const std::vector<Component*>& components)
-{
-	ResourcePtr<MaterialInstance> materialQuery;
-	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
-	if (materialQuery.isValid())
-	{
-		for (auto component : components)
-		{
-			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
-			castedComponent->setMaterial(materialQuery);
-		}
-	}
-
-	ResourcePtr<Mesh> meshQuery;
-	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
-	if (meshQuery.isValid())
-	{
-		for (auto component : components)
-		{
-			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
-			castedComponent->setMesh(meshQuery);
-		}
-	}
-
-	if (ImGui::RadioButton("castShadows", m_castShadow))
-	{
-		m_castShadow = !m_castShadow;
-
-		for (auto component : components)
-		{
-			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
-			castedComponent->m_castShadow = m_castShadow;
-		}
-	}
-}
+//
+//void ReflectivePlane::drawInInspector(Scene& scene)
+//{
+//	AssetHandle<MaterialInstance> materialQuery;
+//	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
+//	{
+//		if (materialQuery.isValid())
+//		{
+//			setMaterial(materialQuery);
+//		}
+//	}
+//
+//	AssetHandle<Mesh> meshQuery;
+//	if (EditorGUI::ResourceField<Mesh>("meshName", meshQuery))
+//	{
+//		if (meshQuery.isValid())
+//		{
+//			setMesh(meshQuery);
+//		}
+//	}
+//
+//	if (ImGui::RadioButton("castShadows", m_castShadow))
+//	{
+//		m_castShadow = !m_castShadow;
+//	}
+//}
+//
+//void ReflectivePlane::drawInInspector(Scene& scene, const std::vector<Component*>& components)
+//{
+//	AssetHandle<MaterialInstance> materialQuery;
+//	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
+//	if (materialQuery.isValid())
+//	{
+//		for (auto component : components)
+//		{
+//			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
+//			castedComponent->setMaterial(materialQuery);
+//		}
+//	}
+//
+//	AssetHandle<Mesh> meshQuery;
+//	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
+//	if (meshQuery.isValid())
+//	{
+//		for (auto component : components)
+//		{
+//			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
+//			castedComponent->setMesh(meshQuery);
+//		}
+//	}
+//
+//	if (ImGui::RadioButton("castShadows", m_castShadow))
+//	{
+//		m_castShadow = !m_castShadow;
+//
+//		for (auto component : components)
+//		{
+//			ReflectivePlane* castedComponent = static_cast<ReflectivePlane*>(component);
+//			castedComponent->m_castShadow = m_castShadow;
+//		}
+//	}
+//}
 
 void ReflectivePlane::applyTransform(const glm::vec3 & translation, const glm::vec3 & scale, const glm::quat & rotation)
 {
@@ -116,12 +116,12 @@ void ReflectivePlane::applyTransformFromPhysicSimulation(const glm::vec3 & trans
 	setAABB(AABB(m_mesh->getLocalAABB().center + translation, m_mesh->getLocalAABB().halfSizes * curentScale));
 }
 
-void ReflectivePlane::setMesh(ResourcePtr<Mesh> _mesh)
+void ReflectivePlane::setMesh(const AssetHandle<Mesh>& _mesh)
 {
 	m_mesh = _mesh;
 }
 
-void ReflectivePlane::setMaterial(ResourcePtr<MaterialInstance> _material)
+void ReflectivePlane::setMaterial(const AssetHandle<MaterialInstance>& _material)
 {
 	m_material = _material;
 }

@@ -1,5 +1,8 @@
 #include "AssetManager.h"
-#include "ResourceTree.h"
+#include "AssetTree.h"
+#include "Project.h"
+
+#include "EngineMaterials.h"
 
 //#include "Mesh.h"
 //#include "Texture.h"
@@ -56,10 +59,41 @@ AssetManager::AssetManager()
 	//SkeletalAnimation
 	m_skeletalAnimationPool.resize(ASSET_ELEMENT_COUNT);
 	m_poolMapping[Object::getStaticClassId<SkeletalAnimation>()] = &m_skeletalAnimationPool;
+
+	// Defaults:
+	// Materials :
+	// PointLight :
+
+	/*Material matPointLight(FileHandler::CompletePath(Project::getShaderFolderPath().toString() + "pointLight/pointLight.glProg"), Rendering::MaterialType::INTERNAL);
+	AssetManager::instance().addDefaultAsset<Material>(matPointLight, "materialPointLight");
+	MaterialPointLight matInstancePointLight(AssetManager::instance().getDefaultAsset<Material>("materialPointLight"));
+	AssetManager::instance().addDefaultAsset<MaterialInstance>(matInstancePointLight, "materialInstancePointLight");*/
+
+}
+
+Asset* AssetManager::loadSingleAsset(const FileHandler::CompletePath& assetPath)
+{
+	assert(Project::isPathPointingInsideProjectFolder(assetPath));
+
+	return loadAsset(assetPath.getPath(), assetPath.getFilenameWithExtention());
+}
+
+void AssetManager::loadAssets(AssetTree* tree = nullptr)
+{
+	const FileHandler::Path& assetsPath = Project::getAssetsFolderPath();
+
+	loadAssetsRec(assetsPath, &tree->getAssetFolder());
+}
+
+void AssetManager::loadDefaultAssets(AssetTree* tree = nullptr)
+{
+	const FileHandler::Path& defaultAssetsPath = Project::getDefaultAssetsFolderPath();
+
+	loadAssetsRec(defaultAssetsPath, &tree->getDefaultAssetFolder());
 }
 
 // Recurssion called by loadAssets()
-void AssetManager::loadAssetsRec(ResourceFolder& currentFolder, const FileHandler::Path& folderPath)
+void AssetManager::loadAssetsRec(const FileHandler::Path& folderPath, AssetFolder* currentFolder)
 {
 	std::vector<std::string> dirNames;
 	FileHandler::getAllDirNames(folderPath, dirNames);
@@ -67,31 +101,42 @@ void AssetManager::loadAssetsRec(ResourceFolder& currentFolder, const FileHandle
 	for (auto& dirName : dirNames)
 	{
 		int subFolderIdx = 0;
-		if (currentFolder.addSubFolder(dirName, &subFolderIdx))
-		{
-			loadAssetsRec(*currentFolder.getSubFolder(subFolderIdx), FileHandler::Path(folderPath, dirName));
-		}
+		if (currentFolder != nullptr)
+			currentFolder->addSubFolder(dirName, &subFolderIdx);
+		loadAssetsRec(FileHandler::Path(folderPath, dirName), currentFolder->getSubFolder(subFolderIdx));
 	}
 
 	std::vector<std::string> fileNames;
 	FileHandler::getAllFileNames(folderPath, fileNames);
-	std::string outExtention;
+	Asset* newAsset = nullptr;
 
 	for (auto& fileNameAndExtention : fileNames)
 	{
-		//We only add files that engine understand
-		FileHandler::getExtentionFromExtendedFilename(fileNameAndExtention, outExtention);
-		FileHandler::FileType fileType = FileHandler::getFileTypeFromExtention(outExtention);
-		if (FileHandler::getFileTypeFromExtention(outExtention) != FileHandler::FileType::NONE)
+		newAsset = loadAsset(folderPath, fileNameAndExtention);
+		if (newAsset != nullptr)
 		{
-			currentFolder.addFile(fileNameAndExtention);
-
-			FileHandler::CompletePath assetPath(folderPath, fileNameAndExtention);
-			auto foundClassId = m_fileTypeToObjectClassId.find(fileType);
-			if (foundClassId != m_fileTypeToObjectClassId.end())
-			{
-				m_poolMapping[foundClassId->second]->loadAsset(assetPath);
-			}
+			if(currentFolder != nullptr)
+				currentFolder->addFile(fileNameAndExtention, newAsset->getAssetId());
 		}
 	}
+}
+
+Asset* AssetManager::loadAsset(const FileHandler::Path& folderPath, const std::string& assetFilenameAndExtention)
+{
+	std::string outExtention;
+	//We only add files that engine understand
+	FileHandler::getExtentionFromExtendedFilename(assetFilenameAndExtention, outExtention);
+	FileHandler::FileType fileType = FileHandler::getFileTypeFromExtention(outExtention);
+	if (FileHandler::getFileTypeFromExtention(outExtention) != FileHandler::FileType::NONE)
+	{
+		FileHandler::CompletePath assetPath(folderPath, assetFilenameAndExtention);
+		int foundClassId = getClassIdFromFileType(fileType);
+		if (foundClassId != -1)
+		{
+			return m_poolMapping[foundClassId]->loadAsset(assetPath);
+		}
+
+		return nullptr;
+	}
+	return nullptr;
 }

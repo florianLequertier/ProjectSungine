@@ -788,6 +788,12 @@ void deleteFile(const CompletePath& completePath)
 		std::remove(completePath.c_str());
 }
 
+void moveFile(const CompletePath &from, const Path &to)
+{
+	copyPastFile(from, to);
+	deleteFile(from);
+}
+
 void renameFile(const CompletePath &filePath, const std::string& newFileName)
 {
 	assert(fileExists(filePath));

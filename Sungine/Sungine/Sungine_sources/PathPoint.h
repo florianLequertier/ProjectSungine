@@ -10,15 +10,15 @@ class PathPoint : public Component
 	COMPONENT_IMPLEMENTATION_HEADER(PathPoint)
 
 	CLASS((PathPoint, Component),
-	((PRIVATE)
-		(int	, m_pathId		)
-		(int	, m_pointIdx	)
-	)
+		((PRIVATE)
+			(int	, m_pathId		) //the path this point belong to
+			(int	, m_pointIdx	) //the index in the current path
+		)
 	)
 
 private:
-	int m_pathId; //the path this point belong to
-	int m_pointIdx; //the index in the current path
+	//int m_pathId; //the path this point belong to
+	//int m_pointIdx; //the index in the current path
 
 public:
 	PathPoint();

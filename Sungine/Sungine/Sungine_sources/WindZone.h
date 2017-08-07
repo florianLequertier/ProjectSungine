@@ -19,18 +19,18 @@ namespace Physic {
 		COMPONENT_IMPLEMENTATION_HEADER(WindZone)
 
 		CLASS((WindZone, Component),
-		((PRIVATE)
-			(Math::CSpline<float>	, m_cspline			) // pas de display dans l'ui meme si ça serai cool
-			(glm::vec3				, m_position		)
-			(glm::vec3				, m_direction		)
-			(float					, m_amplitude		)
-			(float					, m_randomFactor	)
-			(float					, m_frequency		)
-			(float					, m_offset			)
-			(EmissionType			, m_emissionType	)
-			(bool					, m_isAttenuated	)
-			(float					, m_radius			)
-		)
+			((PRIVATE)
+				(Math::CSpline<float>	, m_cspline			, "hide"			) // pas de display dans l'ui meme si ça serai cool
+				(glm::vec3				, m_position		, "hide"			)
+				(glm::vec3				, m_direction							)
+				(float					, m_amplitude		, "", updateSpline	)
+				(float					, m_randomFactor	, "", updateSpline	)
+				(float					, m_frequency		, "", updateSpline	)
+				(float					, m_offset			, "", updateSpline	)
+				(EmissionType			, m_emissionType	, "", updateSpline	)
+				(bool					, m_isAttenuated	, "", updateSpline	)
+				(float					, m_radius								)
+			)
 		)
 
 	private:
@@ -61,13 +61,13 @@ namespace Physic {
 
 		virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat()) override;
 		
-		virtual void drawInInspector(Scene & scene) override;
-		virtual void drawInInspector(Scene & scene, const std::vector<Component*>& components) override;
+		//virtual void drawInInspector(Scene & scene) override;
+		//virtual void drawInInspector(Scene & scene, const std::vector<Component*>& components) override;
 
 		virtual void save(Json::Value& componentRoot) const override;
 		virtual void load(const Json::Value& componentRoot) override;
 	};
 }
 
-REGISTER_CLASS(WindZone)
+REGISTER_CLASS(Physic::WindZone)
 

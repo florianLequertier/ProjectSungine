@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
-#include "Materials.h"
+#include "MaterialInstance.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -18,35 +18,35 @@ class MeshRenderer : public Component, public IRenderableComponent
 	COMPONENT_IMPLEMENTATION_HEADER(MeshRenderer)
 
 	CLASS((MeshRenderer, Component),
+		((PRIVATE)
+			(AssetHandle<Mesh>, m_mesh, "", updateLocalMeshDatas)
+			(std::vector<AssetHandle<MaterialInstance>>, m_materials)
+		)
 	)
 
 private:
 
-	//%NOCOMMIT%
-	//Mesh* mesh;
-	//std::vector<Material3DObject*> material;
-
-	ResourcePtr<Mesh> m_mesh;
+	//AssetHandle<Mesh> m_mesh;
+	//std::vector<AssetHandle<MaterialInstance>> m_materials;
 
 	std::vector<std::shared_ptr<SubMesh>> m_subMeshes; // Warning ! Deep copy needed !
-	std::vector<ResourcePtr<MaterialInstance>> m_materials;
 
 public:
 	MeshRenderer();
-	MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material);
+	MeshRenderer(AssetHandle<Mesh> mesh, AssetHandle<MaterialInstance> material);
 	MeshRenderer(const MeshRenderer& other);
 	virtual ~MeshRenderer();
 
-	virtual void drawInInspector(Scene& scene) override;
-	virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
+	//virtual void drawInInspector(Scene& scene) override;
+	//virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat()) override;
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat()) override;
 
-	void setMesh(ResourcePtr<Mesh> _mesh);
-	void addMaterial(ResourcePtr<MaterialInstance> _material);
+	void setMesh(const AssetHandle<Mesh>& _mesh);
+	void addMaterial(const AssetHandle<MaterialInstance>& _material);
 	void removeMaterial(int idx);
-	void setMaterial(ResourcePtr<MaterialInstance> _material, int idx);
+	void setMaterial(const AssetHandle<MaterialInstance>& _material, int idx);
 
 	const MaterialInstance* getMaterial(int idx) const;
 	const Mesh* getMesh() const;
@@ -68,9 +68,9 @@ public:
 	virtual const int getDrawableCount() const override;
 	virtual Component* getAsComponent() override;
 
-	virtual void onAfterComponentAddedToScene(Scene& scene) override;
-	virtual void onBeforeComponentErasedFromScene(Scene& scene) override;
-	virtual void onAfterComponentAddedToEntity(Entity& entity) override;
+	virtual void onAfterAddedToScene(Scene& scene) override;
+	virtual void onBeforeRemovedFromScene(Scene& scene) override;
+	virtual void onAfterAddedToEntity(Entity& entity) override;
 };
 
 REGISTER_CLASS(MeshRenderer)

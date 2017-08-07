@@ -7,6 +7,9 @@
 ////////////////////////////////////////////////////
 /////BEGIN : MaterialInstance
 
+std::string MaterialInstance::s_extention = ".mat";
+
+
 MaterialInstance::MaterialInstance()
 	: Asset(Object::getStaticClassId<MaterialInstance>())
 	, m_glProgramId(0)
@@ -338,14 +341,82 @@ void MaterialInstance::init(const AssetHandle<Material>& baseMaterial)
 	m_perInstanceAggregations = m_baseMaterial->getPerInstanceAggregation();
 
 	// Add pointer reference
-	m_baseMaterial->addMaterialRef(this);
+	m_baseMaterial->addMaterialRef(AssetManager::instance().getHandle(this));
 	//getProgramFactory().get(m_glProgramName)->addMaterialRef(this);
 	//setExternalParameters(shaderProgram.getExternalParameters());
 }
 
-void MaterialInstance::OnAfterObjectLoaded()
+void MaterialInstance::createNewAssetFile(const FileHandler::CompletePath& filePath)
 {
-	init(m_baseMaterial);
+	Asset::createNewAssetFile(filePath);
+}
+
+void MaterialInstance::loadFromFile(const FileHandler::CompletePath& filePath)
+{
+	Asset::loadFromFile(filePath);
+
+	std::ifstream stream;
+	if (!Utils::OpenFileStreamRead(m_assetPath, stream))
+	{
+		std::cout << "error, can't load material instance at path : " << filePath.toString() << std::endl;
+		return;
+	}
+
+	Json::Value root;
+	stream >> root;
+
+	// Ref to base material
+	m_baseMaterial.load(root["baseMaterial"]);
+	if (m_baseMaterial.isValid())
+	{
+		init(m_baseMaterial);
+
+		// Restaure internal parameters value
+		int parameterIdx = 0;
+		for (auto shaderParameter : m_internalParameters)
+		{
+			shaderParameter->load(root["internalParameters"][parameterIdx]);
+			parameterIdx++;
+		}
+	}
+}
+
+void MaterialInstance::saveToFile()
+{
+	Asset::saveToFile();
+
+	std::ofstream stream;
+	if (Utils::OpenFileStreamWrite(m_assetPath, stream))
+	{
+		Json::Value root;
+
+		m_baseMaterial.save(root["baseMaterial"]);
+
+		// Save internal parameters value
+		int parameterIdx = 0;
+		for (auto shaderParameter : m_internalParameters)
+		{
+			shaderParameter->save(root["internalParameters"][parameterIdx]);
+			parameterIdx++;
+		}
+
+		stream << root;
+	}
+}
+
+void MaterialInstance::saveMetas()
+{
+	Asset::saveMetas();
+}
+
+void MaterialInstance::loadMetas()
+{
+	Asset::loadMetas();
+}
+
+void MaterialInstance::drawInInspector()
+{
+
 }
 
 void MaterialInstance::setAggregates(std::unordered_map<std::string, std::shared_ptr<MaterialAggregation>>& aggregations)

@@ -255,161 +255,203 @@ void Rigidbody::setIsTrigger(bool state)
 	pushToSimulation();
 }
 
-void Rigidbody::drawInInspector(Scene & scene)
+void Rigidbody::onMassChanged()
 {
-	float tmpMass = m_mass;
-	if (ImGui::InputFloat("mass", &tmpMass)) {
-		setMass(tmpMass);
-	}
-	if (ImGui::RadioButton("is trigger", m_isTrigger)) {
-		setIsTrigger(!m_isTrigger);
-	}
-	if (ImGui::RadioButton("use gravity", m_useGravity)) {
-		setUseGravity(!m_useGravity);
-	}
+	popfromSimulation();
 
-	ImGui::BeginChild("linear constraint", ImVec2(0, 22));
-	ImGui::Text("linear constraint");
-	ImGui::SameLine();
-	if (ImGui::RadioButton("x", m_frozenAxis[0]))
-		freezeAxis(!m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("y", m_frozenAxis[1]))
-		freezeAxis(m_frozenAxis[0], !m_frozenAxis[1], m_frozenAxis[2]);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("z", m_frozenAxis[2]))
-		freezeAxis(m_frozenAxis[0], m_frozenAxis[1], !m_frozenAxis[2]);
-	ImGui::EndChild();
+	// mass changed
+	btVector3 newInertia;
+	m_bulletRigidbody->getCollisionShape()->calculateLocalInertia(m_mass, newInertia);
+	m_bulletRigidbody->setMassProps(m_mass, newInertia);
+	m_bulletRigidbody->updateInertiaTensor();
+	//m_target->forceActivationState(DISABLE_DEACTIVATION);
+	m_bulletRigidbody->activate(true);
 
-	ImGui::BeginChild("angular constraint", ImVec2(0, 22));
-	ImGui::Text("angular constraint");
-	ImGui::SameLine();
-	if (ImGui::RadioButton("x", m_frozenAngles[0]))
-		freezeAngles(!m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("y", m_frozenAngles[1]))
-		freezeAngles(m_frozenAngles[0], !m_frozenAngles[1], m_frozenAngles[2]);
-	ImGui::SameLine();
-	if (ImGui::RadioButton("z", m_frozenAngles[2]))
-		freezeAngles(m_frozenAngles[0], m_frozenAngles[1], !m_frozenAngles[2]);
-	ImGui::EndChild();
-
+	pushToSimulation();
 }
 
-void Rigidbody::drawInInspector(Scene& scene, const std::vector<Component*>& components)
+void Rigidbody::onPhysicPropChanged()
 {
-	float tmpMass = m_mass;
-	if (ImGui::InputFloat("mass", &tmpMass)) 
-	{
-		for (auto component : components)
-		{
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->setMass(tmpMass);
-		}
-	}
-	if (ImGui::RadioButton("is trigger", m_isTrigger)) 
-	{
-		setIsTrigger(!m_isTrigger);
-		for (auto component : components)
-		{
-			if (component == this) continue;
+	popFromSimulation();
 
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->setIsTrigger(m_isTrigger);
-		}
-	}
-	if (ImGui::RadioButton("use gravity", m_useGravity)) 
-	{
-		setUseGravity(!m_useGravity);
-		for (auto component : components)
-		{
-			if (component == this) continue;
+	// is trigger ?
+	//if trigger, disable contact response
+	if (m_isTrigger)
+		m_bulletRigidbody->setCollisionFlags(m_bulletRigidbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	else
+		m_bulletRigidbody->setCollisionFlags(m_bulletRigidbody->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->setUseGravity(m_useGravity);
-		}
-	}
+	// use gravity ?
+	m_useGravity = useGravity;
+	btVector3 gravity = useGravity == false ? btVector3(0, 0, 0) : (m_ptrToPhysicWorld == nullptr ? btVector3(0, -9.8, 0) : m_ptrToPhysicWorld->getGravity());
+	m_bulletRigidbody->setGravity(gravity);
 
-	ImGui::BeginChild("linear constraint", ImVec2(0, 22));
-	ImGui::Text("linear constraint");
-	ImGui::SameLine();
-	if (ImGui::RadioButton("x", m_frozenAxis[0]))
-	{
-		freezeAxis(!m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
+	// Frozen axis
+	if (m_bulletRigidbody != nullptr)
+		m_bulletRigidbody->setLinearFactor(btVector3((m_frozenAxis[0] == true ? 0 : 1), (m_frozenAxis[1] == true ? 0 : 1), (m_frozenAxis[2] == true ? 0 : 1)));
 
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("y", m_frozenAxis[1]))
-	{
-		freezeAxis(m_frozenAxis[0], !m_frozenAxis[1], m_frozenAxis[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
+	// Frozen angles
+	if (m_bulletRigidbody != nullptr)
+		m_bulletRigidbody->setAngularFactor(btVector3((m_frozenAngles[0] == true ? 0 : 1), (m_frozenAngles[1] == true ? 0 : 1), (m_frozenAngles[2] == true ? 0 : 1)));
 
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("z", m_frozenAxis[2]))
-	{
-		freezeAxis(m_frozenAxis[0], m_frozenAxis[1], !m_frozenAxis[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
-
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
-		}
-	}
-	ImGui::EndChild();
-
-	ImGui::BeginChild("angular constraint", ImVec2(0, 22));
-	ImGui::Text("angular constraint");
-	ImGui::SameLine();
-	if (ImGui::RadioButton("x", m_frozenAngles[0]))
-	{
-		freezeAngles(!m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
-
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("y", m_frozenAngles[1]))
-	{
-		freezeAngles(m_frozenAngles[0], !m_frozenAngles[1], m_frozenAngles[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
-
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("z", m_frozenAngles[2]))
-	{
-		freezeAngles(m_frozenAngles[0], m_frozenAngles[1], !m_frozenAngles[2]);
-		for (auto component : components)
-		{
-			if (component == this) continue;
-
-			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
-			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
-		}
-	}
-	ImGui::EndChild();
+	pushToSimulation();
 }
+
+//void Rigidbody::drawInInspector(Scene & scene)
+//{
+//	float tmpMass = m_mass;
+//	if (ImGui::InputFloat("mass", &tmpMass)) {
+//		setMass(tmpMass);
+//	}
+//	if (ImGui::RadioButton("is trigger", m_isTrigger)) {
+//		setIsTrigger(!m_isTrigger);
+//	}
+//	if (ImGui::RadioButton("use gravity", m_useGravity)) {
+//		setUseGravity(!m_useGravity);
+//	}
+//
+//	ImGui::BeginChild("linear constraint", ImVec2(0, 22));
+//	ImGui::Text("linear constraint");
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("x", m_frozenAxis[0]))
+//		freezeAxis(!m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("y", m_frozenAxis[1]))
+//		freezeAxis(m_frozenAxis[0], !m_frozenAxis[1], m_frozenAxis[2]);
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("z", m_frozenAxis[2]))
+//		freezeAxis(m_frozenAxis[0], m_frozenAxis[1], !m_frozenAxis[2]);
+//	ImGui::EndChild();
+//
+//	ImGui::BeginChild("angular constraint", ImVec2(0, 22));
+//	ImGui::Text("angular constraint");
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("x", m_frozenAngles[0]))
+//		freezeAngles(!m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("y", m_frozenAngles[1]))
+//		freezeAngles(m_frozenAngles[0], !m_frozenAngles[1], m_frozenAngles[2]);
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("z", m_frozenAngles[2]))
+//		freezeAngles(m_frozenAngles[0], m_frozenAngles[1], !m_frozenAngles[2]);
+//	ImGui::EndChild();
+//
+//}
+//
+//void Rigidbody::drawInInspector(Scene& scene, const std::vector<Component*>& components)
+//{
+//	float tmpMass = m_mass;
+//	if (ImGui::InputFloat("mass", &tmpMass)) 
+//	{
+//		for (auto component : components)
+//		{
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->setMass(tmpMass);
+//		}
+//	}
+//	if (ImGui::RadioButton("is trigger", m_isTrigger)) 
+//	{
+//		setIsTrigger(!m_isTrigger);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->setIsTrigger(m_isTrigger);
+//		}
+//	}
+//	if (ImGui::RadioButton("use gravity", m_useGravity)) 
+//	{
+//		setUseGravity(!m_useGravity);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->setUseGravity(m_useGravity);
+//		}
+//	}
+//
+//	ImGui::BeginChild("linear constraint", ImVec2(0, 22));
+//	ImGui::Text("linear constraint");
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("x", m_frozenAxis[0]))
+//	{
+//		freezeAxis(!m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
+//		}
+//	}
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("y", m_frozenAxis[1]))
+//	{
+//		freezeAxis(m_frozenAxis[0], !m_frozenAxis[1], m_frozenAxis[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
+//		}
+//	}
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("z", m_frozenAxis[2]))
+//	{
+//		freezeAxis(m_frozenAxis[0], m_frozenAxis[1], !m_frozenAxis[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAxis(m_frozenAxis[0], m_frozenAxis[1], m_frozenAxis[2]);
+//		}
+//	}
+//	ImGui::EndChild();
+//
+//	ImGui::BeginChild("angular constraint", ImVec2(0, 22));
+//	ImGui::Text("angular constraint");
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("x", m_frozenAngles[0]))
+//	{
+//		freezeAngles(!m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
+//		}
+//	}
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("y", m_frozenAngles[1]))
+//	{
+//		freezeAngles(m_frozenAngles[0], !m_frozenAngles[1], m_frozenAngles[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
+//		}
+//	}
+//	ImGui::SameLine();
+//	if (ImGui::RadioButton("z", m_frozenAngles[2]))
+//	{
+//		freezeAngles(m_frozenAngles[0], m_frozenAngles[1], !m_frozenAngles[2]);
+//		for (auto component : components)
+//		{
+//			if (component == this) continue;
+//
+//			Rigidbody* castedComponent = static_cast<Rigidbody*>(component);
+//			castedComponent->freezeAngles(m_frozenAngles[0], m_frozenAngles[1], m_frozenAngles[2]);
+//		}
+//	}
+//	ImGui::EndChild();
+//}
 
 void Rigidbody::applyTransform(const glm::vec3 & translation, const glm::vec3 & scale, const glm::quat & rotation)
 {
@@ -507,13 +549,13 @@ void Rigidbody::load(const Json::Value & componentRoot)
 
 }
 
-void Rigidbody::onAfterComponentAddedToScene(Scene & scene)
+void Rigidbody::onAfterAddedToScene(Scene & scene)
 {
 	makeShape(); //order the ridigbody to reupdate it collider shape
 	init(scene.getPhysicManager().getBulletDynamicSimulation()); //must be call after the rigidbody has been attached to an entity
 }
 
-void Rigidbody::onAfterComponentAddedToEntity(Entity & entity)
+void Rigidbody::onAfterAddedToEntity(Entity & entity)
 {
 	entity.applyTransform();
 }

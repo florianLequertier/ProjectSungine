@@ -1,5 +1,6 @@
 #pragma once
 
+/*
 #include <map>
 
 #include "stb/stb_image.h"
@@ -90,6 +91,7 @@ private:
 	void addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey);
 
 };
+*/
 
 //
 ////Specialization for Material
@@ -254,13 +256,13 @@ private:
 //
 //};
 
-
-
+/*
 template<typename T>
 ResourceFactory<T>::ResourceFactory()
 {
 
 }
+*/
 
 //NOT DEFAULTS
 //
@@ -270,6 +272,7 @@ ResourceFactory<T>::ResourceFactory()
 //	assert(0 && "error : createNewResource() function hasn't been specialized for the given resource. The resource can't be created");
 //}
 
+/*
 template<typename T>
 void ResourceFactory<T>::addResourceForce(const FileHandler::CompletePath& path, T* value)
 {
@@ -306,6 +309,7 @@ void ResourceFactory<T>::addResourceForce(const FileHandler::CompletePath& path,
 	m_resourceMapping[path] = hashKey;
 	m_resourcesFromHashKey[hashKey] = newResource;
 }
+*/
 
 //template<typename T>
 //template<typename U>
@@ -318,6 +322,7 @@ void ResourceFactory<T>::addResourceForce(const FileHandler::CompletePath& path,
 //	m_resourcesFromHashKey[s_resourceCount] = newResource;
 //}
 
+/*
 template<typename T>
 void ResourceFactory<T>::erase(const FileHandler::CompletePath& path)
 {
@@ -535,6 +540,9 @@ template<>
 void ResourceFactory<MaterialInstance>::addResourceForce(const FileHandler::CompletePath& path, const ID& hashKey);
 template<>
 void ResourceFactory<MaterialInstance>::addResourceSoft(const FileHandler::CompletePath& path);
+*/
+
+
 //
 //template<>
 //void ResourceFactory<MaterialInstance>::add(const FileHandler::CompletePath& path, unsigned int hashKey);
@@ -549,6 +557,7 @@ void ResourceFactory<MaterialInstance>::addResourceSoft(const FileHandler::Compl
 //template<>
 //void ResourceFactory<Material>::initDefaults();
 
+/*
 //AnimationStateMachine
 template<>
 void ResourceFactory<Sungine::Animation::AnimationStateMachine>::initDefaults();
@@ -637,12 +646,14 @@ const std::string& getResourceExtention<MaterialInstance>();
 void loadResourcesInAllFactories(const Json::Value& rootResources);
 void saveResourcesInAllFactories(Json::Value& rootResources);
 void resolvePointersLoadingInFactories();
+*/
 
 ////////////////////////////////////////////////
 //// BEGIN : Forwards
 
 ///////////////// RESOURCE PTR /////////////////
 
+/*
 template<typename T>
 void ResourcePtr<T>::load(const Json::Value & entityRoot)
 {
@@ -657,6 +668,7 @@ void ResourcePtr<T>::load(const Json::Value & entityRoot)
 		m_rawPtr->addReferenceToThis(this);
 	}
 }
+*/
 
 //template<>
 //inline void ResourcePtr<Material>::load(const Json::Value & entityRoot)
@@ -671,6 +683,7 @@ void ResourcePtr<T>::load(const Json::Value & entityRoot)
 
 ///////////////// RESOURCE FIELD /////////////////
 
+/*
 namespace EditorGUI {
 
 template<typename T>
@@ -737,3 +750,4 @@ bool ResourceField(const std::string& label, ResourcePtr<T>& resourcePtr)
 	return isTextEdited;
 }
 }
+*/

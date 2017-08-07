@@ -27,8 +27,8 @@ enum FileType
 	IMAGE,
 	MESH,
 	SOUND,
-	SHADER_PROGRAM,
 	MATERIAL,
+	MATERIAL_INSTANCE,
 	CUBE_TEXTURE,
 	ANIMATION_STATE_MACHINE,
 };
@@ -158,6 +158,7 @@ bool createFile(const CompletePath &path, const std::string& content);
 bool createFileOverride(const CompletePath &path, const std::string& content);
 void copyPastFile(const CompletePath &from, const Path &to);
 void deleteFile(const CompletePath& completePath);
+void moveFile(const CompletePath &from, const Path &to);
 
 void renameFile(const CompletePath &filePath, const std::string& newFileName);
 void renameDirectory(const Path &directoryPath, const std::string& newDirectoryName);

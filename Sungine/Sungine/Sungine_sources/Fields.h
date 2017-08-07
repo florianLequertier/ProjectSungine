@@ -100,31 +100,56 @@ namespace Metas
 	}
 }
 
+
+struct BaseMetasFilter
+{
+	bool hide;
+	bool nosave;
+
+	BaseMetasFilter()
+		: hide(false)
+		, nosave(false)
+	{}
+
+	BaseMetasFilter(const std::unordered_map<std::string, std::string>& formatedMetas)
+	{
+		auto it = formatedMetas.find("hide");
+		if (it != formatedMetas.end())
+		{
+			hide = it->second == "true" ? true : false;
+		}
+		auto it = formatedMetas.find("nosave");
+		if (it != formatedMetas.end())
+		{
+			nosave = it->second == "true" ? true : false;
+		}
+	}
+};
+
 template<typename T>
 struct MetasFilter
 {
 	MetasFilter()
 	{}
 
-	MetasFilter(const std::string& metas)
+	MetasFilter(const std::unordered_map<std::string, std::string>& formatedMetas)
 	{
 	}
 };
 
 
 template<>
-struct MetasFilter<std::string>
+struct MetasFilter<std::string> : public BaseMetasFilter
 {
 	bool isReadOnly;
 
 	MetasFilter()
 	{}
 
-	MetasFilter(const std::string& metas)
+	MetasFilter(const std::unordered_map<std::string, std::string>& formatedMetas)
 	{
-		std::unordered_map<std::string, std::string> formated = Metas::formatMetas(metas);
-		auto it = formated.find("isreadonly");
-		if (it != formated.end())
+		auto it = formatedMetas.find("isreadonly");
+		if (it != formatedMetas.end())
 		{
 			isReadOnly = it->second == "true" ? true : false;
 		}
@@ -141,26 +166,25 @@ bool isSlider;\
 MetasFilter()\
 {}\
 \
-MetasFilter(const std::string& metas)\
+MetasFilter(const std::unordered_map<std::string, std::string>& formatedMetas)\
 {\
-	std::unordered_map<std::string, std::string> formated = Metas::formatMetas(metas);\
-	auto it = formated.find("valuemin");\
-	if (it != formated.end())\
+	auto it = formatedMetas.find("valuemin");\
+	if (it != formatedMetas.end())\
 	{\
 		valueMin = std::stoi(it->second);\
 	}\
-	it = formated.find("valuemax");\
-	if (it != formated.end())\
+	it = formatedMetas.find("valuemax");\
+	if (it != formatedMetas.end())\
 	{\
 		valueMax = std::stoi(it->second);\
 	}\
-	it = formated.find("isreadonly");\
-	if (it != formated.end())\
+	it = formatedMetas.find("isreadonly");\
+	if (it != formatedMetas.end())\
 	{\
 		isReadOnly = it->second == "true" ? true : false;\
 	}\
-	it = formated.find("isSlider");\
-	if (it != formated.end())\
+	it = formatedMetas.find("isSlider");\
+	if (it != formatedMetas.end())\
 	{\
 		isSlider = it->second == "true" ? true : false;\
 	}\
@@ -176,26 +200,25 @@ bool isSlider;\
 MetasFilter()\
 {}\
 \
-MetasFilter(const std::string& metas)\
+MetasFilter(const std::unordered_map<std::string, std::string>& formatedMetas)\
 {\
-	std::unordered_map<std::string, std::string> formated = Metas::formatMetas(metas);\
-	auto it = formated.find("valuemin");\
-	if (it != formated.end())\
+	auto it = formatedMetas.find("valuemin");\
+	if (it != formatedMetas.end())\
 	{\
 		valueMin = std::stof(it->second);\
 	}\
-	it = formated.find("valuemax");\
-	if (it != formated.end())\
+	it = formatedMetas.find("valuemax");\
+	if (it != formatedMetas.end())\
 	{\
 		valueMax = std::stof(it->second);\
 	}\
-	it = formated.find("isreadonly");\
-	if (it != formated.end())\
+	it = formatedMetas.find("isreadonly");\
+	if (it != formatedMetas.end())\
 	{\
 		isReadOnly = it->second == "true" ? true : false;\
 	}\
-	it = formated.find("isSlider");\
-	if (it != formated.end())\
+	it = formatedMetas.find("isSlider");\
+	if (it != formatedMetas.end())\
 	{\
 		isSlider = it->second == "true" ? true : false;\
 	}\
@@ -203,49 +226,49 @@ MetasFilter(const std::string& metas)\
 
 
 template<>
-struct MetasFilter<int>
+struct MetasFilter<int> : public BaseMetasFilter
 {
 	METAS_FILTER_INT()
 };
 
 template<>
-struct MetasFilter<glm::ivec2>
+struct MetasFilter<glm::ivec2> : public BaseMetasFilter
 {
 	METAS_FILTER_INT()
 };
 
 template<>
-struct MetasFilter<glm::ivec3>
+struct MetasFilter<glm::ivec3> : public BaseMetasFilter
 {
 	METAS_FILTER_INT()
 };
 
 template<>
-struct MetasFilter<glm::ivec4>
+struct MetasFilter<glm::ivec4> : public BaseMetasFilter
 {
 	METAS_FILTER_INT()
 };
 
 template<>
-struct MetasFilter<float>
+struct MetasFilter<float> : public BaseMetasFilter
 {
 	METAS_FILTER_FLOAT()
 };
 
 template<>
-struct MetasFilter<glm::vec2>
+struct MetasFilter<glm::vec2> : public BaseMetasFilter
 {
 	METAS_FILTER_FLOAT()
 };
 
 template<>
-struct MetasFilter<glm::vec3>
+struct MetasFilter<glm::vec3> : public BaseMetasFilter
 {
 	METAS_FILTER_FLOAT()
 };
 
 template<>
-struct MetasFilter<glm::vec4>
+struct MetasFilter<glm::vec4> : public BaseMetasFilter
 {
 	METAS_FILTER_FLOAT()
 };
@@ -253,9 +276,16 @@ struct MetasFilter<glm::vec4>
 
 template<>
 template<typename T>
-struct MetasFilter<AssetHandle<T>>
+struct MetasFilter<AssetHandle<T>> : public BaseMetasFilter
 {
 	
+};
+
+template<>
+template<typename T>
+struct MetasFilter<ObjectPtr<T>> : public BaseMetasFilter
+{
+
 };
 
 namespace Field
@@ -275,14 +305,28 @@ namespace Field
 	}
 
 	template<typename T>
-	bool AssetField(const std::string& propertyName, IAssetHandle& property)
+	bool AssetField(const std::string& propertyName, const std::vector<AssetHandle<T>>& properties, const MetasFilter<T>& metasFilter)
 	{
+		if (properties.size() == 0)
+			return;
+
 		const int bufSize = 100;
-		std::string currentResourceName(property.isValid() ? property->getName() : "INVALID");
+		std::string currentResourceName(properties[0].isValid() ? properties[0]->getName() : "INVALID");
+		bool sameNames = true;
+		for (auto property : properties)
+		{
+			if (currentResourceName != property->getName())
+			{
+				sameNames = false;
+				break;
+			}
+		}
+		if (!sameNames)
+			currentResourceName = "...";
 		currentResourceName.reserve(bufSize);
 
 		int resourceType = Object::getStaticClassId<T>();
-		bool canDropIntoField = DragAndDropManager::canDropInto(&resourceType, EditorDropContext::DropIntoResourceField);
+		bool canDropIntoField = DragAndDropManager::canDropInto(&resourceType, EditorDropContext::DropIntoAssetField);
 		bool isTextEdited = false;
 		bool needClearPtr = false;
 
@@ -293,13 +337,13 @@ namespace Field
 			colStyleCount++;
 		}
 
-		if (property.isValid())
+		if (properties.size() == 1 && properties[0].isValid())
 		{
-			property->drawIconeInResourceField();
+			properties[0]->drawIconeInResourceField();
 			const bool iconHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (iconHovered)
-				property->drawUIOnHovered();
+				properties[0]->drawUIOnHovered();
 		}
 		ImGui::InputText(label.c_str(), &currentResourceName[0], bufSize, ImGuiInputTextFlags_ReadOnly);
 		//isTextEdited = (enterPressed || ImGui::IsKeyPressed(GLFW_KEY_TAB) || (!ImGui::IsItemHovered() && ImGui::IsMouseClickedAnyButton()));
@@ -316,7 +360,7 @@ namespace Field
 		AssetId droppedAssetId;
 		if (ImGui::IsMouseHoveringRect(dropRectMin, dropRectMax) && ImGui::IsMouseReleased(0) && canDropIntoField)
 		{
-			DragAndDropManager::dropDraggedItem(&droppedAssetId, (EditorDropContext::DropIntoResourceField));
+			DragAndDropManager::dropDraggedItem(&droppedAssetId, (EditorDropContext::DropIntoAssetField));
 			isTextEdited = true;
 		}
 
@@ -326,19 +370,109 @@ namespace Field
 		ImGui::PopStyleColor(colStyleCount);
 
 		if (needClearPtr)
-			property.reset();
+		{
+			for (auto property : properties)
+			{
+				property.reset();
+			}
+		}
 		else if (isTextEdited)
 		{
-			bool assetFound = AssetManager::instance().getAsset<T>(droppedAssetId, property);
+			AssetHandle<T> foundProp;
+			const bool assetFound = AssetManager::instance().getAsset<T>(droppedAssetId, foundProp);
+			if (assetFound)
+			{
+				for (auto property : properties)
+				{
+					property = foundProp;
+				}
+			}
 		}
 
 		return isTextEdited;
 	}
 
 	template<typename T>
-	void ObjectField(const std::string& propertyName, const ObjectPtr<T>& property, const MetasFilter<T>& metasFilter)
+	bool ObjectField(const std::string& propertyName, const std::vector<ObjectPtr<T>>& properties, const MetasFilter<T>& metasFilter)
 	{
-		// TODO
+		if (properties.size() == 0)
+			return;
+
+		const int bufSize = 100;
+		std::string currentResourceName(properties[0].isValid() ? properties[0]->getName() : "INVALID");
+		bool sameNames = true;
+		for (auto property : properties)
+		{
+			if (currentResourceName != property->getName())
+			{
+				sameNames = false;
+				break;
+			}
+		}
+		if (!sameNames)
+			currentResourceName = "...";
+		currentResourceName.reserve(bufSize);
+
+		int resourceType = Object::getStaticClassId<T>();
+		bool canDropIntoField = DragAndDropManager::canDropInto(&resourceType, EditorDropContext::DropIntoObjectField);
+		bool isTextEdited = false;
+		bool needClearPtr = false;
+
+		int colStyleCount = 0;
+		if (canDropIntoField)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 255, 0, 255));
+			colStyleCount++;
+		}
+
+		if (properties.size() == 1 && properties[0].isValid())
+		{
+			properties[0]->drawIconeInResourceField();
+			const bool iconHovered = ImGui::IsItemHovered();
+			ImGui::SameLine();
+			if (iconHovered)
+				properties[0]->drawUIOnHovered();
+		}
+		ImGui::InputText(label.c_str(), &currentResourceName[0], bufSize, ImGuiInputTextFlags_ReadOnly);
+		//isTextEdited = (enterPressed || ImGui::IsKeyPressed(GLFW_KEY_TAB) || (!ImGui::IsItemHovered() && ImGui::IsMouseClickedAnyButton()));
+		ImVec2 dropRectMin = ImGui::GetItemRectMin();
+		ImVec2 dropRectMax = ImGui::GetItemRectMax();
+
+		//borders if can drop here : 
+		if (ImGui::IsMouseHoveringRect(dropRectMin, dropRectMax) && canDropIntoField)
+		{
+			ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), 2.f);
+		}
+
+		//drop resource : 
+		ObjectPtr<T> draggedObject;
+		if (ImGui::IsMouseHoveringRect(dropRectMin, dropRectMax) && ImGui::IsMouseReleased(0) && canDropIntoField)
+		{
+			DragAndDropManager::dropDraggedItem(&draggedObject, (EditorDropContext::DropIntoResourceField));
+			isTextEdited = true;
+		}
+
+		ImGui::SameLine();
+		needClearPtr = ImGui::SmallButton(std::string("<##" + label).data());
+
+		ImGui::PopStyleColor(colStyleCount);
+
+		if (needClearPtr)
+		{
+			for (auto property : properties)
+			{
+				property.reset();
+			}
+		}
+		else if (isTextEdited)
+		{
+			for (auto property : properties)
+			{
+				property = draggedObject;
+			}
+		}
+
+		return isTextEdited;
 	}
 
 	// Enum
@@ -346,10 +480,12 @@ namespace Field
 	bool EnumField(const std::string& label, T value);
 }
 
+// vec
 VECTOR_PROPERTY_FIELD(2)
 VECTOR_PROPERTY_FIELD(3)
 VECTOR_PROPERTY_FIELD(4)
 
+// ivec
 VECTOR_INT_PROPERTY_FIELD(2)
 VECTOR_INT_PROPERTY_FIELD(3)
 VECTOR_INT_PROPERTY_FIELD(4)
@@ -425,9 +561,17 @@ void Field::PropertyField<float>(const std::string& propertyName, const std::vec
 // AssetHandle
 template<>
 template<typename T>
-bool PropertyField<AssetHandle<T>>(const std::string& propertyName, const AssetHandle<T>& property, const MetasFilter<AssetHandle<T>>& metasFilter)
+bool PropertyField<AssetHandle<T>>(const std::string& propertyName, const std::vector<AssetHandle<T>>& properties, const MetasFilter<AssetHandle<T>>& metasFilter)
 {
-	AssetField<AssetHandle<T>>(propertyName, property);
+	AssetField<AssetHandle<T>>(propertyName, properties, metasFilter);
+}
+
+// ObjectPtr
+template<>
+template<typename T>
+bool PropertyField<ObjectPtr<T>>(const std::string& propertyName, const std::vector<AssetHandle<T>>& properties, const MetasFilter<ObjectPtr<T>>& metasFilter)
+{
+	ObjectField<ObjectPtr<T>>(propertyName, properties, metasFilter);
 }
 
 //VECTOR_PROPERTY_FIELD(2)

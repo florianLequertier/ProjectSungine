@@ -8,6 +8,9 @@
 #include "MaterialVisualScripting.h"
 #include "EditorFrames.h"
 #include "MaterialInstance.h"
+#include "Project.h"
+
+std::string Material::s_extention = ".glProg";
 
 //////////////////////////////////////////////////////////
 // Constructors / Operators
@@ -43,11 +46,13 @@ Material::Material(const FileHandler::CompletePath& path, Rendering::MaterialTyp
 //////////////////////////////////////////////////////////
 void Material::createNewAssetFile(const FileHandler::CompletePath& filePath)
 {
-	saveToFile(filePath);
+	saveToFile();
 }
 
 void Material::loadFromFile(const FileHandler::CompletePath& filePath)
 {
+	Asset::loadFromFile(filePath);
+
 	//////////////////////////////////////
 	// Path to Json value
 	//////////////////////////////////////
@@ -55,8 +60,7 @@ void Material::loadFromFile(const FileHandler::CompletePath& filePath)
 	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
 
 	std::ifstream stream;
-	stream.open(absolutePath.toString());
-	if (!stream.is_open())
+	if (!Utils::OpenFileStreamRead(absolutePath, stream))
 	{
 		std::cout << "error, can't load shader program at path : " << absolutePath.toString() << std::endl;
 		return;
@@ -106,7 +110,7 @@ void Material::loadFromFile(const FileHandler::CompletePath& filePath)
 		assert(internalShaderParameters.isValidIndex(i));
 
 		auto newParameter = MakeNewInternalShaderParameter(internalShaderParameters[i]);
-		//newParameter->init(id); //don't forget to init the parameter to get the uniforms
+		newParameter->init(m_programId); //don't forget to init the parameter to get the uniforms
 		m_internalShaderParameters.push_back(newParameter);
 	}
 
@@ -121,19 +125,20 @@ void Material::loadFromFile(const FileHandler::CompletePath& filePath)
 	///////////////////////////////////
 }
 
-void Material::saveToFile(const FileHandler::CompletePath& filePath)
+void Material::saveToFile()
 {
+	Asset::saveToFile();
+
 	////////////////////////////////////////////////////////
 	// Open stream, create Json value
 	////////////////////////////////////////////////////////
-	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+	assert(!Project::isPathPointingInsideProjectFolder(m_assetPath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(m_assetPath);
 
 	std::ofstream stream;
-	stream.open(absolutePath.toString());
-	if (!stream.is_open())
+	if(!Utils::OpenFileStreamWrite(absolutePath, stream))
 	{
-		std::cout << "error, can't load shader program at path : " << absolutePath.toString() << std::endl;
+		std::cout << "error, can't load material at path : " << absolutePath.toString() << std::endl;
 		return;
 	}
 	Json::Value root;
@@ -148,9 +153,11 @@ void Material::saveToFile(const FileHandler::CompletePath& filePath)
 	// Compilation result
 	root["computeShaderParameterFunction"] = m_computeShaderParameterFunction;
 
+	// Visual scripting nodes
 	if (m_materialType == Rendering::MaterialType::DEFAULT)
 	{
-		// TODO : save visual scripting infos
+		if (m_nodeManager)
+			m_nodeManager->save(root["MVS"]);
 	}
 	else
 		assert(false && "Wrong material type !");
@@ -161,29 +168,27 @@ void Material::saveToFile(const FileHandler::CompletePath& filePath)
 		m_internalShaderParameters[i]->save(root["internalShaderParameters"][i]);
 	}
 
-	assert(m_nodeManager);
-	m_nodeManager->save(root["MVS"]);
-
+	// Refs to instances
 	for (int i = 0; i < m_materialRefs.size(); i++)
 	{
 		m_materialRefs[i]->save(root["materialRefs"][i]);
 	}
 
 	////////////////////////////////////////////////////////
-	// Send dats to stream
+	// Send datas to stream
 	////////////////////////////////////////////////////////
 	stream << root;
 	////////////////////////////////////////////////////////
 }
 
-void Material::saveMetas(const FileHandler::CompletePath& filePath)
+void Material::saveMetas()
 {
-	Asset::saveMetas(filePath);
+	Asset::saveMetas();
 }
 
-void Material::loadMetas(const FileHandler::CompletePath& filePath)
+void Material::loadMetas()
 {
-	Asset::loadMetas(filePath);
+	Asset::loadMetas();
 }
 
 void Material::drawInInspector()

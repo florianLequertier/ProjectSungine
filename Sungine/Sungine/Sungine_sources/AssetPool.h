@@ -5,29 +5,39 @@
 #include "FileHandler.h"
 #include "Asset.h"
 
+class BaseAssetHandle
+{
+	friend class AssetLinks;
+
+protected:
+	int linkIndex;
+public:
+	virtual void reset() = 0;
+};
 
 template<typename T>
-class AssetHandle
+class AssetHandle : public BaseAssetHandle
 {
-	template<typename T>
 	friend class AssetLinks;
 
 private:
-	T* ptr;
-	AssetLink<T>* link;
+	T* m_ptr;
+	AssetLinks* m_links;
+	int m_linkIndex;
 
 public:
 	AssetHandle()
 	{
-		ptr = nullptr;
-		link = nullptr;
+		m_ptr = nullptr;
+		m_links = nullptr;
+		m_linkIndex = -1;
 	}
 
-	AssetHandle(T* _ptr, AssetLink<T>* _link)
+	AssetHandle(T* _ptr, AssetLinks* _links)
 	{
-		ptr = _ptr;
-		link = _link;
-		link->addLink(this);
+		m_ptr = _ptr;
+		m_links = _links;
+		m_linkIndex = links->addLink(this);
 	}
 
 	~AssetHandle()
@@ -37,120 +47,125 @@ public:
 
 	AssetHandle(const AssetHandle& other)
 	{
-		ptr = other.ptr;
-		link = other.link;
-		link->addLink(this);
+		m_ptr = other.m_ptr;
+		m_links = other.m_links;
+		m_linkIndex = m_links->addLink(this);
+	}
+
+	// auto Cast
+	template<typename U>
+	AssetHandle(const AssetHandle<U>& other)
+	{
+		m_ptr = static_cast<T*>(other.m_ptr);
+		m_links = static_cast<AssetLinks*>(other.m_links);
+		m_linkIndex = m_links->addLink(this);
 	}
 
 	AssetHandle& operator=(const AssetHandle& other)
 	{
-		ptr = other.ptr;
-		link = other.link;
-		link->addLink(this);
+		m_ptr = other.m_ptr;
+		m_links = other.m_links;
+		m_linkIndex = m_links->addLink(this);
 
 		return *this;
 	}
 
-	void reset()
+	void reset() override
 	{
-		if (ptr != nullptr)
-			ptr = nullptr;
-		if (link != nullptr)
-			link->deleteLink(linkIndex);
+		if (m_ptr != nullptr)
+			m_ptr = nullptr;
+		if (m_links != nullptr)
+			m_links->deleteLink(m_linkIndex);
+
+		m_linkIndex = -1;
 	}
 
 	template<typename Archive>
 	void save(Archive& archive) const
 	{
-		int _index = -1;
-		int _dataIdx = -1;
 		AssetId _assetId;
 
-		if (link != nullptr)
+		if (m_links != nullptr)
 		{
-			_index = link->index;
-			_dataIdx = link->dataIdx;
-			_assetId = link->id;
+			_assetId = m_links->id;
 		}
 
-		save(_index, _dataIdx, _assetId);
+		save(_assetId);
 	}
 
 	template<typename Archive>
 	void load(const Archive& archive)
 	{
-		int _index = -1;
-		int _dataIdx = -1;
 		AssetId _assetId;
 
-		load(_index, _dataIdx, _assetId);
+		load(_assetId);
 
-		if (_index != -1 && _dataIndex != -1)
-		{
-			link = AssetManager::instance().getPool<T>()->getLink(_assetId);
-			ptr = link->getLinkedObject();
-		}
+		initFromAssetId(_assetId);
 	}
 
 	// Specialisation for JsonCPP
 	void save(Json::Value& archive) const
 	{
-		int _index = -1;
-		int _dataIdx = -1;
 		AssetId _assetId;
 
 		if (link != nullptr)
 		{
-			_index = link->index;
-			_dataIdx = link->dataIdx;
-			_assetId = link->id;
+			_assetId = m_links->id;
 		}
 
-		archive["index"] = _index;
-		archive["dataIdx"] = _dataIdx;
-		archive["assetIdx"] = _assetId;
+		archive["assetId"] = _assetId;
 	}
 
 	void load(const Json::Value& archive)
 	{
-		int _index = -1;
-		int _dataIdx = -1;
 		AssetId _assetId;
 
-		_index = archive["index"];
-		_dataIdx = archive["dataIdx"];
-		_assetId = archive["assetIdx"];
+		_assetId = archive["assetId"];
 
-		if (_index != -1 && _dataIndex != -1)
-		{
-			link = AssetManager::instance().getPool<T>()->getLink(_assetId);
-			ptr = link->getLinkedObject();
-		}
+		initFromAssetId(_assetId);
 	}
-
-
 
 	T* getPtr()
 	{
-		return ptr;
+		return m_ptr;
 	}
 
 	bool isValid() const
 	{
-		return ptr != nullptr;
+		return m_ptr != nullptr;
 	}
 
 	T* operator->() const
 	{
-		return ptr;
+		return m_ptr;
+	}
+
+private:
+	void initFromAssetId(const AssetId& assetId)
+	{
+		if (assetId.isValid())
+		{
+			AssetPool<T>* pool = AssetManager::instance().getPool<T>();
+			assert(pool != nullptr);
+
+			m_links = pool->getLink(assetId);
+
+			if (m_linkIndex != -1)
+				m_links->removeLink(m_linkIndex);
+			m_linkIndex = m_links->addLink(this);
+
+			m_ptr = m_links->datas[m_links->dataIdx];
+		}
 	}
 };
-
 
 class IAssetPool
 {
 public:
-	virtual void loadAsset(const FileHandler::CompletePath& assetPath) = 0;
+	virtual Asset* loadAsset(const FileHandler::CompletePath& assetPath) = 0;
+	virtual bool assetExists(const AssetId& assetId) const = 0;
+	virtual Asset* getAssetPtr(const AssetId& assetId) const = 0;
+	virtual bool dealocate(const AssetId& assetId) = 0;
 };
 
 template<typename T>
@@ -164,7 +179,7 @@ private:
 
 	std::vector<T> datas;
 	std::vector<int> datasToLinkIdx;
-	std::vector<AssetLinks<T>> links;
+	std::vector<AssetLinks> links;
 	int nextFreeDataIdx;
 	int nextFreeLinkIdx;
 
@@ -182,6 +197,16 @@ public:
 		}
 
 		resize(1000);
+	}
+
+	std::vector<T>::const_iterator getDataIteratorBegin() const
+	{
+		return datas.begin();
+	}
+
+	std::vector<T>::const_iterator getDataIteratorEnd() const
+	{
+		return datas.begin() + nextFreeDataIdx;
 	}
 
 	// Make sure that the given id will be restored properly.
@@ -303,23 +328,42 @@ public:
 		}
 	}
 
-	void dealocate(AssetHandler<T>& handler)
+	bool dealocate(AssetLinks& link)
 	{
-		int dataIndex = datasMapping[handler.index];
+		const int dataIndex = datasMapping[link.dataIdx];
 
 		if (dataIndex >= 0 && dataIndex < datas.size()
 			&& garbageIndex > 0)
 		{
 			// reset links
-			handler.link->reset();
-			handler.link->dataIdx = nextFreeLinkIdx;
-			nextFreeLinkIdx = std::distance(links, &handler.link); // ???
+			link->reset();
+			link->dataIdx = nextFreeLinkIdx;
+			nextFreeLinkIdx = link->index;// std::distance(links, &link); // ???
 
 			// destroy object
 			std::iter_swap(datas.begin() + (nextFreeDataIdx - 1), datas.begin() + dataIndex);
 			nextFreeDataIdx--;
 			(&datas[nextFreeDataIdx])->~T();
+
+			return true;
 		}
+		return false;
+	}
+
+	bool dealocate(const AssetHandle<T>& handler)
+	{
+		return dealocate(handler.link);
+	}
+
+	bool dealocate(const AssetId& assetId) override 
+	{
+		auto foundIdx = dataLinkMapping.find(assetId);
+		if (foundIdx != dataLinkMapping.end())
+		{
+			const AssetLinks& link = links[foundIdx->second];
+			dealocate(link);
+		}
+		return false;
 	}
 
 	// Take an object (ex : a Mesh, created with "new Mesh()") and insert it to the asset system.
@@ -328,6 +372,16 @@ public:
 	{
 		AssetHandle<T> newHandle = allocate(object);
 		newHandle->createNewAssetFile(assetPath);
+		return newHandle;
+	}
+
+	// Same as createAsset but create the asset as a default asset which key is a name and not a path.
+	// Catefull ! If a default asset with the same name already exists, it will be override !
+	AssetHandle<T> createDefaultAsset(const T& object, const std::string& assetName)
+	{
+		AssetHandle<T> newHandle = allocate(object);
+		defaults[assetName] = newHandle;
+		return newHandle;
 	}
 
 	// When you cook the assets, you will serialize all the assets in one file
@@ -356,7 +410,7 @@ public:
 	}
 
 	// Create a new asset in memory and load its datas from a file.
-	void loadAsset(const FileHandler::CompletePath& assetPath) override
+	Asset* loadAsset(const FileHandler::CompletePath& assetPath) override
 	{
 		AssetHandle<T> newAssetHandle;
 
@@ -369,8 +423,7 @@ public:
 		{
 			Json::Value readMetaFile;
 			AssetManager::loadMetaFile(metaPath, readMetaFile);
-			fileId.id = readMetaFile["id"]["id"].asInt();
-			fileId.type = readMetaFile["id"]["type"].asInt();
+			fileId.load(readMetaFile["assetId"]);
 		}
 
 		// We check if we have a valid mapping for this id.
@@ -388,6 +441,8 @@ public:
 
 		T* newAsset = newAssetHandle.getPtr();
 		newAsset->loadFromFile(assetPath);
+
+		return newAsset;
 	}
 
 	AssetLink<T>* getLink(const AssetId& assetId)
@@ -438,29 +493,53 @@ public:
 	{
 		auto found = dataLinkMapping.find(assetId);
 		assert(found != dataLinkMapping.end());
-		return found->second;
+		AssetLinks* foundLinks = links[found->second];
+		assert(foundLink != nullptr);
+		T* foundData = datas[foundLinks->dataIdx];
+		assert(foundData != nullptr);
+		return AssetHandle<T>(foundData, foundLinks);
+	}
+
+	Asset* getAssetPtr(const AssetId& assetId) const override
+	{
+		auto found = dataLinkMapping.find(assetId);
+		assert(found != dataLinkMapping.end());
+		AssetLinks* foundLinks = links[found->second];
+		assert(foundLink != nullptr);
+		T* foundData = datas[foundLinks->dataIdx];
+		assert(foundData != nullptr);
+		return foundData;
+	}
+
+	bool assetExists(const AssetId& assetId) const override
+	{
+		return dataLinkMapping.find(assetId) != dataLinkMapping.end();
 	}
 };
 
-template<typename T>
 class AssetLinks
 {
 public:
 	int index;
 	int dataIdx;
 	AssetId id;
-	std::vector<AssetHandle<T>*> links;
+	std::vector<BaseAssetHandle*> handleRefs;
 
-	static void swapLinks(AssetLink<T>* a, AssetLink<T>* b)
+	static void swapLinks(AssetLinks* a, AssetLinks* b)
 	{
-		int c_dtaIdx = a.dataIdx;
-		a.dataIdx = b.dataIdx;
-		b.dataIdx = c.dataIdx;
+		int c_dtaIdx = a->dataIdx;
+		a->dataIdx = b->dataIdx;
+		b->dataIdx = c_dtaIdx;
 
-		std::vector<AssetHandle<T>*> c_links;
-		c_links = a.links;
-		a.links = b.links;
-		b.links = c_links;
+		std::vector<BaseAssetHandle*> c_links;
+		c_links = a->handleRefs;
+		a->handleRefs = b->handleRefs;
+		b->handleRefs = c_links;
+
+		AssetId c_assetId;
+		c_assetId = a->id;
+		a->id = b->id;
+		b->id = c_assetId;
 	}
 
 private:
@@ -476,43 +555,43 @@ private:
 		index = selfIndex;
 		dataIdx = dataIndex;
 		id = dataId;
-		links.clear();
+		handleRefs.clear();
 	}
 
-	int addLink(AssetHandle<T>& handleRef)
+	int addLink(BaseAssetHandle* handleRef)
 	{
-		links.push_back(handleRef);
-		return links.size();
+		handleRefs.push_back(handleRef);
+		return handleRefs.size();
 	}
 
 	void deleteLink(int linkIndex)
 	{
-		if (links.size() == 1)
+		if (handleRefs.size() == 1)
 		{
-			links.pop_back();
+			handleRefs.pop_back();
 		}
 		else
 		{
-			std::iter_swap(links.begin() + linkIndex, links.end() - 1);
-			links.pop_back();
-			links[linkIndex]->linkIndex = linkIndex;
+			std::iter_swap(handleRefs.begin() + linkIndex, handleRefs.end() - 1);
+			handleRefs.pop_back();
+			handleRefs[linkIndex]->linkIndex = linkIndex;
 		}
 	}
 
 	void reset()
 	{
-		for (auto link : links)
+		for (auto ref : handleRefs)
 		{
-			link->reset();
+			ref->reset();
 		}
 
-		links.clear();
+		handleRefs.clear();
 	}
 
 	template<typename Archive>
 	void serialize(Archive& archive)
 	{
-		archive(index, dataIdx, links);
+		archive(index, dataIdx, handleRefs);
 	}
 };
 

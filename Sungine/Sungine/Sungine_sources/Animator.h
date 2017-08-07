@@ -3,22 +3,24 @@
 #include "Component.h"
 #include "SkeletalAnimation.h"
 #include "Skeleton.h"
-#include "ResourcePointer.h"
+#include "AssetManager.h"
 
 class Animator: public Component
 {
 	COMPONENT_IMPLEMENTATION_HEADER(Animator)
 
-	OBJECT_CLASS(Animator,
-		ObjectDescriptor<Animator>::registerParentClass<Component>();
-		ObjectDescriptor<Animator>::registerProperty<FileHandler::CompletePath>(&Animator::m_skeletonPath)
+	CLASS((Animator, Component),
+		((PRIVATE)
+			(FileHandler::CompletePath, m_skeletonPath)
+			(std::vector<AssetHandle<SkeletalAnimation>>, m_skeletonAnimations)
+		)
 	)
 
 private:
-	FileHandler::CompletePath m_skeletonPath; //TODO : J'aime pas ça, faire en sorte que le skeleton soit une sous-resource ce serai mieux
+	//FileHandler::CompletePath m_skeletonPath; //TODO : J'aime pas ça, faire en sorte que le skeleton soit une sous-resource ce serai mieux
+	//std::vector<ResourcePtr<SkeletalAnimation>> m_skeletonAnimations;
 	Skeleton* m_skeleton;
 	int m_currentAnimIdx;
-	std::vector<ResourcePtr<SkeletalAnimation>> m_skeletonAnimations;
 	bool m_isPlaying;
 
 	//for ui : 

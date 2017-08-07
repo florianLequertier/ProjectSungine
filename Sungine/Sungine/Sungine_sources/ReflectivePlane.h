@@ -20,33 +20,34 @@ class ReflectivePlane : public Component, public IRenderableComponent, public IB
 	COMPONENT_IMPLEMENTATION_HEADER(ReflectivePlane)
 
 	CLASS((ReflectivePlane, Component),
-	((PRIVATE)
-		(bool		, m_castShadow		)
-	)
+		((PRIVATE)
+			(bool							, m_castShadow		)
+			(AssetHandle<Mesh>				, m_mesh			)
+			(AssetHandle<MaterialInstance>	, m_material		)
+		)
 	)
 
 
 private:
 
-	// TODO : ->parameter
-	ResourcePtr<Mesh> m_mesh;
-	ResourcePtr<MaterialInstance> m_material;
+	//ResourcePtr<Mesh> m_mesh;
+	//ResourcePtr<MaterialInstance> m_material;
 
-	glm::mat4 m_modelMatrix;
-	AABB m_aabb;
+	glm::mat4 m_modelMatrix; // nosave, hide
+	AABB m_aabb; // nosave, hide
 
-	std::unordered_map<ID, std::shared_ptr<ReflectionCamera>> m_reflexionCameras;
-	ID m_activeCameraID;
+	std::unordered_map<ID, std::shared_ptr<ReflectionCamera>> m_reflexionCameras; // nosave, hide
+	ID m_activeCameraID; // nosave, hide
 
 public:
 
 	ReflectivePlane();
-	ReflectivePlane(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material);
+	ReflectivePlane(AssetHandle<Mesh> mesh, AssetHandle<MaterialInstance> material);
 	ReflectivePlane(const ReflectivePlane& other);
 	virtual ~ReflectivePlane();
 
-	void setMesh(ResourcePtr<Mesh> _mesh);
-	void setMaterial(ResourcePtr<MaterialInstance> _material);
+	void setMesh(const AssetHandle<Mesh>& _mesh);
+	void setMaterial(const AssetHandle<MaterialInstance>& _material);
 
 	const MaterialInstance* getMaterial() const;
 	const Mesh* getMesh() const;
@@ -64,8 +65,8 @@ public:
 	glm::vec4 getClipPlane() const;
 
 	// Herite from Component
-	virtual void drawInInspector(Scene& scene) override;
-	virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
+	//virtual void drawInInspector(Scene& scene) override;
+	//virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat()) override;
 	virtual void applyTransformFromPhysicSimulation(const glm::vec3& translation, const glm::quat& rotation = glm::quat()) override;

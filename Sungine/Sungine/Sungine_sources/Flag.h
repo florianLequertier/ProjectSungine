@@ -53,6 +53,9 @@ namespace Physic {
 			(bool		, m_computeAutoCollision	)
 			(float		, m_autoCollisionRigidity	)
 			(float		, m_autoCollisionViscosity	)
+
+			//flag material
+			(AssetHandle<MaterialInstance>, m_material)
 			)
 		)
 
@@ -71,8 +74,7 @@ namespace Physic {
 		Mesh m_mesh;
 
 		// Flag material
-		std::string m_materialName;
-		ResourcePtr<MaterialInstance> m_material;
+		std::string m_materialName; // ???
 
 	public:
 		Flag();

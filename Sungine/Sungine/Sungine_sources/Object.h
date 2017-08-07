@@ -67,6 +67,16 @@ public:
 		getDescriptor().loadObjectInstanceJSON(this, archive);
 	}
 
+	void save(cereal::BinaryOutputArchive& archive) const
+	{
+		getDescriptor().saveObjectInstanceBinary(this, archive);
+	}
+
+	void load(cereal::BinaryInputArchive& archive)
+	{
+		getDescriptor().loadObjectInstanceBinary(this, archive);
+	}
+
 	virtual void OnBeforeObjectSaved()
 	{
 		// Nothing by default

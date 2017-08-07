@@ -18,7 +18,7 @@ MeshRenderer::MeshRenderer()
 	m_materials.push_back(getMaterialFactory().getDefault("defaultLit"));
 }
 
-MeshRenderer::MeshRenderer(ResourcePtr<Mesh> mesh, ResourcePtr<MaterialInstance> material) 
+MeshRenderer::MeshRenderer(AssetHandle<Mesh> mesh, AssetHandle<MaterialInstance> material) 
 	: Component(MESH_RENDERER)
 	, m_mesh(mesh)
 {
@@ -39,85 +39,85 @@ MeshRenderer::~MeshRenderer()
 	m_mesh.reset();
 	m_materials.clear();
 }
-
-void MeshRenderer::drawInInspector(Scene& scene)
-{
-	ResourcePtr<MaterialInstance> materialQuery;
-	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
-	{
-		if (materialQuery.isValid())
-		{
-			m_materials.push_back(materialQuery);
-		}
-	}
-
-	for (int i = 0; i < m_materials.size(); i++)
-	{
-		ImGui::PushID(i);
-		ImGui::Text(m_materials[i]->getName().c_str());
-		if (m_materials.size() > 1)
-		{
-			ImGui::SameLine();
-			if (ImGui::Button("remove"))
-			{
-				m_materials.erase(m_materials.begin() + i);
-			}
-		}
-		ImGui::PopID();
-	}
-
-	ResourcePtr<Mesh> meshQuery;
-	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
-
-	if (meshQuery.isValid())
-	{
-		setMesh(meshQuery);
-	}
-}
-
-void MeshRenderer::drawInInspector(Scene& scene, const std::vector<Component*>& components)
-{
-	ResourcePtr<MaterialInstance> materialQuery;
-	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
-	if (materialQuery.isValid())
-	{
-		for (auto component : components)
-		{
-			MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
-			castedComponent->m_materials.push_back(materialQuery);
-		}
-	}
-
-	for (int i = 0; i < m_materials.size(); i++)
-	{
-		ImGui::PushID(i);
-		ImGui::Text(m_materials[i]->getName().c_str());
-		if (m_materials.size() > 1) 
-		{
-			ImGui::SameLine();
-			if (ImGui::Button("remove")) 
-			{
-				for (auto component : components)
-				{
-					MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
-					castedComponent->m_materials.erase(m_materials.begin() + i);
-				}
-			}
-		}
-		ImGui::PopID();
-	}
-
-	ResourcePtr<Mesh> meshQuery;
-	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
-	if (meshQuery.isValid())
-	{
-		for (auto component : components)
-		{
-			MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
-			castedComponent->setMesh(meshQuery);
-		}
-	}
-}
+//
+//void MeshRenderer::drawInInspector(Scene& scene)
+//{
+//	AssetHandle<MaterialInstance> materialQuery;
+//	if (EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery))
+//	{
+//		if (materialQuery.isValid())
+//		{
+//			m_materials.push_back(materialQuery);
+//		}
+//	}
+//
+//	for (int i = 0; i < m_materials.size(); i++)
+//	{
+//		ImGui::PushID(i);
+//		ImGui::Text(m_materials[i]->getAssetName().c_str());
+//		if (m_materials.size() > 1)
+//		{
+//			ImGui::SameLine();
+//			if (ImGui::Button("remove"))
+//			{
+//				m_materials.erase(m_materials.begin() + i);
+//			}
+//		}
+//		ImGui::PopID();
+//	}
+//
+//	AssetHandle<Mesh> meshQuery;
+//	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
+//
+//	if (meshQuery.isValid())
+//	{
+//		setMesh(meshQuery);
+//	}
+//}
+//
+//void MeshRenderer::drawInInspector(Scene& scene, const std::vector<Component*>& components)
+//{
+//	AssetHandle<MaterialInstance> materialQuery;
+//	EditorGUI::ResourceField<MaterialInstance>("materialName", materialQuery);
+//	if (materialQuery.isValid())
+//	{
+//		for (auto component : components)
+//		{
+//			MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
+//			castedComponent->m_materials.push_back(materialQuery);
+//		}
+//	}
+//
+//	for (int i = 0; i < m_materials.size(); i++)
+//	{
+//		ImGui::PushID(i);
+//		ImGui::Text(m_materials[i]->getAssetName().c_str());
+//		if (m_materials.size() > 1) 
+//		{
+//			ImGui::SameLine();
+//			if (ImGui::Button("remove")) 
+//			{
+//				for (auto component : components)
+//				{
+//					MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
+//					castedComponent->m_materials.erase(m_materials.begin() + i);
+//				}
+//			}
+//		}
+//		ImGui::PopID();
+//	}
+//
+//	AssetHandle<Mesh> meshQuery;
+//	EditorGUI::ResourceField<Mesh>("meshName", meshQuery);
+//	if (meshQuery.isValid())
+//	{
+//		for (auto component : components)
+//		{
+//			MeshRenderer* castedComponent = static_cast<MeshRenderer*>(component);
+//			castedComponent->setMesh(meshQuery);
+//		}
+//	}
+//}
 
 void MeshRenderer::applyTransform(const glm::vec3 & translation, const glm::vec3 & scale, const glm::quat & rotation)
 {
@@ -140,13 +140,13 @@ void MeshRenderer::applyTransformFromPhysicSimulation(const glm::vec3 & translat
 	}
 }
 
-void MeshRenderer::setMesh(ResourcePtr<Mesh> _mesh)
+void MeshRenderer::setMesh(const AssetHandle<Mesh>& _mesh)
 {
 	m_mesh = _mesh;
 	updateLocalMeshDatas();
 }
 
-void MeshRenderer::addMaterial(ResourcePtr<MaterialInstance> _material)
+void MeshRenderer::addMaterial(const AssetHandle<MaterialInstance>& _material)
 {
 	m_materials.push_back(_material);
 }
@@ -158,7 +158,7 @@ void MeshRenderer::removeMaterial(int idx)
 	m_materials.erase(m_materials.begin() + idx);
 }
 
-void MeshRenderer::setMaterial(ResourcePtr<MaterialInstance> _material, int idx)
+void MeshRenderer::setMaterial(const AssetHandle<MaterialInstance>& _material, int idx)
 {
 	assert(idx >= 0 && idx < m_materials.size());
 
@@ -187,17 +187,17 @@ std::string MeshRenderer::getMaterialName(int idx) const
 {
 	assert(idx >= 0 && idx < m_materials.size());
 
-	return m_materials[idx]->getCompletePath().getFilename();
+	return m_materials[idx]->getAssetName();
 }
 
 std::string MeshRenderer::getMeshName() const
 {
-	return m_mesh->getCompletePath().getFilename();
+	return m_mesh->getAssetName();
 }
 
 glm::vec3 MeshRenderer::getOrigin() const
 {
-	return m_mesh->origin;
+	return m_mesh->getOrigin();
 }
 
 void MeshRenderer::render(const glm::mat4 & projection, const glm::mat4 & view)
@@ -206,7 +206,7 @@ void MeshRenderer::render(const glm::mat4 & projection, const glm::mat4 & view)
 	glm::mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 	glm::mat4 mvp = projection * view * modelMatrix;
 
-	int minMatMeshCount = std::min((int)m_materials.size(), m_mesh->subMeshCount);
+	int minMatMeshCount = std::min((int)m_materials.size(), m_mesh->getSubMeshCount());
 	for (int i = 0; i < minMatMeshCount; i++)
 	{
 		Material3DObject* castedMaterial = static_cast<Material3DObject*>(m_materials[i].get()); //TODO : a enlever lors de l'upgrade du pipeline graphique.
@@ -294,7 +294,7 @@ void MeshRenderer::load(const Json::Value & rootComponent)
 	m_materials.clear();
 	for (int i = 0; i < materialCount; i++)
 	{
-		ResourcePtr<MaterialInstance> newMaterial(rootComponent["material"][i]);
+		AssetHandle<MaterialInstance> newMaterial(rootComponent["material"][i]);
 		m_materials.push_back(newMaterial);
 		//material.back()->initGL(); //TODO INITGL
 	}
@@ -321,7 +321,7 @@ Component * MeshRenderer::getAsComponent()
 	return this;
 }
 
-void MeshRenderer::onAfterComponentAddedToScene(Scene & scene)
+void MeshRenderer::onAfterAddedToScene(Scene & scene)
 {
 	//Add this components to renderables :
 	IRenderableComponent* asRenderable = static_cast<IRenderableComponent*>(this);
@@ -329,7 +329,7 @@ void MeshRenderer::onAfterComponentAddedToScene(Scene & scene)
 		scene.addToRenderables(this);
 }
 
-void MeshRenderer::onBeforeComponentErasedFromScene(Scene & scene)
+void MeshRenderer::onBeforeRemovedFromScene(Scene & scene)
 {
 	//Remove this components from renderables :
 	IRenderableComponent* asRenderable = static_cast<IRenderableComponent*>(this);
@@ -337,7 +337,7 @@ void MeshRenderer::onBeforeComponentErasedFromScene(Scene & scene)
 		scene.removeFromRenderables(this);
 }
 
-void MeshRenderer::onAfterComponentAddedToEntity(Entity & entity)
+void MeshRenderer::onAfterAddedToEntity(Entity & entity)
 {
 	if (m_entity != nullptr)
 	{

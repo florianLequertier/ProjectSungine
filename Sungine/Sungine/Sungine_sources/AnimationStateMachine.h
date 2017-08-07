@@ -27,8 +27,11 @@ public:
 	bool getValue() const { return m_value; }
 };
 
-class AnimationStateMachine final : public Resource, public ISerializable
+class AnimationStateMachine final : public Asset, public ISerializable
 {
+public:
+	static std::string s_extention;
+
 private:
 	int m_entryNodeIdx;
 	int m_currentNodeIdx;

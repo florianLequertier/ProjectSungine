@@ -20,6 +20,36 @@
 
 namespace Utils {
 
+bool OpenFileStreamRead(const FileHandler::CompletePath& filepath, std::ifstream& outStream)
+{
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	outStream.open(absolutePath.toString());
+	if (!outStream.is_open())
+	{
+		std::cout << "error, can't open file at path : " << absolutePath.toString() << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+bool OpenFileStreamWrite(const FileHandler::CompletePath& filepath, std::ofstream& outStream)
+{
+	assert(!Project::isPathPointingInsideProjectFolder(filePath)); //path should be relative
+	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(filePath);
+
+	outStream.open(absolutePath.toString());
+	if (!outStream.is_open())
+	{
+		std::cout << "error, can't load file at path : " << absolutePath.toString() << std::endl;
+		return false;
+	}
+	return true;
+}
+
+
 template<typename T>
 inline std::string valueAsString(const T& value)
 {

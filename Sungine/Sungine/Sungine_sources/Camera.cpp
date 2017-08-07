@@ -336,6 +336,16 @@ void Camera::drawInInspector(Scene& scene)
 	m_postProcessProxy.drawUI(); //TODO : multi editing
 }
 
+void Camera::drawInInspector()
+{
+	getDescriptor().drawInInspector(this);
+}
+
+void Camera::drawInInspector(const std::vector<void*>& objectInstances)
+{
+	getDescriptor().drawInInspector(objectInstances);
+}
+
 void Camera::drawInInspector(Scene& scene, const std::vector<Component*>& components)
 {
 	if (ImGui::RadioButton("perspective", (m_cameraMode == CameraMode::PERSPECTIVE)))

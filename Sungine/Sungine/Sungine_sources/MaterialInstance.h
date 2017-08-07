@@ -35,15 +35,19 @@ class IRenderBatch;
 struct RenderDatas;
 
 //Materials :
-class MaterialInstance : public Asset
+class MaterialInstance : public Material
 {
-	CLASS((MaterialInstance, Asset),
-		((PRIVATE)
-			(AssetHandle<Material>, m_baseMaterial)
-		)
-	)
+	CLONABLE_IMPL(Material, MaterialInstance)
+
+public:
+	static std::string s_extention;
 private:
-	// Only m_baseMaterial is serialized. Other properties are restored via OnAfterObjectLoaded()
+
+	CLASS((MaterialInstance, Asset))
+
+protected:
+	AssetHandle<Material> m_baseMaterial;
+	// Only m_baseMaterial is serialized. Other properties are restored via init(m_baseMaterial)
 	GLuint m_glProgramId;
 	std::vector<std::shared_ptr<InternalShaderParameterBase>> m_internalParameters;
 	std::unordered_map<std::string, std::shared_ptr<MaterialAggregation>> m_aggregations;
@@ -64,43 +68,47 @@ private:
 	//const Material* m_programPtr;
 
 public:
+
+	//////////////////////////////////////////////////////////
+	// Constructors and operators
+	//////////////////////////////////////////////////////////
 	MaterialInstance();
 	MaterialInstance(const AssetHandle<Material>& material);
 	MaterialInstance(const AssetHandle<Material>& material, const FileHandler::CompletePath& completePath);
 	virtual ~MaterialInstance();
+	//////////////////////////////////////////////////////////
 
-	//void changePipeline(Rendering::PipelineType pipelineType);
-	//void addAggregation(const std::string& key, std::shared_ptr<MaterialAggregation> aggregation);
-	//void removeAggregation(const std::string& key);
-	//const std::shared_ptr<MaterialAggregation> getAggregation(const std::string& key) const;
-
+	//////////////////////////////////////////////////////////
+	// Inits
+	//////////////////////////////////////////////////////////
 	//init internal params. Should be called in constructor, or just after construction.
 	void initInternalParameters();
 	void init(const AssetHandle<Material>& shaderProgram);
-	void OnAfterObjectLoaded() override;
+	void loadFromShaderProgramDatas(GLuint glProgramId, const std::vector<std::shared_ptr<InternalShaderParameterBase>>& internalParameters/*, std::vector<std::shared_ptr<ExternalShaderParameterBase>>& externalParameters*/);
+	//////////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////////
+	// Asset override
+	//////////////////////////////////////////////////////////
+	void createNewAssetFile(const FileHandler::CompletePath& filePath) override;
+	void loadFromFile(const FileHandler::CompletePath& filePath) override;
+	void saveToFile() override;
+	void saveMetas() override;
+	void loadMetas() override;
+	void drawInInspector() override;
+	//////////////////////////////////////////////////////////
 
 	// Custom draw in inspector to show only the interal params
-	void drawInInspector(const std::vector<void*>& objectInstances) override;
+	//void drawInInspector(const std::vector<void*>& objectInstances) override;
 
-	//virtual void init(const FileHandler::CompletePath& path, const ID& id) override;
-	//virtual void save() override;
-	//virtual void resolvePointersLoading() override;
-	////void save(const FileHandler::CompletePath& path) const;
-	//// Save and load internal parameters 
-	//virtual void save(Json::Value & entityRoot) const override;
-	//virtual void load(const Json::Value & entityRoot) override;
 
+	//////////////////////////////////////////////////////////
+	// Getters / Setters
+	//////////////////////////////////////////////////////////
 	void setAggregates(std::unordered_map<std::string, std::shared_ptr<MaterialAggregation>>& aggregations);
 	void setPerInstanceAggregates(std::unordered_map<std::string, std::shared_ptr<PerInstanceMaterialAggregation>>& perInstanceAggregations);
 	void setProgramId(GLuint programId);
 	void setinternalParameters(std::vector<std::shared_ptr<InternalShaderParameterBase>>& internalShaderParameters);
-
-	void pushGlobalsToGPU(const RenderDatas& renderDatas) const;
-	void pushInternalsToGPU(int& boundTextureCount) const;
-	void pushExternalsToGPU(const IDrawable& drawable, const RenderDatas& renderDatas, int& boundTextureCount) const;
-	virtual void setExternalParameters(/*const std::vector<std::shared_ptr<ExternalShaderParameterBase>>& externalParameters*/) { };
-	void use() const;
-	void use();
 	GLuint getGLId() const;
 	Rendering::PipelineType getPipelineType() const;
 	template<typename T>
@@ -108,7 +116,7 @@ public:
 	{
 		auto& found = std::find_if(m_internalParameters.begin(), m_internalParameters.end(), [parameterName](const std::shared_ptr<InternalShaderParameterBase>& item) { return item->getName() == parameterName; });
 		void* foundData = nullptr;
-		if(found != m_internalParameters.end())
+		if (found != m_internalParameters.end())
 			(*found)->getData(foundData);
 		return static_cast<T*>(foundData);
 	}
@@ -118,12 +126,20 @@ public:
 		auto& found = std::find_if(m_internalParameters.begin(), m_internalParameters.end(), [parameterName](const std::shared_ptr<InternalShaderParameterBase>& item) { return item->getName() == parameterName; });
 		(*found)->setData(data);
 	}
+	//////////////////////////////////////////////////////////
 
-	void loadFromShaderProgramDatas(GLuint glProgramId, const std::vector<std::shared_ptr<InternalShaderParameterBase>>& internalParameters/*, std::vector<std::shared_ptr<ExternalShaderParameterBase>>& externalParameters*/);
-
-
-
+	//////////////////////////////////////////////////////////
+	// Actions
+	//////////////////////////////////////////////////////////
+	void pushGlobalsToGPU(const RenderDatas& renderDatas) const;
+	void pushInternalsToGPU(int& boundTextureCount) const;
+	void pushExternalsToGPU(const IDrawable& drawable, const RenderDatas& renderDatas, int& boundTextureCount) const;
+	virtual void setExternalParameters(/*const std::vector<std::shared_ptr<ExternalShaderParameterBase>>& externalParameters*/) { };
+	void use() const;
+	void use();
 	virtual std::shared_ptr<IRenderBatch> makeSharedRenderBatch() const;
+	//////////////////////////////////////////////////////////
+
 };
 
 //template<typename BatchMaterialType, typename ParentMaterialType>

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Mesh.h"
-#include "Materials.h"
+#include "MaterialInstance.h"
+#include "EngineMaterials.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -9,7 +10,6 @@
 #include "glm/gtc/random.hpp"
 
 #include "Component.h"
-#include "Materials.h"
 
 #include "jsoncpp/json/json.h"
 #include "SerializeUtils.h"
@@ -26,24 +26,27 @@ namespace Physic{
 		CLASS((ParticleEmitter, Component),
 		((PRIVATE)
 			//transform :
-			(glm::vec3				, m_scale						)
-			(glm::vec3				, m_translation					)
-			(glm::quat				, m_rotation					)
+			(glm::vec3						, m_scale						)
+			(glm::vec3						, m_translation					)
+			(glm::quat						, m_rotation					)
 			//parameters :
-			(int					, m_maxParticleCount			)
-			(int					, m_aliveParticlesCount			)
-			(std::vector<float>		, m_sizeSteps_times				)
-			(std::vector<glm::vec2> , m_sizeSteps_values			)
-			(std::vector<float>		, m_colorSteps_times			)
-			(std::vector<glm::vec4> , m_colorSteps_values			)
-			(std::vector<float>		, m_forceSteps_times			)
-			(std::vector<glm::vec3> , m_forceSteps_values			)
-			(glm::vec2				, m_initialVelocityInterval		)
-			(glm::vec2				, m_lifeTimeInterval			)
-			(float					, m_particleCountBySecond		)
-			(float					, m_spawnFragment				)
-			(bool					, m_emitInShape					)
-			(bool					, m_sortParticles				)
+			(int							, m_maxParticleCount			)
+			(int							, m_aliveParticlesCount			)
+			(std::vector<float>				, m_sizeSteps_times				)
+			(std::vector<glm::vec2>			, m_sizeSteps_values			)
+			(std::vector<float>				, m_colorSteps_times			)
+			(std::vector<glm::vec4>			, m_colorSteps_values			)
+			(std::vector<float>				, m_forceSteps_times			)
+			(std::vector<glm::vec3>			, m_forceSteps_values			)
+			(glm::vec2						, m_initialVelocityInterval		)
+			(glm::vec2						, m_lifeTimeInterval			)
+			(float							, m_particleCountBySecond		)
+			(float							, m_spawnFragment				)
+			(bool							, m_emitInShape					)
+			(bool							, m_sortParticles				)
+			//Textures and materials:
+			(AssetHandle<Texture>			, m_particleTexture				)
+			(AssetHandle<MaterialInstance>	, m_materialParticules			)
 		)
 		)
 
@@ -52,41 +55,41 @@ namespace Physic{
 	private:
 
 		//TODO : enlever a texture ? nouveau pipeline materiel
-		ResourcePtr<Texture> m_particleTexture;
+		//ResourcePtr<Texture> m_particleTexture;
 		std::string m_particleTextureName;
 
 		//TODO : -> parameters
 		//materials : 
-		ResourcePtr<MaterialInstance> m_materialParticules;
+		//ResourcePtr<MaterialInstance> m_materialParticules;
 		//MaterialParticleSimulation* m_materialParticuleSimulation;
 
 		//particles soa : 
-		std::vector<glm::vec3> m_positions;
-		std::vector<glm::vec3> m_velocities;
-		std::vector<glm::vec3> m_forces;
-		std::vector<float> m_elapsedTimes;
-		std::vector<float> m_lifeTimes;
-		std::vector<glm::vec4> m_colors;
-		std::vector<glm::vec2> m_sizes;
-		std::vector<float> m_distanceToCamera;
+		std::vector<glm::vec3> m_positions; //nosave hide
+		std::vector<glm::vec3> m_velocities; //nosave hide
+		std::vector<glm::vec3> m_forces; //nosave hide
+		std::vector<float> m_elapsedTimes; //nosave hide
+		std::vector<float> m_lifeTimes; //nosave hide
+		std::vector<glm::vec4> m_colors; //nosave hide
+		std::vector<glm::vec2> m_sizes; //nosave hide
+		std::vector<float> m_distanceToCamera; //nosave hide
 
 		//model :
-		int m_triangleCount;
-		std::vector<unsigned int> m_triangleIndex;
-		std::vector<float> m_uvs;
-		std::vector<float> m_vertices;
-		std::vector<float> m_normals;
+		int m_triangleCount; //nosave hide
+		std::vector<unsigned int> m_triangleIndex; //nosave hide
+		std::vector<float> m_uvs; //nosave hide
+		std::vector<float> m_vertices; //nosave hide
+		std::vector<float> m_normals; //nosave hide
 
 		//opengl stuff : 
-		GLuint m_vao;
-		GLuint m_index;
-		GLuint m_vboUvs;
-		GLuint m_vboVertices;
-		GLuint m_vboNormals;
+		GLuint m_vao; //nosave hide
+		GLuint m_index; //nosave hide
+		GLuint m_vboUvs; //nosave hide
+		GLuint m_vboVertices; //nosave hide
+		GLuint m_vboNormals; //nosave hide
 		//instanced infos : 
-		GLuint m_vboPositions;
-		GLuint m_vboColors;
-		GLuint m_vboSizes;
+		GLuint m_vboPositions; //nosave hide
+		GLuint m_vboColors; //nosave hide
+		GLuint m_vboSizes; //nosave hide
 
 	public:
 		ParticleEmitter();

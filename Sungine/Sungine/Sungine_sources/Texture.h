@@ -22,6 +22,9 @@ enum class AlphaMode
 
 class Texture final : public Asset
 {
+public:
+	static std::string s_extention;
+
 private:
 
 	int w;
@@ -101,6 +104,9 @@ public:
 
 class CubeTexture final : public Asset
 {
+public:
+	static std::string s_extention;
+
 private:
 	std::string name;
 

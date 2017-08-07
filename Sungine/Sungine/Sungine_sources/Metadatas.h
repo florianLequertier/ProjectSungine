@@ -42,16 +42,26 @@ public:
 	MemberType  Class::*pointerToMember;
 	MetasFilter<MemberType> metasFilter;
 	std::string name;
+	void (Class::*ModifCallback) () callback;
 
 	PropertyDescriptor(MemberType Class::* ptrToMember, const std::string& propertyName)
 		: pointerToMember(ptrToMember)
 		, name(propertyName)
+		, callback(nullptr)
 	{}
 
 	PropertyDescriptor(MemberType Class::* ptrToMember, const std::string& propertyName, const std::string& metas)
-		: metasFiltermetas()
+		: metasFilter(Metas::formatMetas(metas))
 		, pointerToMember(ptrToMember)
 		, name(propertyName)
+		, callback(nullptr)
+	{}
+
+	PropertyDescriptor(MemberType Class::* ptrToMember, const std::string& propertyName, const std::string& metas, void(Class::*) () _callback)
+		: metasFilter(Metas::formatMetas(metas))
+		, pointerToMember(ptrToMember)
+		, name(propertyName)
+		, callback(_callback)
 	{}
 
 	const std::string& getName() const override
@@ -79,6 +89,16 @@ public:
 		archive(getInstanceMember(objectInstance));
 	}
 
+	virtual void saveBinary(const void* objectInstance, cereal::BinaryOutputArchive& archive) override
+	{
+		archive(getInstanceMember(objectInstance));
+	}
+
+	virtual void loadBinary(void* objectInstance, cereal::BinaryInputArchive& archive) override
+	{
+		archive(getInstanceMember(objectInstance));
+	}
+
 	virtual void print(const void* objectInstance) override
 	{
 		atomicPrint(getInstanceMember(objectInstance));
@@ -86,11 +106,19 @@ public:
 
 	virtual void drawInInspector(void* objectInstance) override
 	{
-		Field::PropertyField(this, std::vector<void*>(1, objectInstance), metasFilter);
+		if (metasFlter.hide)
+			return;
+
+		if (Field::PropertyField<MemberType>(name, std::vector<void*>(1, objectInstance), metasFilter))
+			if(callback != nullptr)
+				((*objectInstance).*callback)();
 	}
 
 	virtual void drawInInspector(const std::vector<void*>& objectInstances) override
 	{
+		if (metasFilter.hide)
+			return;
+
 		std::vector<MemberType*> properties(objectInstances.size());
 		int index = 0;
 		for (auto& objectInstance : objectInstances)
@@ -98,7 +126,9 @@ public:
 			properties[index++] = &getInstanceMember(objectInstance);
 		}
 
-		Field::PropertyField(properties, metasFilter);
+		if (Field::PropertyField<MemberType>(name, properties, metasFilter))
+			if (callback != nullptr)
+				((*objectInstance).*callback)();
 	}
 };
 
@@ -285,6 +315,13 @@ public:
 		getInstance().propertyDescriptorsMapping[memberName] = getInstance().propertyDescriptors.size() - 1;
 	}
 
+	template<typename MemberClass>
+	static void registerProperty(MemberClass ObjectClass::* pointerToMember, const std::string& propertyName, const std::string& metas, void(ObjectClass::*)() _callback)
+	{
+		getInstance().propertyDescriptors.push_back(new PropertyDescriptor<ObjectClass, MemberClass>(pointerToMember, propertyName, metas, _callback));
+		getInstance().propertyDescriptorsMapping[memberName] = getInstance().propertyDescriptors.size() - 1;
+	}
+
 	template<typename ParentClass>
 	static void registerParentClass()
 	{
@@ -339,6 +376,36 @@ public:
 			propertyDescriptor->loadJSON(objectInstance, archive);
 		}
 	}
+
+
+	void saveObjectInstanceBinary(const void* objectInstance, cereal::BinaryOutputArchive& archive) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : parentClassDescriptors)
+		{
+			parentClass->saveObjectInstanceBinary(objectInstance, archive);
+		}
+
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			propertyDescriptor->saveBinary(objectInstance, archive);
+		}
+	}
+
+	void loadObjectInstanceJSON(void* objectInstance, cereal::BinaryInputArchive& archive) override
+	{
+		// We take parent classes into account
+		for (auto parentClass : getInstance().parentClassDescriptors)
+		{
+			parentClass->loadObjectInstanceJSON(objectInstance, archive);
+		}
+
+		for (auto propertyDescriptor : getInstance().propertyDescriptors)
+		{
+			propertyDescriptor->loadBinary(objectInstance, archive);
+		}
+	}
+
 
 	void printObjectInstance(const void* objectInstance) override
 	{
@@ -482,14 +549,18 @@ public:
 #define DEFINE_PROPS( seq ) protected: BOOST_PP_SEQ_FOR_EACH(DEFINE_PROP,_, seq) private:
 
 //class, type, name, meta -> Object<class>::registerProperty<type>(&class::name, meta)
-#define REGISTER_PROP____(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name, #Metas);
-#define REGISTER_PROP____BIS(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name);
+#define REGISTER_PROP_WITH_METAS_AND_CALLBACK_(Class, Type, Name, Metas, Callback) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name, #Metas, &Class::Callback);
+#define REGISTER_PROP_WITH_METAS_ONLY_(Class, Type, Name, Metas) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name, #Metas);
+#define REGISTER_PROP_WITHOUT_METAS_(Class, Type, Name) ObjectDescriptor<Class>::registerProperty<Type>(&Class::Name, #Name);
 
 //class, prop01 -> REGISTER_PROP___(class, prop01[0], prop01[1], prop01[2])
-#define REGISTER_PROP___(r, Class, elem) REGISTER_PROP____(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem), BOOST_PP_TUPLE_ELEM(2, elem))
-#define REGISTER_PROP___BIS(r, Class, elem) REGISTER_PROP____BIS(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem))
+#define REGISTER_PROP_WITH_METAS_AND_CALLBACK(r, Class, elem) REGISTER_PROP_WITH_METAS_AND_CALLBACK_(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem), BOOST_PP_TUPLE_ELEM(2, elem), BOOST_PP_TUPLE_ELEM(3, elem))
+#define REGISTER_PROP_WITH_METAS_ONLY(r, Class, elem) REGISTER_PROP_WITH_METAS_ONLY_(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem), BOOST_PP_TUPLE_ELEM(2, elem))
+#define REGISTER_PROP_WITHOUT_METAS(r, Class, elem) REGISTER_PROP_WITHOUT_METAS_(Class, BOOST_PP_TUPLE_ELEM(0, elem), BOOST_PP_TUPLE_ELEM(1, elem))
 
-#define REGISTER_PROP__(r, Class, elem) BOOST_PP_IF(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(elem), 2), REGISTER_PROP___(r, Class, elem), REGISTER_PROP___BIS(r, Class, elem))
+#define REGISTER_PROP_WITH_METAS(r, Class, elem) BOOST_PP_IF(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(elem), 3), REGISTER_PROP_WITH_METAS_AND_CALLBACK(r, Class, elem), REGISTER_PROP_WITH_METAS_ONLY(r, Class, elem))
+
+#define REGISTER_PROP__(r, Class, elem) BOOST_PP_IF(BOOST_PP_SUB(BOOST_PP_TUPLE_SIZE(elem), 2), REGISTER_PROP_WITH_METAS(r, Class, elem), REGISTER_PROP_WITHOUT_METAS(r, Class, elem))
 
 //class, public, (prop01) (prop02) ...) -> foreach( (prop01) (prop02) ...) -> REGISTER_PROP__)
 #define REGISTER_PROP_(r, Class, Scope, elem) PP_DEFER(PP_SEQ_FOR_EACH_R_ID)()(r, REGISTER_PROP__, Class, GLK_PP_SEQ_DOUBLE_PARENS(elem))

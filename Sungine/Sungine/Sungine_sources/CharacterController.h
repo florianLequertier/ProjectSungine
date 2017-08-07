@@ -64,44 +64,44 @@ protected:
 
 class CharacterController: public Component
 {
-	OBJECT_CLASS(CharacterController,
-		ObjectDescriptor<CharacterController>::registerParentClass<Component>();
-
-		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_translation);
-		ObjectDescriptor<CharacterController>::registerProperty<glm::quat>(&CharacterController::m_rotation);
-		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_scale);
-
-		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_speed);
-		ObjectDescriptor<CharacterController>::registerProperty<glm::vec3>(&CharacterController::m_force);
-		
-		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_height);
-		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_radius);
-
-		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_gravityFactor);
-		ObjectDescriptor<CharacterController>::registerProperty<float>(&CharacterController::m_jumpFactor);
-		ObjectDescriptor<CharacterController>::registerProperty<float[4]>(&CharacterController::m_speedFactor)
-	)
-
 	COMPONENT_IMPLEMENTATION_HEADER(CharacterController)
 
+	CLASS((CharacterController, Component),
+		((PRIVATE)
+			(glm::vec3, m_translation, "hide")
+			(glm::quat, m_rotation, "hide")
+			(glm::vec3, m_scale, "hide")
+			(glm::vec3, m_speed, "hide")
+			(glm::vec3, m_force, "hide")
+			(float, m_height)
+			(float, m_radius)
+			(float, m_gravityFactor)
+			(float, m_jumpFactor)
+			(float, m_speedFactor) //???
+			(float, m_isOnGround, "hide,nosave")
+			(float, m_isOnGround, "hide,nosave")
+		)
+	)
+
 	enum Direction {FORWARD = 0, RIGHT = 1, LEFT = 2, BACKWARD = 3};
+
 private:
-	glm::vec3 m_translation;
-	glm::quat m_rotation;
-	glm::vec3 m_scale;
+	//glm::vec3 m_translation;
+	//glm::quat m_rotation;
+	//glm::vec3 m_scale;
 
-	glm::vec3 m_speed;
-	glm::vec3 m_force;
+	//glm::vec3 m_speed;
+	//glm::vec3 m_force;
 
-	float m_height;
-	float m_radius;
+	//float m_height;
+	//float m_radius;
 
-	float m_gravityFactor;
-	float m_jumpFactor;
-	float m_speedFactor[4]; //one speed per direction
+	//float m_gravityFactor;
+	//float m_jumpFactor;
+	//float m_speedFactor[4]; //one speed per direction
 
-	bool m_isOnGround;
-	bool m_isJumping;
+	//bool m_isOnGround;
+	//bool m_isJumping;
 
 	btGhostObject* m_bulletGhostbody;
 	bool m_isGhostInWorld;

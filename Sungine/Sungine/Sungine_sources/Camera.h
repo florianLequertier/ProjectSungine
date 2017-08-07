@@ -145,50 +145,30 @@ public:
 
 class Camera : public Component, public BaseCamera
 {
-	OBJECT_CLASS(Camera,
-		ObjectDescriptor<Camera>::registerParentClass<Component>();
-		ObjectDescriptor<Camera>::registerParentClass<BaseCamera>();
-
-		ObjectDescriptor<Camera>::registerProperty<CameraMode>(&Camera::m_cameraMode);
-		ObjectDescriptor<Camera>::registerProperty<glm::vec3>(&Camera::m_lookPosition);
-		ObjectDescriptor<Camera>::registerProperty<glm::vec3>(&Camera::m_up);
-
-		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_left);
-		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_top);
-		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_right);
-		ObjectDescriptor<Camera>::registerProperty<float>(&Camera::m_bottom)
-	)
-
 	COMPONENT_IMPLEMENTATION_HEADER(Camera)
 
+	CLASS((Camera, Component, BaseCamera),
+		((PRIVATE)
+			(CameraMode, m_cameraMode, "", updateProjection)
+			(glm::vec3, m_lookPosition, "hide")
+			(glm::vec3, m_up, "hide")
+			(float, m_left, "hide")
+			(float, m_top, "hide")
+			(float, m_right, "hide")
+			(float, m_bottom, "hide")
+		)
+	)
+
 private :
-	CameraMode m_cameraMode;
+	//CameraMode m_cameraMode;
 
-	glm::vec3 m_lookPosition;
-	glm::vec3 m_up;
+	//glm::vec3 m_lookPosition;
+	//glm::vec3 m_up;
 
-	//glm::vec3 m_position;
-	//glm::vec3 m_forward;
-
-	//glm::mat4 m_viewMatrix;
-	//glm::mat4 m_projectionMatrix;
-
-	//float m_fovy;
-	//float m_aspect;
-	//float m_zNear;
-	//float m_zFar;
-
-	float m_left;
-	float m_top;
-	float m_right;
-	float m_bottom;
-
-	//std::map<GLuint, std::shared_ptr<IRenderBatch>> m_renderBatches[PipelineTypes::COUNT];
-	//PostProcessProxy m_postProcessProxy;
-	//GlHelper::Framebuffer m_frameBuffer;
-	//Texture m_texture;
-	//MaterialBlit* m_material;
-	//Mesh* m_quadMesh;
+	//float m_left;
+	//float m_top;
+	//float m_right;
+	//float m_bottom;
 
 public:
 
@@ -205,9 +185,9 @@ public:
 
 	virtual void applyTransform(const glm::vec3& translation, const glm::vec3& scale = glm::vec3(1, 1, 1), const glm::quat& rotation = glm::quat()) override;
 
-	virtual void drawInInspector(Scene& scene) override;
-	virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
-	
+	//virtual void drawInInspector(Scene& scene) override;
+	//virtual void drawInInspector(Scene& scene, const std::vector<Component*>& components) override;
+	//
 	virtual void updateScreenSize(float screenWidth, float screenHeight) override;
 	virtual void setPerspectiveInfos(float fovy, float aspect, float zNear = 0.1f, float zFar = 100.f) override;
 	virtual void setOrthographicInfos(float left, float right, float bottom, float top, float zNear, float zFar) override;

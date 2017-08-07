@@ -16,7 +16,8 @@
 //// BEGIN : Mesh
 
 Mesh::Mesh(GLenum _primitiveType , unsigned int _vbo_usage, int _coordCountByVertex, GLenum _drawUsage) 
-	: primitiveType(_primitiveType)
+	: Asset(Object::getStaticClassId<Mesh>())
+	, primitiveType(_primitiveType)
 	, coordCountByVertex(_coordCountByVertex)
 	, vbo_usage(_vbo_usage)
 	, vbo_index(0)
@@ -36,7 +37,7 @@ Mesh::Mesh(GLenum _primitiveType , unsigned int _vbo_usage, int _coordCountByVer
 }
 
 Mesh::Mesh(const FileHandler::CompletePath& _path, const std::string& meshName) 
-	: Resource(_path)
+	: Asset(Object::getStaticClassId<Mesh>())
 	, primitiveType(GL_TRIANGLES)
 	, coordCountByVertex(3)
 	, vbo_usage(USE_INDEX | USE_VERTICES | USE_UVS | USE_NORMALS | USE_TANGENTS), vbo_index(0), vbo_vertices(0)
@@ -157,79 +158,79 @@ void Mesh::loadFromFile(const FileHandler::CompletePath& filePath)
 	//////////////////////
 }
 
-void Mesh::saveToFile(const FileHandler::CompletePath& filePath)
+void Mesh::saveToFile()
 {
 	// We don't override mesh file, only the metadatas
-	saveMetas(filePath);
+	saveMetas();
 }
 
-void Mesh::saveMetas(const FileHandler::CompletePath& filePath)
+void Mesh::saveMetas()
 {
-	Asset::saveMetas(filePath);
+	Asset::saveMetas();
 	// TODO : save more infos
 }
 
-void Mesh::loadMetas(const FileHandler::CompletePath& filePath)
+void Mesh::loadMetas()
 {
-	Asset::loadMetas(filePath);
+	Asset::loadMetas();
 	// TODO : load more infos
 }
+//
+//void Mesh::init(const FileHandler::CompletePath & path, const ID& id)
+//{
+//	Resource::init(path, id);
+//
+//	assert(!Project::isPathPointingInsideProjectFolder(path)); //path should be relative
+//	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
+//
+//	primitiveType = GL_TRIANGLES;
+//	coordCountByVertex = 3;
+//	vbo_usage = (USE_INDEX | USE_VERTICES | USE_UVS | USE_NORMALS | USE_TANGENTS);
+//	vbo_index = 0;
+//	vbo_vertices = 0;
+//	vbo_uvs = 0;
+//	vbo_normals = 0;
+//	vbo_tangents = 0;
+//	drawUsage = GL_STATIC_DRAW;
+//
+//	if (skeleton != nullptr)
+//		delete skeleton;
+//	skeleton = nullptr;
+//	isSkeletalMesh = false;
+//
+//	subMeshCount = 1;
+//	totalTriangleCount = 0;
+//	triangleCount.push_back(0);
+//	indexOffsets.push_back(0);
+//
+//	bool Ret = false;
+//	if (importer != nullptr)
+//		delete importer;
+//	importer = new Assimp::Importer();
+//
+//	const aiScene* pScene = importer->ReadFile(absolutePath.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+//
+//	if (pScene) {
+//		Ret = initFromScene(pScene, absolutePath);
+//	}
+//	else {
+//		std::cout << "Error parsing " << absolutePath.toString() << " : " << importer->GetErrorString() << std::endl;
+//	}
+//
+//	initGl();
+//}
 
-void Mesh::init(const FileHandler::CompletePath & path, const ID& id)
-{
-	Resource::init(path, id);
-
-	assert(!Project::isPathPointingInsideProjectFolder(path)); //path should be relative
-	FileHandler::CompletePath absolutePath = Project::getAbsolutePathFromRelativePath(path);
-
-	primitiveType = GL_TRIANGLES;
-	coordCountByVertex = 3;
-	vbo_usage = (USE_INDEX | USE_VERTICES | USE_UVS | USE_NORMALS | USE_TANGENTS);
-	vbo_index = 0;
-	vbo_vertices = 0;
-	vbo_uvs = 0;
-	vbo_normals = 0;
-	vbo_tangents = 0;
-	drawUsage = GL_STATIC_DRAW;
-
-	if (skeleton != nullptr)
-		delete skeleton;
-	skeleton = nullptr;
-	isSkeletalMesh = false;
-
-	subMeshCount = 1;
-	totalTriangleCount = 0;
-	triangleCount.push_back(0);
-	indexOffsets.push_back(0);
-
-	bool Ret = false;
-	if (importer != nullptr)
-		delete importer;
-	importer = new Assimp::Importer();
-
-	const aiScene* pScene = importer->ReadFile(absolutePath.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-
-	if (pScene) {
-		Ret = initFromScene(pScene, absolutePath);
-	}
-	else {
-		std::cout << "Error parsing " << absolutePath.toString() << " : " << importer->GetErrorString() << std::endl;
-	}
-
-	initGl();
-}
-
-void Mesh::save()
-{
-	//TODO : metadatas
-	//assert(false && "metadatas for meshes aren't yet implemented.");
-	PRINT_WARNING("metadatas for textures aren't yet implamented.");
-}
-
-void Mesh::resolvePointersLoading()
-{
-	// No pointers.
-}
+//void Mesh::save()
+//{
+//	//TODO : metadatas
+//	//assert(false && "metadatas for meshes aren't yet implemented.");
+//	PRINT_WARNING("metadatas for textures aren't yet implamented.");
+//}
+//
+//void Mesh::resolvePointersLoading()
+//{
+//	// No pointers.
+//}
 
 void Mesh::setMeshDatas(GLenum _primitiveType, unsigned int _vbo_usage, int _coordCountByVertex, GLenum _drawUsage)
 {
@@ -508,6 +509,11 @@ std::shared_ptr<SubMesh> Mesh::makeSharedSubMesh(int subMeshIndex) const
 const AABB& Mesh::getLocalAABB() const
 {
 	return m_localAABB;
+}
+
+const glm::vec3& Mesh::getOrigin() const
+{
+	return origin;
 }
 
 void Mesh::computeBoundingBox()

@@ -54,18 +54,19 @@ struct DirectionalLightRenderDatas
 struct Light : public Component
 {
 	CLASS((Light, Component),
-	((PUBLIC)
-		// Base light parameters
-		(float		, intensity					)
-		(glm::vec3	, color						)
-		(bool		, castShadows				)
-		(bool		, useFlare					)
-	)
+		((PUBLIC)
+			// Base light parameters
+			(float							, intensity		, "", updateBoundingBox)
+			(glm::vec3						, color			, "", updateBoundingBox)
+			(bool							, castShadows	)
+			(bool							, useFlare		)
+			(AssetHandle<MaterialInstance>	, flareMaterial	)
+		)
 	)
 
 public:
 
-	ResourcePtr<MaterialInstance> flareMaterial;
+	//ResourcePtr<MaterialInstance> flareMaterial;
 
 	Light(float _intensity, glm::vec3 _color);
 	virtual ~Light();
@@ -94,11 +95,11 @@ struct PointLight : public Light
 	COMPONENT_IMPLEMENTATION_HEADER(PointLight)
 
 	CLASS((PointLight, Light),
-	((PUBLIC)
-		// Point light parameters
-		(glm::vec3		, position		)
-		(BoxCollider	, boundingBox	)
-	)
+		((PUBLIC)
+			// Point light parameters
+			(glm::vec3		, position		)
+			(BoxCollider	, boundingBox	)
+		)
 	)
 
 public:

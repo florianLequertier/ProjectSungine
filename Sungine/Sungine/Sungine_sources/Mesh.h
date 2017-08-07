@@ -107,9 +107,9 @@ public:
 	//////////////////////////////////////////////////////////
 	void createNewAssetFile(const FileHandler::CompletePath& filePath) override;
 	void loadFromFile(const FileHandler::CompletePath& filePath) override;
-	void saveToFile(const FileHandler::CompletePath& filePath) override;
-	void saveMetas(const FileHandler::CompletePath& filePath) override;
-	void loadMetas(const FileHandler::CompletePath& filePath) override;
+	void saveToFile() override;
+	void saveMetas() override;
+	void loadMetas() override;
 	//////////////////////////////////////////////////////////
 
 	//void init(const FileHandler::CompletePath& path, const ID& id) override;
@@ -133,6 +133,7 @@ public:
 	int getSubMeshCount() const;
 	std::shared_ptr<SubMesh> makeSharedSubMesh(int subMeshIndex) const;
 	const AABB& getLocalAABB() const;
+	const glm::vec3& getOrigin() const;
 
 	void computeBoundingBox();
 

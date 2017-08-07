@@ -3,7 +3,8 @@
 
 #include "PostProcess.h"
 #include "Renderer.h"
-#include "Materials.h"
+#include "EngineMaterials.h"
+#include "PostProcessMaterials.h"
 #include "Factories.h"
 #include "EditorTools.h"
 #include "imgui/imgui.h"
@@ -37,7 +38,7 @@ PostProcessManager::PostProcessManager()
 	m_finalFB.unbind();
 
 	////////////////////// INIT BLIT MATERIAL ////////////////////////
-	m_materialBlit.init(*getProgramFactory().getDefault("resizedBlit"));
+	m_materialBlit = EngineMaterialsFactory::instance().getRef("resizedBlit");
 }
 
 void PostProcessManager::onViewportResized(float width, float height)
@@ -249,9 +250,9 @@ float BloomPostProcessOperationData::getGamma() const
 BloomPostProcessOperation::BloomPostProcessOperation(const std::string& operationName)
 	: PostProcessOperation(operationName)
 {
-	m_materialBlur = std::make_shared<MaterialBlur>(*getProgramFactory().getDefault("blur"));
-	m_materialBloom = std::make_shared<MaterialBloom>(*getProgramFactory().getDefault("bloom"));
-	m_materialAdd = std::make_shared<MaterialAdd>(*getProgramFactory().getDefault("add"));
+	m_materialBlur = std::make_shared<MaterialBlur>(PostProcessMaterialsFactory::instance().getRef("blur"));
+	m_materialBloom = std::make_shared<MaterialBloom>(PostProcessMaterialsFactory::instance().getRef("bloom"));
+	m_materialAdd = std::make_shared<MaterialAdd>(PostProcessMaterialsFactory::instance().getRef("add"));
 
 	for (int i = 0; i < 2; i++)
 	{
@@ -423,7 +424,7 @@ REGISTER_POST_PROCESS(FlaresPostProcessOperation, FlaresPostProcessOperationData
 FlaresPostProcessOperationData::FlaresPostProcessOperationData(const std::string & operationName)
 	: PostProcessOperationData(operationName)
 {
-	m_materialFlares.init(*getProgramFactory().getDefault("flares"));
+	m_materialFlares = PostProcessMaterialsFactory::instance().getRef("flares");
 }
 
 
@@ -434,13 +435,13 @@ void FlaresPostProcessOperationData::drawUI()
 
 const MaterialFlares & FlaresPostProcessOperationData::getMaterial() const
 {
-	return m_materialFlares;
+	return *m_materialFlares;
 }
 
 FlaresPostProcessOperation::FlaresPostProcessOperation(const std::string & operationName)
 	: PostProcessOperation(operationName)
 {
-	m_materialAdd = std::make_shared<MaterialAdd>(*getProgramFactory().getDefault("add"));
+	m_materialAdd = PostProcessMaterialsFactory::instance().getRef("add");
 
 	GlHelper::makeFloatColorTexture(m_flaresTexture, 400, 400);
 	m_flaresTexture.initGL();
@@ -715,17 +716,17 @@ REGISTER_POST_PROCESS(SSAOPostProcessOperation, SSAOPostProcessOperationData, "s
 SSAOPostProcessOperationData::SSAOPostProcessOperationData(const std::string & operationName)
 	: PostProcessOperationData(operationName)
 {
-	m_materialSSAO.init(*getProgramFactory().getDefault("ssao"));
+	m_materialSSAO = PostProcessMaterialsFactory::instance().getRef("ssao");
 }
 
 void SSAOPostProcessOperationData::drawUI()
 {
-	m_materialSSAO.drawUI();
+	m_materialSSAO->drawUI();
 }
 
 const MaterialSSAO & SSAOPostProcessOperationData::getMaterial() const
 {
-	return m_materialSSAO;
+	return *m_materialSSAO;
 }
 
 /////////////
@@ -775,7 +776,7 @@ SSAOPostProcessOperation::SSAOPostProcessOperation(const std::string & operation
 	m_ssaoFB.unbind();
 
 	///////////////////////// INIT BLUR MATERIAL ////////////////////////////
-	m_materialBlur.init(*getProgramFactory().getDefault("ssaoBlur"));
+	m_materialBlur = PostProcessMaterialsFactory::instance().getRef("ssaoBlur");
 }
 
 void SSAOPostProcessOperation::render(const PostProcessOperationData & operationData, const BaseCamera & camera, const glm::vec2& texClipSize, GlHelper::Framebuffer & finalFB, Texture & finalTexture, RenderDatas& renderDatas, DebugDrawRenderer * debugDrawer)
@@ -826,12 +827,12 @@ void SSAOPostProcessOperation::render(const PostProcessOperationData & operation
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	m_materialBlur.use();
-	m_materialBlur.glUniform_Resize(texClipSize);
+	m_materialBlur->use();
+	m_materialBlur->glUniform_Resize(texClipSize);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_ssaoTexture.glId);
-	m_materialBlur.glUniform_Texture(0);
+	m_materialBlur->glUniform_Texture(0);
 
 	renderDatas.quadMesh.draw();
 

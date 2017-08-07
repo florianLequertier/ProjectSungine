@@ -124,7 +124,7 @@ class PostProcessManager
 private:
 	GlHelper::Framebuffer m_finalFB;
 	Texture m_finalTexture;
-	MaterialResizedBlit m_materialBlit;
+	std::shared_ptr<MaterialResizedBlit> m_materialBlit;
 
 	std::shared_ptr<PostProcessOperation> m_ssaoOperation;
 	std::vector<std::shared_ptr<PostProcessOperation>> m_operationList;
@@ -198,7 +198,7 @@ public:
 class FlaresPostProcessOperationData : public PostProcessOperationData
 {
 protected:
-	MaterialFlares m_materialFlares;
+	std::shared_ptr<MaterialFlares> m_materialFlares;
 
 public:
 	FlaresPostProcessOperationData(const std::string& operationName);
@@ -233,7 +233,7 @@ public:
 class SSAOPostProcessOperationData : public PostProcessOperationData
 {
 protected:
-	MaterialSSAO m_materialSSAO;
+	std::shared_ptr<MaterialSSAO> m_materialSSAO;
 
 public:
 	SSAOPostProcessOperationData(const std::string& operationName);
@@ -251,7 +251,7 @@ private:
 	Texture m_ssaoTexture;
 	GlHelper::Framebuffer m_ssaoFB;
 
-	MaterialSSAOBlur m_materialBlur;
+	std::shared_ptr<MaterialSSAOBlur> m_materialBlur;
 
 public:
 	SSAOPostProcessOperation(const std::string& operationName);
