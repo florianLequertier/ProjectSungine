@@ -1,5 +1,5 @@
 # ProjectSungine
-A small one man made game engine, written in c++, using opengl, dead Imgui, assimp, glfw, bullet.
+A small one man made game engine, written in c++, using opengl, dear Imgui, assimp, glfw, bullet.
 
 ![alt tag](/Other/opengl_engine.jpg?raw=true "Visual")
 
